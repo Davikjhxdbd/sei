@@ -21,7 +21,7 @@ export default function NotFound() {
         </p>
         <Link
           to="/"
-          className="mt-5 inline-flex h-10 items-center rounded-lg bg-ink px-4 text-[13px] font-medium text-white"
+          className="mt-5 inline-flex h-10 items-center rounded-lg bg-strong px-4 text-[13px] font-medium text-white"
         >
           Ir para a central de aplicativos
         </Link>

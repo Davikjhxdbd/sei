@@ -33,7 +33,7 @@ export default function Login() {
   return (
     <div className="grid min-h-screen lg:grid-cols-[1.05fr_0.95fr]">
       {/* Painel de identidade */}
-      <div className="relative hidden overflow-hidden bg-ink lg:flex lg:flex-col lg:justify-between lg:p-12">
+      <div className="relative hidden overflow-hidden bg-strong lg:flex lg:flex-col lg:justify-between lg:p-12">
         <div className="mmv-grid-pattern absolute inset-0 opacity-70" aria-hidden />
         <div
           className="absolute -right-24 -top-24 h-[420px] w-[420px] rounded-full opacity-30 blur-3xl"
@@ -96,7 +96,7 @@ export default function Login() {
       <div className="flex flex-col justify-center bg-canvas px-5 py-10 sm:px-10 lg:px-16">
         <div className="mx-auto w-full max-w-[380px]">
           <div className="mb-8 flex items-center gap-2.5 lg:hidden">
-            <span className="grid h-9 w-9 place-items-center rounded-lg bg-ink text-[12px] font-bold text-white">
+            <span className="grid h-9 w-9 place-items-center rounded-lg bg-strong text-[12px] font-bold text-white">
               MV
             </span>
             <span className="text-[12.5px] font-semibold uppercase tracking-wider2 text-ink">

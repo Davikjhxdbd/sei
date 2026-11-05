@@ -297,7 +297,7 @@ function ModuleForm({
                   className={cx(
                     'flex items-center justify-between rounded-lg border px-3 py-2 text-left text-[12.5px]',
                     active
-                      ? 'border-ink bg-ink/[0.04] font-medium text-ink'
+                      ? 'border-strong bg-strong/[0.04] font-medium text-ink'
                       : 'border-line text-muted',
                   )}
                 >
@@ -305,7 +305,7 @@ function ModuleForm({
                   <span
                     className={cx(
                       'h-3.5 w-3.5 rounded-full border',
-                      active ? 'border-ink bg-ink' : 'border-line',
+                      active ? 'border-strong bg-strong' : 'border-line',
                     )}
                   />
                 </button>

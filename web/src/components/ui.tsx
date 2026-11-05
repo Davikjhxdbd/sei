@@ -26,7 +26,7 @@ const TONES: Record<string, string> = {
   success: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
   warning: 'bg-amber-50 text-amber-700 ring-amber-200',
   danger: 'bg-red-50 text-red-700 ring-red-200',
-  accent: 'bg-[#F6EFE1] text-[#8A6524] ring-[#E4D2AE]',
+  accent: 'bg-brass/10 text-brass-deep ring-brass/25',
 };
 
 export function Badge({
@@ -79,7 +79,7 @@ type ButtonSize = 'sm' | 'md' | 'lg';
 
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
   primary:
-    'bg-ink text-white border border-ink hover:bg-ink-soft hover:border-ink-soft',
+    'bg-strong text-white border border-strong hover:bg-strong-soft hover:border-strong-soft',
   secondary:
     'bg-surface text-ink border border-line hover:border-ink/35 hover:bg-ink/[0.02]',
   ghost: 'bg-transparent text-muted border border-transparent hover:text-ink hover:bg-ink/[0.05]',
@@ -489,7 +489,7 @@ export function FilterPills<T extends string>({
             className={cx(
               'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12.5px] font-medium transition-colors',
               active
-                ? 'border-ink bg-ink text-white'
+                ? 'border-strong bg-strong text-white'
                 : 'border-line bg-surface text-muted hover:border-ink/30 hover:text-ink',
             )}
           >
@@ -534,7 +534,7 @@ export function Avatar({
   return (
     <span
       className={cx(
-        'grid shrink-0 place-items-center rounded-full bg-ink text-white font-semibold tracking-wide',
+        'grid shrink-0 place-items-center rounded-full bg-strong text-white font-semibold tracking-wide',
         sizes[size],
         className,
       )}

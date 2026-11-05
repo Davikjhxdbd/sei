@@ -288,7 +288,7 @@ export default function Schedules() {
               className={cx(
                 'inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border px-3 text-[12.5px] font-medium',
                 mine
-                  ? 'border-ink bg-ink text-white'
+                  ? 'border-strong bg-strong text-white'
                   : 'border-line bg-surface text-muted',
               )}
             >

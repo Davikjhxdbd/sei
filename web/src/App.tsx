@@ -35,7 +35,7 @@ import Media from './pages/studio/Media';
 
 function FullScreenLoader() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-ink">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-strong">
       <span className="grid h-11 w-11 place-items-center rounded-xl bg-brass text-sm font-bold text-white">
         MV
       </span>
@@ -102,7 +102,7 @@ function ModuleLayout({ moduleKey }: { moduleKey: string }) {
           </p>
           <Link
             to="/"
-            className="mt-4 inline-flex h-9 items-center rounded-lg bg-ink px-3 text-[12.5px] font-medium text-white"
+            className="mt-4 inline-flex h-9 items-center rounded-lg bg-strong px-3 text-[12.5px] font-medium text-white"
           >
             Voltar à central
           </Link>

@@ -249,7 +249,7 @@ export default function Presets() {
               type="checkbox"
               checked={active}
               onChange={(event) => setActive(event.target.checked)}
-              className="h-3.5 w-3.5 accent-[#0E1A2B]"
+              className="h-3.5 w-3.5 accent-ink"
             />
             Preset ativo
           </label>

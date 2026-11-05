@@ -44,8 +44,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             className={cx(
               'mmv-fade-in pointer-events-auto flex items-start gap-2 rounded-xl border px-3.5 py-2.5 text-[12.5px] shadow-lift',
               item.tone === 'success'
-                ? 'border-emerald-200 bg-white text-emerald-900'
-                : 'border-red-200 bg-white text-red-800',
+                ? 'border-emerald-200 bg-surface text-emerald-900'
+                : 'border-red-200 bg-surface text-red-800',
             )}
           >
             {item.tone === 'success' ? (

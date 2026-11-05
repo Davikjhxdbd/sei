@@ -187,7 +187,7 @@ export default function Checklists() {
             className={cx(
               'rounded-full border px-3 py-1.5 text-[12.5px] font-medium',
               tab === item.value
-                ? 'border-ink bg-ink text-white'
+                ? 'border-strong bg-strong text-white'
                 : 'border-line bg-surface text-muted',
             )}
           >
@@ -477,7 +477,7 @@ export default function Checklists() {
               type="checkbox"
               checked={active}
               onChange={(event) => setActive(event.target.checked)}
-              className="h-3.5 w-3.5 accent-[#0E1A2B]"
+              className="h-3.5 w-3.5 accent-ink"
             />
             Modelo disponível para novas execuções
           </label>

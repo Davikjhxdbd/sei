@@ -2,7 +2,103 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Design System — tema claro (padrão) */
 @layer base {
+  :root {
+    color-scheme: light;
+
+    --mmv-ink: 14 26 43;
+    --mmv-ink-soft: 23 38 58;
+    --mmv-ink-line: 35 52 72;
+    --mmv-canvas: 246 244 239;
+    --mmv-surface: 255 255 255;
+    --mmv-line: 228 223 213;
+    --mmv-muted: 108 118 136;
+    --mmv-strong: 14 26 43;
+    --mmv-strong-soft: 23 38 58;
+
+    --mmv-brass: 176 133 67;
+    --mmv-brass-soft: 217 195 155;
+    --mmv-brass-deep: 138 101 36;
+    --mmv-studio: 59 79 160;
+    --mmv-studio-soft: 231 233 247;
+    --mmv-production: 18 121 107;
+
+    --mmv-selection-bg: #d9c39b;
+    --mmv-selection-ink: #0e1a2b;
+    --mmv-focus: 59 79 160;
+    --mmv-scroll-thumb: #cfc9bd;
+
+    --mmv-shadow-card: 0 1px 2px rgba(14, 26, 43, 0.04),
+      0 8px 24px -16px rgba(14, 26, 43, 0.24);
+    --mmv-shadow-lift: 0 18px 40px -24px rgba(14, 26, 43, 0.45);
+
+    --mmv-red-50: 254 242 242;
+    --mmv-red-200: 254 202 202;
+    --mmv-red-600: 220 38 38;
+    --mmv-red-700: 185 28 28;
+    --mmv-red-800: 153 27 27;
+    --mmv-amber-50: 255 251 235;
+    --mmv-amber-100: 254 243 199;
+    --mmv-amber-200: 253 230 138;
+    --mmv-amber-700: 180 83 9;
+    --mmv-amber-800: 146 64 14;
+    --mmv-amber-900: 120 53 15;
+    --mmv-emerald-50: 236 253 245;
+    --mmv-emerald-200: 167 243 208;
+    --mmv-emerald-600: 5 150 105;
+    --mmv-emerald-700: 4 120 87;
+    --mmv-emerald-900: 6 78 59;
+  }
+
+  /* Design System — tema escuro */
+  .dark {
+    color-scheme: dark;
+
+    --mmv-ink: 231 236 244;
+    --mmv-ink-soft: 214 223 236;
+    --mmv-ink-line: 190 203 220;
+    --mmv-canvas: 10 16 26;
+    --mmv-surface: 18 26 39;
+    --mmv-line: 37 49 64;
+    --mmv-muted: 148 161 179;
+    --mmv-strong: 22 34 58;
+    --mmv-strong-soft: 30 44 70;
+
+    --mmv-brass: 201 160 99;
+    --mmv-brass-soft: 224 203 166;
+    --mmv-brass-deep: 216 190 140;
+    --mmv-studio: 143 158 235;
+    --mmv-studio-soft: 30 38 62;
+    --mmv-production: 74 184 163;
+
+    --mmv-selection-bg: #2f3f5c;
+    --mmv-selection-ink: #eef2f8;
+    --mmv-focus: 143 158 235;
+    --mmv-scroll-thumb: #2f3d50;
+
+    --mmv-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4),
+      0 10px 26px -18px rgba(0, 0, 0, 0.8);
+    --mmv-shadow-lift: 0 20px 44px -26px rgba(0, 0, 0, 0.9);
+
+    --mmv-red-50: 58 26 30;
+    --mmv-red-200: 122 45 45;
+    --mmv-red-600: 248 113 113;
+    --mmv-red-700: 252 165 165;
+    --mmv-red-800: 254 202 202;
+    --mmv-amber-50: 58 44 20;
+    --mmv-amber-100: 76 56 26;
+    --mmv-amber-200: 120 87 38;
+    --mmv-amber-700: 252 211 77;
+    --mmv-amber-800: 253 230 138;
+    --mmv-amber-900: 254 243 199;
+    --mmv-emerald-50: 20 48 40;
+    --mmv-emerald-200: 31 87 71;
+    --mmv-emerald-600: 52 211 153;
+    --mmv-emerald-700: 110 231 183;
+    --mmv-emerald-900: 209 250 229;
+  }
+
   html {
     -webkit-text-size-adjust: 100%;
   }
@@ -13,12 +109,12 @@
   }
 
   ::selection {
-    background: #d9c39b;
-    color: #0e1a2b;
+    background: var(--mmv-selection-bg);
+    color: var(--mmv-selection-ink);
   }
 
   :focus-visible {
-    outline: 2px solid #3b4fa0;
+    outline: 2px solid rgb(var(--mmv-focus));
     outline-offset: 2px;
   }
 }
@@ -38,7 +134,7 @@
 
   .mmv-scroll {
     scrollbar-width: thin;
-    scrollbar-color: #c8c2b6 transparent;
+    scrollbar-color: var(--mmv-scroll-thumb) transparent;
   }
 
   .mmv-scroll::-webkit-scrollbar {
@@ -47,7 +143,7 @@
   }
 
   .mmv-scroll::-webkit-scrollbar-thumb {
-    background: #cfc9bd;
+    background: var(--mmv-scroll-thumb);
     border-radius: 999px;
   }
 

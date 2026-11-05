@@ -145,7 +145,7 @@ export default function Dashboard() {
           )}
           <Link
             to="/m/studio/checklists"
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-ink px-3 text-[12.5px] font-medium text-white"
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-strong px-3 text-[12.5px] font-medium text-white"
           >
             <ClipboardList className="h-4 w-4" /> Checklists
           </Link>

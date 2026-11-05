@@ -445,7 +445,7 @@ function UserFormModal({
                   className={cx(
                     'flex items-center justify-between rounded-lg border px-3 py-2 text-left text-[12.5px] transition-colors',
                     active
-                      ? 'border-ink bg-ink/[0.04] font-medium text-ink'
+                      ? 'border-strong bg-strong/[0.04] font-medium text-ink'
                       : 'border-line text-muted hover:border-ink/30',
                   )}
                 >
@@ -453,7 +453,7 @@ function UserFormModal({
                   <span
                     className={cx(
                       'h-3.5 w-3.5 rounded-full border',
-                      active ? 'border-ink bg-ink' : 'border-line',
+                      active ? 'border-strong bg-strong' : 'border-line',
                     )}
                   />
                 </button>
@@ -485,7 +485,7 @@ function UserFormModal({
                       onChange={() =>
                         setSelectedSectors((current) => toggle(current, sector.id))
                       }
-                      className="h-3.5 w-3.5 accent-[#0E1A2B]"
+                      className="h-3.5 w-3.5 accent-ink"
                     />
                     <span className={active ? 'text-ink' : 'text-muted'}>
                       {sector.name}
@@ -499,7 +499,7 @@ function UserFormModal({
                         onChange={() =>
                           setLeadSectors((current) => toggle(current, sector.id))
                         }
-                        className="h-3 w-3 accent-[#B08543]"
+                        className="h-3 w-3 accent-brass"
                       />
                       liderança neste setor
                     </label>

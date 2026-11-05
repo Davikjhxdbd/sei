@@ -225,7 +225,7 @@ export default function ReportDetail() {
                       checked={section.not_applicable}
                       disabled={locked}
                       onChange={() => toggleNotApplicable(section)}
-                      className="h-3.5 w-3.5 accent-[#0E1A2B]"
+                      className="h-3.5 w-3.5 accent-ink"
                     />
                     não aplicável
                   </label>
@@ -316,7 +316,7 @@ export default function ReportDetail() {
                     <span
                       className={cx(
                         'grid h-5 w-5 place-items-center rounded-full text-[10px] font-semibold',
-                        active ? 'bg-ink text-white' : 'bg-ink/[0.06] text-muted',
+                        active ? 'bg-strong text-white' : 'bg-ink/[0.06] text-muted',
                       )}
                     >
                       {active ? '•' : ''}

@@ -510,7 +510,7 @@ export default function ProblemDetail() {
                     className={cx(
                       'rounded-lg border px-2 py-1.5 text-[11.5px] transition-colors',
                       problem.status === value
-                        ? 'border-ink bg-ink text-white'
+                        ? 'border-strong bg-strong text-white'
                         : 'border-line text-muted hover:border-ink/30 hover:text-ink',
                     )}
                   >
@@ -661,7 +661,7 @@ export default function ProblemDetail() {
                   requires_authorization: event.target.checked,
                 }))
               }
-              className="h-3.5 w-3.5 accent-[#0E1A2B]"
+              className="h-3.5 w-3.5 accent-ink"
             />
             Esta solução exige autorização formal
           </label>
@@ -756,7 +756,7 @@ export default function ProblemDetail() {
                             : [...current, person.id],
                         )
                       }
-                      className="h-3.5 w-3.5 accent-[#0E1A2B]"
+                      className="h-3.5 w-3.5 accent-ink"
                     />
                     {person.full_name}
                   </label>

@@ -214,13 +214,13 @@ export default function AuditPage() {
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <p className="mmv-label mb-1">Estado anterior</p>
-                <pre className={cx('mmv-scroll max-h-64 overflow-auto rounded-lg bg-ink p-3 text-[11px] leading-relaxed text-white/80')}>
+                <pre className={cx('mmv-scroll max-h-64 overflow-auto rounded-lg bg-strong p-3 text-[11px] leading-relaxed text-white/80')}>
                   {pretty(selected.before)}
                 </pre>
               </div>
               <div>
                 <p className="mmv-label mb-1">Novo estado</p>
-                <pre className="mmv-scroll max-h-64 overflow-auto rounded-lg bg-ink p-3 text-[11px] leading-relaxed text-white/80">
+                <pre className="mmv-scroll max-h-64 overflow-auto rounded-lg bg-strong p-3 text-[11px] leading-relaxed text-white/80">
                   {pretty(selected.after)}
                 </pre>
               </div>

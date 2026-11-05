@@ -13,6 +13,7 @@ import { useAuth } from '../../lib/auth';
 import { ROLE_LABELS } from '../../lib/format';
 import type { ModuleRecord } from '../../lib/types';
 import { Avatar, cx } from '../ui';
+import { ThemeToggle } from '../ThemeToggle';
 import {
   moduleIcon,
   navGroups,
@@ -111,7 +112,7 @@ function ModuleSwitcher({
               !module && 'bg-ink/[0.03] font-medium',
             )}
           >
-            <span className="grid h-7 w-7 place-items-center rounded-lg bg-ink text-white">
+            <span className="grid h-7 w-7 place-items-center rounded-lg bg-strong text-white">
               <LayoutGrid className="h-3.5 w-3.5" />
             </span>
             <span className="flex-1">
@@ -270,7 +271,7 @@ export function Shell({
 
   return (
     <div className="min-h-screen bg-canvas">
-      <header className="sticky top-0 z-40 bg-ink">
+      <header className="sticky top-0 z-40 bg-strong">
         <div className="mx-auto flex h-14 max-w-[1500px] items-center gap-3 px-3 sm:px-5">
           <Brand />
           <div className="mx-1 hidden h-6 w-px bg-white/10 sm:block" />
@@ -283,6 +284,7 @@ export function Shell({
             }}
           />
           <div className="flex-1" />
+          <ThemeToggle />
           <Link
             to="/notifications"
             aria-label={
@@ -338,7 +340,7 @@ export function Shell({
                         cx(
                           'flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] transition-colors',
                           isActive
-                            ? 'bg-ink font-medium text-white'
+                            ? 'bg-strong font-medium text-white'
                             : 'text-ink/75 hover:bg-ink/[0.05] hover:text-ink',
                         )
                       }
@@ -382,7 +384,7 @@ export function Shell({
                       cx(
                         'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-medium',
                         isActive
-                          ? 'border-ink bg-ink text-white'
+                          ? 'border-strong bg-strong text-white'
                           : 'border-line bg-surface text-muted',
                       )
                     }

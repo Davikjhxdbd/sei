@@ -33,7 +33,7 @@ export default function AppCentral() {
     <Shell>
       <div className="space-y-8">
         {/* Identidade e saudação */}
-        <section className="relative overflow-hidden rounded-xl2 bg-ink px-5 py-6 text-white sm:px-8 sm:py-8">
+        <section className="relative overflow-hidden rounded-xl2 bg-strong px-5 py-6 text-white sm:px-8 sm:py-8">
           <div
             className="mmv-grid-pattern absolute inset-0 opacity-60"
             aria-hidden
@@ -186,7 +186,7 @@ export default function AppCentral() {
                       <span
                         className={cx(
                           'grid h-8 w-8 place-items-center rounded-full border border-line text-ink/60 transition-colors',
-                          'group-hover:border-transparent group-hover:bg-ink group-hover:text-white',
+                          'group-hover:border-transparent group-hover:bg-strong group-hover:text-white',
                         )}
                       >
                         <ArrowUpRight className="h-4 w-4" />

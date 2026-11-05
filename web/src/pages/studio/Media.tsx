@@ -231,7 +231,7 @@ export default function Media() {
             className={cx(
               'rounded-xl border px-3 py-2.5 text-left transition-colors',
               status === key
-                ? 'border-ink bg-ink text-white'
+                ? 'border-strong bg-strong text-white'
                 : 'border-line bg-surface hover:border-ink/25',
             )}
           >
