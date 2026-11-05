@@ -14,8 +14,10 @@ export const badRequest = (m: string, d?: unknown) =>
   new ApiError(400, m, 'bad_request', d);
 export const unauthorized = (m = 'Sessão inválida ou expirada.') =>
   new ApiError(401, m, 'unauthenticated');
-export const forbidden = (m = 'Você não tem autorização para esta operação.') =>
-  new ApiError(403, m, 'forbidden');
+export const forbidden = (
+  m = 'Você não tem autorização para esta operação.',
+  code = 'forbidden',
+) => new ApiError(403, m, code);
 export const notFound = (m = 'Registro não encontrado.') =>
   new ApiError(404, m, 'not_found');
 export const conflict = (m: string) => new ApiError(409, m, 'conflict');

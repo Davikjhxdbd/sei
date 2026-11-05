@@ -104,13 +104,18 @@ export function setSessionCookie(res: any, token: string, expiresAt: Date) {
   res.cookie(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
     path: '/',
     expires: expiresAt,
   });
 }
 
 export function clearSessionCookie(res: any) {
-  res.clearCookie(SESSION_COOKIE, { path: '/' });
+  res.clearCookie(SESSION_COOKIE, {
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+  });
 }
 
 /** Publica o contexto do ator para as guardas do banco. */

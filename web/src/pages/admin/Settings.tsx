@@ -51,7 +51,7 @@ export default function SettingsPage() {
         .split('\n')
         .map((line) => line.trim())
         .filter(Boolean);
-      if (!value.length) {
+      if (!Array.isArray(value) || value.length === 0) {
         toast.push('Informe ao menos uma opção.', 'error');
         return;
       }
