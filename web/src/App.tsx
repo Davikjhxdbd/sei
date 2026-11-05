@@ -4,12 +4,13 @@ import { Shell } from './components/layout/Shell';
 import { ADMIN_NAV, MODULE_NAV } from './modules/registry';
 import { Spinner } from './components/ui';
 import { Link } from 'react-router-dom';
-import { ShieldAlert } from 'lucide-react';
+import { CircleHelp, ShieldAlert } from 'lucide-react';
 
 import Login from './pages/Login';
 import AppCentral from './pages/AppCentral';
 import Notifications from './pages/Notifications';
 import Profile from './pages/Profile';
+import Help from './pages/Help';
 import NotFound from './pages/NotFound';
 
 import UsersPage from './pages/admin/Users';
@@ -54,7 +55,19 @@ function Protected() {
   if (!user) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
-  return <Outlet />;
+  return (
+    <>
+      <Outlet />
+      <Link
+        to="/help"
+        aria-label="Central de ajuda"
+        title="Central de ajuda"
+        className="fixed bottom-5 right-5 z-50 grid h-11 w-11 place-items-center rounded-full bg-strong text-white shadow-lift transition-transform hover:scale-105 hover:bg-strong-soft"
+      >
+        <CircleHelp className="h-5 w-5" />
+      </Link>
+    </>
+  );
 }
 
 function Gate({ level, children }: { level: number; children: JSX.Element }) {
@@ -134,6 +147,7 @@ export default function App() {
 
       <Route element={<Protected />}>
         <Route path="/" element={<AppCentral />} />
+        <Route path="/help" element={<Help />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/profile" element={<Profile />} />
 
