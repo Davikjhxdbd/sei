@@ -1,0 +1,100 @@
+name: mmv-connect
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: mmv
+      POSTGRES_PASSWORD: mmv_local_dev
+      POSTGRES_DB: mmv_connect
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U mmv -d mmv_connect']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: on-failure
+
+  # Aplica migrações e popula a base na primeira execução.
+  migrate:
+    image: node:22-alpine
+    working_dir: /workspace/server
+    volumes:
+      - ./:/workspace
+      - server_node_modules:/workspace/server/node_modules
+    environment:
+      DATABASE_URL: postgresql://mmv:mmv_local_dev@db:5432/mmv_connect
+      SEED_PASSWORD: MMVconnect#2026
+    command:
+      - sh
+      - -ec
+      - npm ci --no-audit --no-fund && npm run migrate && npm run seed
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: 'no'
+
+  api:
+    image: node:22-alpine
+    working_dir: /workspace/server
+    volumes:
+      - ./:/workspace
+      - server_node_modules:/workspace/server/node_modules
+    environment:
+      DATABASE_URL: postgresql://mmv:mmv_local_dev@db:5432/mmv_connect
+      PORT: '4000'
+      NODE_ENV: development
+      CHOKIDAR_USEPOLLING: '1'
+    command:
+      - sh
+      - -ec
+      - npm ci --no-audit --no-fund && exec npm run dev
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - node -e "fetch('http://127.0.0.1:4000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: on-failure
+
+  web:
+    image: node:22-alpine
+    working_dir: /workspace/web
+    ports:
+      - '3000:5173'
+    volumes:
+      - ./:/workspace
+      - web_node_modules:/workspace/web/node_modules
+    environment:
+      VITE_API_PROXY: http://api:4000
+      CHOKIDAR_USEPOLLING: '1'
+      # Encaminhado pelo preview do sandbox: libera o host público no Vite.
+      BASE44_PREVIEW_MODE:
+      __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS:
+    command:
+      - sh
+      - -ec
+      - npm ci --no-audit --no-fund && exec npm run dev -- --host 0.0.0.0 --port 5173
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - node -e "fetch('http://127.0.0.1:5173/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: on-failure
+
+volumes:
+  pgdata:
+  server_node_modules:
+  web_node_modules:
