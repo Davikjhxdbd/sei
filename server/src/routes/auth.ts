@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import crypto from 'node:crypto';
 import { asyncHandler, badRequest, forbidden, unauthorized } from '../http';
 import {
   clearSessionCookie,
@@ -72,6 +73,210 @@ export async function buildBootstrap(db: any, user: any) {
   };
 }
 
+
+const recoveryAttempts = new Map<string, { count: number; resetAt: number }>();
+
+function recoveryAllowed(ip: string) {
+  const now = Date.now();
+  const entry = recoveryAttempts.get(ip);
+
+  if (!entry || entry.resetAt < now) {
+    recoveryAttempts.set(ip, { count: 1, resetAt: now + 15 * 60_000 });
+    return true;
+  }
+
+  if (entry.count >= 10) return false;
+  entry.count += 1;
+  return true;
+}
+
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  })[char] ?? char);
+}
+
+router.post(
+  '/forgot-password',
+  asyncHandler(async (req, res) => {
+    const email = String(req.body?.email ?? '').trim().toLowerCase();
+    const ip = req.ip ?? '';
+
+    // Resposta genérica para não revelar se um e-mail está cadastrado.
+    const response = {
+      ok: true,
+      message: 'Se o endereço estiver cadastrado, você receberá as instruções por e-mail.',
+    };
+
+    if (!recoveryAllowed(ip)) {
+      return res.json(response);
+    }
+
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.length > 254) {
+      return res.json(response);
+    }
+
+    const apiKey = process.env.RESEND_API_KEY;
+    const from = process.env.MAIL_FROM;
+    const appUrl = (process.env.APP_URL || 'https://mmv-connect.pages.dev')
+      .replace(/\/+$/, '');
+
+    if (!apiKey || !from) {
+      console.error('[auth] recuperação indisponível: configure RESEND_API_KEY e MAIL_FROM.');
+      return res.json(response);
+    }
+
+    const { rows } = await req.db.query(
+      `select id, full_name, email
+         from users
+        where lower(email) = $1
+          and status = 'active'
+        limit 1`,
+      [email],
+    );
+
+    if (!rows.length) return res.json(response);
+
+    const user = rows[0];
+    const token = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const expiresAt = new Date(Date.now() + 30 * 60_000);
+
+    await req.db.query(
+      `delete from password_resets
+        where user_id = $1 and used_at is null`,
+      [user.id],
+    );
+
+    await req.db.query(
+      `insert into password_resets (token_hash, user_id, expires_at)
+       values ($1, $2, $3)`,
+      [tokenHash, user.id, expiresAt],
+    );
+
+    const resetUrl = `${appUrl}/reset-password?token=${encodeURIComponent(token)}`;
+    const safeName = escapeHtml(user.full_name || 'usuário');
+
+    try {
+      const emailResponse = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from,
+          to: [user.email],
+          subject: 'Recuperação de senha — MMV CREATIVE',
+          html: `
+            <div style="margin:0;padding:40px 16px;background:#111111;font-family:Arial,sans-serif;color:#f4f2ed">
+              <div style="max-width:520px;margin:auto;padding:36px;background:#1b1b1b;border:1px solid #39342a;border-radius:16px">
+                <p style="font-size:12px;letter-spacing:4px;color:#c4a66a;font-weight:bold">MMV CREATIVE</p>
+                <h1 style="font-size:28px;margin:28px 0 12px">Recuperação de acesso</h1>
+                <p style="color:#c5c1b9;line-height:1.7">Olá, ${safeName}. Recebemos uma solicitação para redefinir a senha da sua conta.</p>
+                <p style="color:#c5c1b9;line-height:1.7">Clique no botão abaixo para cadastrar uma nova senha. Este link expira em 30 minutos e só pode ser utilizado uma vez.</p>
+                <a href="${resetUrl}" style="display:inline-block;margin:20px 0;padding:15px 24px;background:#c4a66a;color:#111111;text-decoration:none;font-weight:bold;border-radius:8px">CRIAR NOVA SENHA</a>
+                <p style="font-size:12px;color:#888;line-height:1.7">Se você não solicitou esta alteração, ignore este e-mail. Sua senha atual continuará válida.</p>
+                <p style="font-size:11px;color:#777;margin-top:28px">MMV CREATIVE · Plataforma integrada</p>
+              </div>
+            </div>
+          `,
+          text: `Olá, ${user.full_name}. Para redefinir sua senha, acesse: ${resetUrl}. O link expira em 30 minutos. Se não solicitou, ignore este e-mail.`,
+        }),
+      });
+
+      if (!emailResponse.ok) {
+        const detail = await emailResponse.text();
+        throw new Error(`Resend ${emailResponse.status}: ${detail}`);
+      }
+    } catch (error) {
+      await req.db.query(
+        'delete from password_resets where token_hash = $1',
+        [tokenHash],
+      );
+      console.error('[auth] falha ao enviar recuperação:', error);
+    }
+
+    res.json(response);
+  }),
+);
+
+router.post(
+  '/reset-password',
+  asyncHandler(async (req, res) => {
+    const token = String(req.body?.token ?? '');
+    const nextPassword = String(req.body?.new_password ?? '');
+
+    if (nextPassword.length < 8 || nextPassword.length > 128) {
+      throw badRequest('A nova senha deve ter entre 8 e 128 caracteres.', {
+        field: 'new_password',
+      });
+    }
+
+    if (!/^[a-f0-9]{64}$/i.test(token)) {
+      throw badRequest('Este link é inválido ou expirou.');
+    }
+
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const db = req.db;
+
+    await db.query('begin');
+
+    try {
+      const { rows } = await db.query(
+        `select user_id
+           from password_resets
+          where token_hash = $1
+            and used_at is null
+            and expires_at > now()
+          for update`,
+        [tokenHash],
+      );
+
+      if (!rows.length) {
+        await db.query('rollback');
+        throw badRequest('Este link é inválido ou expirou. Solicite uma nova recuperação.');
+      }
+
+      const userId = rows[0].user_id;
+
+      await db.query(
+        `update users
+            set password_hash = $1, updated_at = now()
+          where id = $2`,
+        [hashPassword(nextPassword), userId],
+      );
+
+      // Revoga todas as sessões anteriores à troca de senha.
+      await db.query('delete from sessions where user_id = $1', [userId]);
+
+      await db.query(
+        `update password_resets
+            set used_at = now()
+          where token_hash = $1`,
+        [tokenHash],
+      );
+
+      await db.query(
+        `delete from password_resets
+          where user_id = $1 and token_hash <> $2`,
+        [userId, tokenHash],
+      );
+
+      await db.query('commit');
+      res.json({ ok: true, message: 'Senha redefinida com sucesso.' });
+    } catch (error) {
+      await db.query('rollback').catch(() => undefined);
+      throw error;
+    }
+  }),
+);
+
+
 router.post(
   '/login',
   asyncHandler(async (req, res) => {
@@ -85,11 +290,15 @@ router.post(
     const key = throttleKey(username, req.ip ?? '');
     checkThrottle(key);
 
+    console.log('[LOGIN 1] buscando conta');
     const { rows } = await db.query(
       `select id, password_hash, status from users where lower(username) = lower($1)`,
       [username],
     );
     const row = rows[0];
+    console.log('[LOGIN DEBUG] conta encontrada:', !!row);
+    console.log('[LOGIN DEBUG] hash presente:', !!row?.password_hash);
+    console.log('[LOGIN DEBUG] senha válida:', !!row && verifyPassword(password, row.password_hash));
 
     if (!row || !verifyPassword(password, row.password_hash)) {
       registerFailure(key);
@@ -108,17 +317,22 @@ router.post(
 
     attempts.delete(key);
 
+    console.log('[LOGIN 2] criando sessão');
     const { token, expiresAt } = await createSession(
       db,
       row.id,
       req.headers['user-agent'],
     );
+    console.log('[LOGIN 3] atualizando último acesso');
     await db.query('update users set last_login_at = now() where id = $1', [
       row.id,
     ]);
 
+    console.log('[LOGIN 4] carregando perfil');
     const user = await loadUser(db, row.id);
+    console.log('[LOGIN 5] configurando contexto');
     await setActorContext(db, user);
+    console.log('[LOGIN 6] registrando auditoria');
     await audit(db, user, {
       action: 'auth.login',
       entity: 'session',
@@ -127,7 +341,9 @@ router.post(
     });
 
     setSessionCookie(res, token, expiresAt);
+    console.log('[LOGIN 7] carregando módulos e notificações');
     res.json(await buildBootstrap(db, user));
+    console.log('[LOGIN OK] concluído');
   }),
 );
 

@@ -60,7 +60,7 @@ export default {
       },
       fontFamily: {
         sans: [
-          'Inter',
+          'Montserrat',
           'ui-sans-serif',
           'system-ui',
           '-apple-system',
@@ -70,7 +70,7 @@ export default {
           'Arial',
           'sans-serif',
         ],
-        display: ['Georgia', 'Cambria', 'Times New Roman', 'serif'],
+        display: ['Degular Display', 'Montserrat', 'sans-serif'],
       },
       boxShadow: {
         card: 'var(--mmv-shadow-card)',

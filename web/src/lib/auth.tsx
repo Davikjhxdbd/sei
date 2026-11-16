@@ -22,7 +22,31 @@ interface AuthContextValue {
   user: User | null;
 }
 
+
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+let pendingWelcomeAudio: HTMLAudioElement | null = null;
+
+export function startWelcomeAudio() {
+  const audio = new Audio('/audio/welcome.mp3');
+  audio.preload = 'auto';
+  pendingWelcomeAudio = audio;
+  audio.play().catch(() => {});
+  return audio;
+}
+
+export function takeWelcomeAudio() {
+  const audio = pendingWelcomeAudio;
+  pendingWelcomeAudio = null;
+  return audio;
+}
+
+export function stopWelcomeAudio(audio: HTMLAudioElement) {
+  audio.pause();
+  audio.currentTime = 0;
+  if (pendingWelcomeAudio === audio) pendingWelcomeAudio = null;
+}
+
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<Bootstrap | null>(null);
@@ -40,7 +64,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    refresh().finally(() => setLoading(false));
+    let active = true;
+
+    refresh()
+      .catch(() => {
+        if (active) setState(null);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, [refresh]);
 
   useEffect(() => {
@@ -51,6 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (username: string, password: string) => {
     const data = await post<Bootstrap>('/auth/login', { username, password });
+    sessionStorage.removeItem('mmv-welcome-seen');
     setState(data);
   }, []);
 

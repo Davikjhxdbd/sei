@@ -10,14 +10,8 @@ import {
 export type Theme = 'light' | 'dark';
 
 const STORAGE_KEY = 'mmv.theme';
+const DEFAULT_THEME: Theme = 'dark';
 
-function systemTheme(): Theme {
-  return window.matchMedia('(prefers-color-scheme: dark)').matches
-    ? 'dark'
-    : 'light';
-}
-
-/** Preferência do usuário; sem escolha salva, segue o sistema. */
 function storedTheme(): Theme | null {
   const value = localStorage.getItem(STORAGE_KEY);
   return value === 'light' || value === 'dark' ? value : null;
@@ -25,12 +19,12 @@ function storedTheme(): Theme | null {
 
 function applyTheme(theme: Theme) {
   const root = document.documentElement;
-  root.classList.toggle('dark', theme === 'dark');
+  root.classList.toggle('light', theme === 'light');
+  root.classList.remove('dark');
   root.style.colorScheme = theme;
 }
 
-// Aplica antes da primeira pintura para não piscar o tema claro.
-applyTheme(storedTheme() ?? systemTheme());
+applyTheme(storedTheme() ?? DEFAULT_THEME);
 
 interface ThemeContextValue {
   theme: Theme;
@@ -39,13 +33,15 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  theme: 'light',
+  theme: DEFAULT_THEME,
   setTheme: () => undefined,
   toggleTheme: () => undefined,
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(storedTheme() ?? systemTheme());
+  const [theme, setThemeState] = useState<Theme>(
+    storedTheme() ?? DEFAULT_THEME
+  );
 
   useEffect(() => {
     applyTheme(theme);

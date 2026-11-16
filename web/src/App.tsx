@@ -1,5 +1,6 @@
+import { useEffect, useRef, useState } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
-import { useAuth } from './lib/auth';
+import { useAuth, takeWelcomeAudio } from './lib/auth';
 import { Shell } from './components/layout/Shell';
 import { ADMIN_NAV, MODULE_NAV } from './modules/registry';
 import { Spinner } from './components/ui';
@@ -7,7 +8,9 @@ import { Link } from 'react-router-dom';
 import { CircleHelp, ShieldAlert } from 'lucide-react';
 
 import Login from './pages/Login';
+import ResetPassword from './pages/ResetPassword';
 import AppCentral from './pages/AppCentral';
+import CalendarPage from './pages/Calendar';
 import Notifications from './pages/Notifications';
 import Profile from './pages/Profile';
 import Help from './pages/Help';
@@ -20,6 +23,7 @@ import SettingsPage from './pages/admin/Settings';
 import AuditPage from './pages/admin/Audit';
 
 import Dashboard from './pages/studio/Dashboard';
+import Production from './pages/studio/Production';
 import Events from './pages/studio/Events';
 import EventDetail from './pages/studio/EventDetail';
 import Presets from './pages/studio/Presets';
@@ -33,6 +37,7 @@ import Problems from './pages/studio/Problems';
 import ProblemDetail from './pages/studio/ProblemDetail';
 import Schedules from './pages/studio/Schedules';
 import Media from './pages/studio/Media';
+import Department from './pages/studio/Department';
 
 function FullScreenLoader() {
   return (
@@ -48,6 +53,87 @@ function FullScreenLoader() {
   );
 }
 
+
+function WelcomeExperience() {
+  const { user } = useAuth();
+  const [visible, setVisible] = useState(false);
+  const [closing, setClosing] = useState(false);
+  const [needsTap, setNeedsTap] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const startedRef = useRef(false);
+
+  useEffect(() => {
+    if (!user || startedRef.current) return;
+    if (sessionStorage.getItem('mmv-welcome-seen') === '1') return;
+
+    startedRef.current = true;
+    sessionStorage.setItem('mmv-welcome-seen', '1');
+    setVisible(true);
+
+    const audio = takeWelcomeAudio() ?? new Audio('/audio/welcome.mp3');
+    audioRef.current = audio;
+
+    audio.onended = () => setClosing(true);
+    if (audio.paused) audio.play().catch(() => setNeedsTap(true));
+
+    return () => {
+      audio.pause();
+      audio.onended = null;
+    };
+  }, [user]);
+
+  if (!visible || !user) return null;
+
+  const playAudio = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.play().then(() => setNeedsTap(false)).catch(() => setNeedsTap(true));
+  };
+
+  return (
+    <div className={`mmv-welcome fixed inset-0 z-[100] flex items-center justify-center bg-[#050505] px-6 text-center ${closing ? "mmv-welcome-exit" : ""}`} onAnimationEnd={(event) => { if (event.target === event.currentTarget && closing) setVisible(false); }}>
+      <div className="mmv-welcome-content flex flex-col items-center">
+        <div className="mmv-welcome-mark mb-8 grid h-16 w-16 place-items-center rounded-2xl border border-[#C4A66A]/40 bg-[#C4A66A]/10 text-xl font-bold tracking-tight text-[#C4A66A]">
+          MV
+        </div>
+
+        <p className="mmv-welcome-brand mb-5 text-[10px] font-semibold uppercase tracking-[0.45em] text-[#C4A66A]/80">
+          MMV CREATIVE
+        </p>
+
+        <h1 className="mmv-welcome-title text-3xl font-light uppercase tracking-[0.12em] text-white sm:text-5xl">
+          Bem-vindo
+        </h1>
+
+        <p className="mmv-welcome-name mt-4 text-sm font-medium tracking-[0.18em] text-[#C4A66A] sm:text-base">
+          {user.full_name}
+        </p>
+
+        <div className="mt-9 h-px w-16 bg-[#C4A66A]/60" />
+
+        {(
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <button
+              type="button"
+              onClick={playAudio}
+              className="rounded-lg bg-[#C4A66A] px-5 py-3 text-xs font-semibold uppercase tracking-wider text-black transition hover:bg-[#d8bd86]"
+            >
+              Ouvir boas-vindas
+            </button>
+            <button
+              type="button"
+              onClick={() => { audioRef.current?.pause(); setClosing(true); }}
+              className="rounded-lg border border-white/20 px-5 py-3 text-xs font-medium uppercase tracking-wider text-white/70 transition hover:bg-white/10"
+            >
+              Continuar
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function Protected() {
   const { user, loading } = useAuth();
   const location = useLocation();
@@ -58,6 +144,7 @@ function Protected() {
   return (
     <>
       <Outlet />
+      <WelcomeExperience />
       <Link
         to="/help"
         aria-label="Central de ajuda"
@@ -144,15 +231,21 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       <Route element={<Protected />}>
         <Route path="/" element={<AppCentral />} />
         <Route path="/help" element={<Help />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/calendar" element={<CalendarPage />} />
 
         <Route path="/m/studio" element={<ModuleLayout moduleKey="studio" />}>
           <Route index element={<Dashboard />} />
+          <Route path="departments/:slug" element={<Department />} />
+          <Route path="production" element={<Production />} />
+          <Route path="production/:slug" element={<Production />} />
+          <Route path="my-space" element={<Production />} />
           <Route path="events" element={<Events />} />
           <Route path="events/:id" element={<EventDetail />} />
           <Route path="presets" element={<Presets />} />
@@ -161,26 +254,11 @@ export default function App() {
           <Route path="reports" element={<Reports />} />
           <Route path="reports/:id" element={<ReportDetail />} />
           <Route path="errors" element={<Errors />} />
-          <Route
-            path="occurrences"
-            element={
-              <Gate level={3}>
-                <Occurrences />
-              </Gate>
-            }
-          />
+          <Route path="occurrences" element={<Gate level={3}><Occurrences /></Gate>} />
           <Route path="problems" element={<Problems />} />
           <Route path="problems/:id" element={<ProblemDetail />} />
           <Route path="schedules" element={<Schedules />} />
           <Route path="media" element={<Media />} />
-          <Route
-            path="settings"
-            element={
-              <Gate level={4}>
-                <SettingsPage />
-              </Gate>
-            }
-          />
         </Route>
 
         <Route path="/admin" element={<AdminLayout />}>

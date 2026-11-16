@@ -10,12 +10,14 @@ import catalogRoutes from './routes/catalog';
 import moduleRoutes from './routes/modules';
 import notificationRoutes from './routes/notifications';
 import profileRoutes from './routes/profile';
+import calendarRoutes from './routes/calendar';
 import studioDashboard from './routes/studio/dashboard';
 import studioEvents from './routes/studio/events';
 import studioChecklists from './routes/studio/checklists';
 import studioReports from './routes/studio/reports';
 import studioQuality from './routes/studio/quality';
 import studioOperations from './routes/studio/operations';
+import productionTasks from './routes/studio/production';
 
 const app = express();
 app.set('trust proxy', true);
@@ -42,12 +44,14 @@ app.use('/api/catalog', catalogRoutes);
 app.use('/api/modules', moduleRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/calendar', calendarRoutes);
 app.use('/api/studio', studioDashboard);
 app.use('/api/studio', studioEvents);
 app.use('/api/studio', studioChecklists);
 app.use('/api/studio', studioReports);
 app.use('/api/studio', studioQuality);
 app.use('/api/studio', studioOperations);
+app.use('/api/studio', productionTasks);
 
 app.use('/api', (_req, res) => {
   res.status(404).json({ error: 'not_found', message: 'Rota não encontrada.' });

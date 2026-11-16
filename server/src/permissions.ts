@@ -65,6 +65,10 @@ export const ACTIONS = {
   'media.create': 2,
   'media.edit': 2,
   'media.delete': 4,
+  // produção audiovisual
+  'production.view': 1,
+  'production.create': 2,
+  'production.manage': 3,
   // plataforma
   'users.view': 5,
   'users.manage': 5,

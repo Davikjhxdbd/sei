@@ -37,6 +37,13 @@ export interface NavGroup {
 export const MODULE_NAV: Record<string, NavGroup[]> = {
   studio: [
     {
+      title: 'Produção audiovisual',
+      items: [
+        { label: 'Central de produção', to: '/m/studio/production', icon: Clapperboard, end: true },
+        { label: 'Meu espaço', to: '/m/studio/my-space', icon: Users2 },
+      ],
+    },
+    {
       title: 'Operação',
       items: [
         { label: 'Painel', to: '/m/studio', icon: Gauge, end: true },
@@ -68,6 +75,37 @@ export const MODULE_NAV: Record<string, NavGroup[]> = {
       ],
     },
   ],
+  studio_production: [{ title: 'Produção audiovisual', items: [
+    { label: 'Central de produção', to: '/m/studio/production', icon: Clapperboard, end: true },
+    { label: 'Meu espaço', to: '/m/studio/production/my-space', icon: Users2 },
+  ]}],
+  studio_events: [{ title: 'Gestão de eventos', items: [
+    { label: 'Eventos', to: '/m/studio/events', icon: CalendarDays, end: true },
+  ]}],
+  studio_checklists: [{ title: 'Operação', items: [
+    { label: 'Checklists', to: '/m/studio/checklists', icon: ListChecks, end: true },
+  ]}],
+  studio_reports: [{ title: 'Acompanhamento', items: [
+    { label: 'Relatórios', to: '/m/studio/reports', icon: FileText, end: true },
+  ]}],
+  studio_errors: [{ title: 'Qualidade', items: [
+    { label: 'Erros', to: '/m/studio/errors', icon: Bug, end: true },
+  ]}],
+  studio_occurrences: [{ title: 'Qualidade', items: [
+    { label: 'Ocorrências', to: '/m/studio/occurrences', icon: Gavel, end: true, minLevel: 3 },
+  ]}],
+  studio_problems: [{ title: 'Qualidade', items: [
+    { label: 'Problemas', to: '/m/studio/problems', icon: Layers, end: true },
+  ]}],
+  studio_schedules: [{ title: 'Equipe', items: [
+    { label: 'Escalas', to: '/m/studio/schedules', icon: Users2, end: true },
+  ]}],
+  studio_media: [{ title: 'Acervo', items: [
+    { label: 'Mídia', to: '/m/studio/media', icon: Film, end: true },
+  ]}],
+  studio_presets: [{ title: 'Administração', items: [
+    { label: 'Presets de eventos', to: '/m/studio/presets', icon: CalendarDays, end: true, minLevel: 1 },
+  ]}],
 };
 
 export const ADMIN_NAV: NavGroup[] = [
@@ -115,3 +153,13 @@ export function moduleTopics(moduleKey: string, limit = 4): string[] {
     .filter((label) => label !== 'Usuários' && label !== 'Configurações')
     .slice(0, limit);
 }
+
+
+export const CALENDAR_NAV: NavGroup[] = [
+  {
+    title: 'Agenda',
+    items: [
+      { label: 'Calendário', to: '/calendar', icon: CalendarDays, end: true },
+    ],
+  },
+];

@@ -514,4 +514,112 @@ router.get(
   }),
 );
 
+
+router.delete(
+  '/users/:id',
+  requireLevel(5),
+  asyncHandler(async (req: any, res) => {
+    const targetId = req.params.id;
+
+    if (targetId === req.user.id) {
+      throw forbidden('Você não pode excluir sua própria conta.');
+    }
+
+    try {
+      const deleted = await tx(req.db, async () => {
+        const { rows: currentRows } = await req.db.query(
+          `select id, full_name, username, email, status
+             from users where id = $1 for update`,
+          [targetId],
+        );
+
+ if (!currentRows.length) throw notFound('Usuário não encontrado.');
+
+const nullableReferences = [
+  ['audit_log', 'actor_id'],
+  ['authorization_requests', 'decided_by'],
+  ['authorization_requests', 'requested_by'],
+  ['calendar_events', 'created_by'],
+  ['calendar_events', 'updated_by'],
+  ['checklist_runs', 'created_by'],
+  ['checklist_task_history', 'user_id'],
+  ['checklist_tasks', 'assignee_id'],
+  ['checklist_tasks', 'completed_by'],
+  ['error_notes', 'user_id'],
+  ['event_reports', 'created_by'],
+  ['event_reports', 'finalized_by'],
+  ['event_reports', 'reviewer_id'],
+  ['events', 'created_by'],
+  ['media_history', 'user_id'],
+  ['media_records', 'created_by'],
+  ['media_records', 'editor_id'],
+  ['media_records', 'publisher_id'],
+  ['media_records', 'status_reported_by'],
+  ['occurrences', 'created_by'],
+  ['occurrences', 'person_id'],
+  ['operational_errors', 'created_by'],
+  ['operational_errors', 'follow_up_user_id'],
+  ['problem_solutions', 'created_by'],
+  ['problem_updates', 'user_id'],
+  ['problems', 'cause_confirmed_by'],
+  ['problems', 'created_by'],
+  ['problems', 'identified_by'],
+  ['problems', 'owner_id'],
+  ['report_history', 'user_id'],
+  ['report_sections', 'author_id'],
+  ['schedule_history', 'changed_by'],
+  ['schedule_history', 'from_user_id'],
+  ['schedule_history', 'to_user_id'],
+  ['schedules', 'created_by'],
+  ['schedules', 'user_id'],
+  ['settings', 'updated_by'],
+  ['user_roles', 'granted_by'],
+] as const;
+
+for (const [table, column] of nullableReferences) {
+  await req.db.query(
+    `UPDATE "${table}" SET "${column}" = NULL WHERE "${column}" = $1`,
+    [targetId],
+  );
+}
+
+await req.db.query(
+  'DELETE FROM notifications WHERE user_id = $1',
+  [targetId],
+);
+
+await req.db.query(
+  'DELETE FROM readiness_confirmations WHERE user_id = $1',
+  [targetId],
+);
+
+const { rows: deletedRows } = await req.db.query(
+  'DELETE FROM users WHERE id = $1 RETURNING id, full_name, username',
+  [targetId],
+);
+
+await audit(req.db, req.user, {
+  action: 'user.deleted',
+  entity: 'users',
+  entityId: targetId,
+  before: currentRows[0],
+  after: null,
+  moduleKey: 'platform',
+});
+
+return deletedRows[0];
+      });
+
+      res.json({ user: deleted });
+    } catch (error: any) {
+      if (error?.code === '23503') {
+        throw conflict(
+          'Este usuário possui registros vinculados. Não é possível excluí-lo sem comprometer o histórico.'
+        );
+      }
+      throw error;
+    }
+  }),
+);
+
 export default router;

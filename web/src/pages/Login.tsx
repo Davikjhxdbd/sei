@@ -1,16 +1,29 @@
 import { useState, type FormEvent } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowRight, Eye, EyeOff, LockKeyhole, ShieldCheck, UserRound } from 'lucide-react';
-import { useAuth } from '../lib/auth';
+import {
+  ArrowRight,
+  Eye,
+  EyeOff,
+  LockKeyhole,
+  UserRound,
+} from 'lucide-react';
+import { useAuth, startWelcomeAudio, stopWelcomeAudio } from '../lib/auth';
+import { post } from '../lib/api';
 import { Button, Field, InlineError, Input } from '../components/ui';
 
 export default function Login() {
   const { login, user, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation() as any;
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showRecoveryHelp, setShowRecoveryHelp] = useState(false);
+  const [recoveryEmail, setRecoveryEmail] = useState('');
+  const [recoverySent, setRecoverySent] = useState(false);
+  const [recoveryLoading, setRecoveryLoading] = useState(false);
+  const [recoveryError, setRecoveryError] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -20,186 +33,208 @@ export default function Login() {
     event.preventDefault();
     setError(null);
     setSubmitting(true);
+    const welcomeAudio = startWelcomeAudio();
+
     try {
       await login(username.trim(), password);
       navigate(location.state?.from ?? '/', { replace: true });
     } catch (err: any) {
-      setError(err?.message ?? 'Não foi possível entrar.');
+      stopWelcomeAudio(welcomeAudio);
+      setError(err?.message ?? 'Não foi possível entrar. Verifique suas credenciais.');
     } finally {
       setSubmitting(false);
     }
   }
 
+  async function onRecoverySubmit(event: FormEvent) {
+    event.preventDefault();
+    setRecoveryError('');
+    setRecoveryLoading(true);
+
+    try {
+      await post('/auth/forgot-password', { email: recoveryEmail.trim() });
+      setRecoverySent(true);
+    } catch (err: any) {
+      setRecoveryError(err?.message || 'Não foi possível processar a solicitação.');
+    } finally {
+      setRecoveryLoading(false);
+    }
+  }
+
   return (
-    <div className="grid min-h-screen lg:grid-cols-[1.05fr_0.95fr]">
-      {/* Painel de identidade */}
-      <div className="relative hidden overflow-hidden bg-strong lg:flex lg:flex-col lg:justify-between lg:p-12">
-        <div className="mmv-grid-pattern absolute inset-0 opacity-70" aria-hidden />
-        <div
-          className="absolute -right-24 -top-24 h-[420px] w-[420px] rounded-full opacity-30 blur-3xl"
-          style={{
-            background:
-              'radial-gradient(circle at center, rgba(176,133,67,0.55), transparent 65%)',
-          }}
-          aria-hidden
-        />
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#101010] px-5 py-10 sm:px-8 lg:justify-end lg:px-[10%]">
+      {/* VÍDEO CINEMATOGRÁFICO DE FUNDO */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        poster="/site/login-hero.png"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+        aria-hidden="true"
+      >
+        <source src="/site/SITE.mp4" type="video/mp4" />
+      </video>
 
-        <div className="relative flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-brass text-[14px] font-bold text-white">
-            MV
-          </span>
-          <div>
-            <p className="text-[13px] font-semibold uppercase tracking-wider2 text-white">
-              MMV Connect
-            </p>
-            <p className="text-[10.5px] uppercase tracking-wider2 text-white/40">
-              Plataforma operacional
-            </p>
-          </div>
+      {/* CAMADA DE LEITURA */}
+      <div
+        className="pointer-events-none absolute inset-0 bg-black/35"
+        aria-hidden="true"
+      />
+
+      {/* IDENTIDADE MMV */}
+      <div className="absolute left-7 top-7 z-10 flex items-center gap-3 sm:left-10 sm:top-9">
+        <div className="grid h-11 w-11 place-items-center border border-[#C4A66A] bg-[#111111]/80 text-sm font-bold text-[#D8BD86] backdrop-blur-md">
+          M
         </div>
-
-        <div className="relative max-w-md">
-          <p className="mb-4 text-[10.5px] font-semibold uppercase tracking-wider2 text-brass-soft">
-            Um acesso · uma identidade
+        <div>
+          <p className="text-[13px] font-semibold tracking-[0.24em] text-white">
+            MMV CREATIVE
           </p>
-          <h1 className="font-display text-[38px] leading-[1.1] text-white">
-            Uma plataforma para todos os aplicativos da operação.
-          </h1>
-          <p className="mt-5 text-[13.5px] leading-relaxed text-white/60">
-            A central reúne os aplicativos disponíveis para o seu perfil. A
-            mesma sessão, o mesmo cadastro e as mesmas permissões acompanham você
-            em cada módulo.
-          </p>
-
-          <ul className="mt-8 space-y-3">
-            {[
-              'Autenticação única e conta gerenciada pela administração',
-              'Hierarquia de cargos e setores compartilhada',
-              'Notificações e auditoria em toda a plataforma',
-            ].map((item) => (
-              <li key={item} className="flex items-start gap-2.5">
-                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brass-soft" />
-                <span className="text-[12.5px] leading-relaxed text-white/70">
-                  {item}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <div className="mt-1 h-px w-12 bg-[#C4A66A]" />
         </div>
-
-        <p className="relative text-[11px] uppercase tracking-wider2 text-white/30">
-          Acesso restrito à equipe autorizada
-        </p>
       </div>
 
-      {/* Formulário */}
-      <div className="flex flex-col justify-center bg-canvas px-5 py-10 sm:px-10 lg:px-16">
-        <div className="mx-auto w-full max-w-[380px]">
-          <div className="mb-8 flex items-center gap-2.5 lg:hidden">
-            <span className="grid h-9 w-9 place-items-center rounded-lg bg-strong text-[12px] font-bold text-white">
-              MV
-            </span>
-            <span className="text-[12.5px] font-semibold uppercase tracking-wider2 text-ink">
-              MMV Connect
-            </span>
+      {/* PAINEL DE LOGIN SOBRE A IMAGEM */}
+      <section className="relative z-20 w-full max-w-[420px] rounded-2xl border border-white/15 bg-[#111111]/85 px-7 py-9 shadow-[0_25px_100px_rgba(0,0,0,0.55)] backdrop-blur-2xl sm:px-10 sm:py-11">
+        <div className="mb-7">
+          <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.24em] text-[#D8BD86]">
+            Área de acesso
+          </p>
+          <h2 className="font-display text-[44px] font-semibold leading-[1.02] tracking-[-0.04em] text-white sm:text-[50px]">
+            Seja bem-vindo.
+          </h2>
+          <p className="mt-4 text-[15px] leading-6 text-white/65">
+            Entre com suas credenciais para acessar a plataforma.
+          </p>
+        </div>
+
+        <form onSubmit={onSubmit} className="space-y-5" noValidate>
+          <Field label="Nome de usuário" required htmlFor="username">
+            <div className="relative">
+              <UserRound className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C4A66A]/70" />
+              <Input
+                id="username"
+                className="h-12 border-white/15 bg-white/[0.06] pl-10 text-white placeholder:text-white/30 focus:border-[#C4A66A]"
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                placeholder="Seu nome de usuário"
+                required
+              />
+            </div>
+          </Field>
+
+          <Field label="Senha" required htmlFor="password">
+            <div className="relative">
+              <LockKeyhole className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C4A66A]/70" />
+              <Input
+                id="password"
+                className="h-12 border-white/15 bg-white/[0.06] pl-10 pr-11 text-white placeholder:text-white/30 focus:border-[#C4A66A]"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="Digite sua senha"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((value) => !value)}
+                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                className="absolute right-3 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center text-white/40 transition hover:text-[#D8BD86]"
+              >
+                {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+              </button>
+            </div>
+          </Field>
+
+          <div className="-mt-1 flex justify-end">
+            <button
+              type="button"
+              onClick={() => setShowRecoveryHelp((value) => !value)}
+              aria-expanded={showRecoveryHelp}
+              className="text-[13px] font-semibold text-[#D8BD86] transition hover:text-[#C4A66A] hover:underline"
+            >
+              Esqueci minha senha
+            </button>
           </div>
 
-          <p className="mmv-label mb-2">Acesso à plataforma</p>
-          <h2 className="text-[26px] font-semibold leading-tight tracking-[-0.015em] text-ink">
-            Entrar na sua conta
-          </h2>
-          <p className="mt-2 text-[13px] leading-relaxed text-muted">
-            Use as credenciais fornecidas pela administração do MMV Connect.
-          </p>
-
-          <form onSubmit={onSubmit} className="mt-7 space-y-4" noValidate>
-            <Field label="Nome de usuário" required htmlFor="username">
-              <div className="relative">
-                <UserRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-                <Input
-                  id="username"
-                  className="pl-9"
-                  autoComplete="username"
-                  autoCapitalize="none"
-                  spellCheck={false}
-                  value={username}
-                  onChange={(event) => setUsername(event.target.value)}
-                  placeholder="seu.usuario"
-                  required
-                />
-              </div>
-            </Field>
-
-            <Field label="Senha" required htmlFor="password">
-              <div className="relative">
-                <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-                <Input
-                  id="password"
-                  className="pl-9 pr-10"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  placeholder="••••••••"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((value) => !value)}
-                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                  className="absolute right-2 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-md text-muted hover:bg-ink/5 hover:text-ink"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
+          {showRecoveryHelp && (
+            <div className="rounded-xl border border-[#C4A66A]/30 bg-[#C4A66A]/[0.08] p-4">
+              {recoverySent ? (
+                <>
+                  <p className="text-sm font-semibold text-[#D8BD86]">
+                    Verifique seu e-mail
+                  </p>
+                  <p className="mt-2 text-[13px] leading-6 text-white/65">
+                    Se o endereço estiver cadastrado, você receberá as instruções
+                    para redefinir sua senha. Confira também a caixa de spam.
+                  </p>
+                </>
+              ) : (
+                <form onSubmit={onRecoverySubmit}>
+                  <p className="text-sm font-semibold text-[#D8BD86]">
+                    Recuperar acesso
+                  </p>
+                  <p className="mt-2 text-[13px] leading-6 text-white/65">
+                    Informe o e-mail vinculado à sua conta. Enviaremos um link
+                    seguro para criar uma nova senha.
+                  </p>
+                  <Input
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={recoveryEmail}
+                    onChange={(event) => setRecoveryEmail(event.target.value)}
+                    placeholder="seuemail@exemplo.com"
+                    className="mt-3 h-11 border-white/15 bg-white/[0.06] text-white placeholder:text-white/30 focus:border-[#C4A66A]"
+                  />
+                  {recoveryError && (
+                    <p role="alert" className="mt-2 text-[12px] text-red-300">
+                      {recoveryError}
+                    </p>
                   )}
-                </button>
-              </div>
-            </Field>
-
-            {error && <InlineError>{error}</InlineError>}
-
-            <Button
-              type="submit"
-              size="lg"
-              className="w-full"
-              loading={submitting}
-              disabled={!username.trim() || !password}
-            >
-              Entrar
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </form>
-
-          <p className="mt-6 text-[11.5px] leading-relaxed text-muted">
-            O cadastro é controlado. Contas são criadas e liberadas por
-            administradores autorizados — não existe autocadastro público.
-          </p>
-
-          {import.meta.env.DEV && (
-            <div className="mt-8 rounded-xl border border-line bg-surface/70 p-3.5">
-              <p className="text-[10.5px] font-semibold uppercase tracking-wider2 text-muted">
-                Ambiente de demonstração
-              </p>
-              <div className="mt-2 space-y-1 text-[11.5px] text-ink/70">
-                <p>
-                  Administrador:{' '}
-                  <code className="rounded bg-canvas px-1 py-0.5">davi.gomes</code>{' '}
-                  /{' '}
-                  <code className="rounded bg-canvas px-1 py-0.5">
-                    MMVconnect#2026
-                  </code>
-                </p>
-                <p className="text-muted">
-                  Outros perfis: helena.duarte, rafael.prado, camila.ferreira,
-                  bruno.alves, juliana.reis, tiago.moraes — mesma senha.
-                </p>
-              </div>
+                  <button
+                    type="submit"
+                    disabled={recoveryLoading || !recoveryEmail.trim()}
+                    className="mt-3 h-11 w-full rounded-lg border border-[#C4A66A]/50 bg-[#171717] text-[13px] font-semibold text-[#D8BD86] transition hover:bg-[#252525] disabled:opacity-50"
+                  >
+                    {recoveryLoading ? 'Enviando...' : 'Enviar link de recuperação'}
+                  </button>
+                </form>
+              )}
             </div>
           )}
+
+          {error && <InlineError>{error}</InlineError>}
+
+          <Button
+            type="submit"
+            size="lg"
+            className="mt-4 h-14 w-full justify-center gap-3 text-[15px] font-semibold border border-[#C4A66A]/50 bg-[#171717] !text-[#D8BD86] hover:!bg-[#252525] hover:!text-[#D8BD86] active:!text-[#D8BD86] [&_svg]:!text-[#D8BD86]"
+            loading={submitting}
+            disabled={!username.trim() || !password}
+          >
+            Acessar plataforma
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </form>
+
+        <div className="mt-8 border-t border-white/10 pt-5">
+          <p className="text-[12px] leading-6 text-white/50">
+            Acesso exclusivo para membros autorizados. O cadastro é gerenciado
+            pela administração da plataforma.
+          </p>
         </div>
+      </section>
+
+      <div className="absolute bottom-4 right-6 z-10 hidden text-[9px] uppercase tracking-[0.2em] text-white/35 sm:block">
+        MMV CREATIVE · Plataforma integrada
       </div>
-    </div>
+    </main>
   );
 }

@@ -123,36 +123,48 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="mmv-label mb-1.5">Gestão do Estúdio · Painel</p>
-          <h1 className="text-[22px] font-semibold tracking-[-0.015em] text-ink sm:text-[26px]">
-            Visão geral da operação
-          </h1>
-          <p className="mt-1.5 text-[13px] text-muted">
-            Indicadores calculados a partir dos registros reais do módulo, olá{' '}
-            {user?.full_name.split(' ')[0]}.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {can('events.create') && (
+      <section className="relative isolate overflow-hidden rounded-2xl border border-[#C4A66A]/20 bg-gradient-to-br from-[#242019] via-[#151515] to-[#090909] p-6 shadow-[0_18px_50px_-28px_rgba(196,166,106,.25)] sm:p-8">
+        <div className="pointer-events-none absolute -right-16 -top-24 -z-10 h-72 w-72 rounded-full bg-[#C4A66A]/10 blur-3xl" />
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <p className="mb-3 text-[10px] font-semibold uppercase tracking-[.32em] text-[#C4A66A]">
+              MMV CREATIVE · GESTÃO DO ESTÚDIO
+            </p>
+            <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-4xl">
+              {new Date().getHours() < 12 ? 'Bom dia' : new Date().getHours() < 18 ? 'Boa tarde' : 'Boa noite'},{' '}
+              <span className="text-[#D8BD86]">{user?.full_name.split(' ')[0]}</span>.
+            </h1>
+            <p className="mt-2 text-[13px] text-white/55">
+              Aqui está o panorama da operação e das suas prioridades.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-lg border border-white/10 bg-white/[.04] px-3 py-2 text-[11px] capitalize text-white/65">
+              {new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).format(new Date())}
+            </span>
+            {can('events.create') && (
+              <Link
+                to="/m/studio/events"
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#C4A66A]/35 bg-[#C4A66A]/10 px-3 text-[12px] font-medium text-[#D8BD86] transition hover:bg-[#C4A66A]/20"
+              >
+                <CalendarDays className="h-4 w-4" /> Eventos
+              </Link>
+            )}
             <Link
-              to="/m/studio/events"
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-[12.5px] font-medium text-ink hover:border-ink/30"
+              to="/m/studio/checklists"
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#C4A66A] px-3 text-[12px] font-semibold text-[#111] transition hover:bg-[#D8BD86]"
             >
-              <CalendarDays className="h-4 w-4" /> Eventos
+              <ClipboardList className="h-4 w-4" /> Checklists
             </Link>
-          )}
-          <Link
-            to="/m/studio/checklists"
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-strong px-3 text-[12.5px] font-medium text-white"
-          >
-            <ClipboardList className="h-4 w-4" /> Checklists
-          </Link>
+          </div>
         </div>
-      </div>
+        <div className="mt-7 h-px w-full bg-gradient-to-r from-[#C4A66A]/50 via-white/10 to-transparent" />
+        <p className="mt-3 text-[9px] font-medium uppercase tracking-[.28em] text-white/30">
+          VISÃO GERAL DA OPERAÇÃO
+        </p>
+      </section>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 [&>*]:transition-transform [&>*]:duration-300 [&>*]:hover:-translate-y-1">
         <StatCard
           label="Próximos eventos"
           value={totals.upcoming_events}

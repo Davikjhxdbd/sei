@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
-import { KeyRound, Pencil, Plus, UserPlus, Users as UsersIcon } from 'lucide-react';
+import { KeyRound, Pencil, Plus, UserPlus, Users as UsersIcon, Power, Trash2 } from 'lucide-react';
 import { Shell } from '../../components/layout/Shell';
 import { useApi } from '../../lib/useApi';
-import { patch, post } from '../../lib/api';
+import { del as deleteRequest, patch, post } from '../../lib/api';
 import { AUTH_STATUS, ROLE_LABELS, formatDate, formatDateTime } from '../../lib/format';
 import {
   Avatar,
@@ -134,6 +134,46 @@ export default function UsersPage() {
             }}
           >
             <span className="hidden lg:inline">Editar</span>
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            icon={Power}
+            aria-label={`${row.status === 'active' ? 'Desativar' : 'Reativar'} ${row.full_name}`}
+            onClick={async (event) => {
+              event.stopPropagation();
+              const nextStatus = row.status === 'active' ? 'inactive' : 'active';
+              const action = nextStatus === 'inactive' ? 'desativar' : 'reativar';
+              if (!window.confirm(`Deseja ${action} ${row.full_name}?`)) return;
+              try {
+                await patch(`/admin/users/${row.id}`, { status: nextStatus });
+                toast.push(`Usuário ${nextStatus === 'active' ? 'reativado' : 'desativado'}.`);
+                await reload();
+              } catch (error: any) {
+                toast.push(error?.message ?? 'Não foi possível alterar a situação.', 'error');
+              }
+            }}
+          >
+            <span className="hidden lg:inline">{row.status === 'active' ? 'Desativar' : 'Reativar'}</span>
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            icon={Trash2}
+            aria-label={`Excluir ${row.full_name}`}
+            onClick={async (event) => {
+              event.stopPropagation();
+              if (!window.confirm(`EXCLUIR DEFINITIVAMENTE ${row.full_name}? Esta ação não poderá ser desfeita.`)) return;
+              try {
+                await deleteRequest(`/admin/users/${row.id}`);
+                toast.push('Usuário excluído.');
+                await reload();
+              } catch (error: any) {
+                toast.push(error?.message ?? 'Não foi possível excluir o usuário.', 'error');
+              }
+            }}
+          >
+            <span className="hidden lg:inline">Excluir</span>
           </Button>
           <Button
             size="sm"

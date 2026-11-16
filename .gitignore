@@ -10,3 +10,9 @@ coverage/
 
 # Compose local de desenvolvimento (específico do ambiente de preview)
 docker-compose.yml
+
+# Backups locais e arquivos temporários
+*.backup
+*.bak
+*.bak-*
+.DS_Store

@@ -6,6 +6,8 @@ import {
   ChevronDown,
   LayoutGrid,
   LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
   ShieldCheck,
   UserRound,
 } from 'lucide-react';
@@ -42,14 +44,14 @@ function useOutside(open: boolean, onClose: () => void) {
 
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
-    <Link to="/" className="flex items-center gap-2.5" aria-label="MMV Connect — central">
+    <Link to="/" className="flex items-center gap-2.5" aria-label="MMV CREATIVE — central">
       <span className="grid h-8 w-8 place-items-center rounded-lg bg-brass text-[13px] font-bold tracking-tight text-white">
         MV
       </span>
       {!compact && (
         <span className="hidden flex-col leading-none sm:flex">
           <span className="text-[12.5px] font-semibold uppercase tracking-wider2 text-white">
-            MMV Connect
+            MMV CREATIVE
           </span>
           <span className="mt-1 text-[10px] uppercase tracking-wider2 text-white/40">
             Plataforma operacional
@@ -263,6 +265,7 @@ export function Shell({
   const { user, level, state } = useAuth();
   const [moduleMenu, setModuleMenu] = useState(false);
   const [profileMenu, setProfileMenu] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const location = useLocation();
   const groups = navGroups(nav, level);
   const unread = state?.notifications.unread ?? 0;
@@ -270,9 +273,39 @@ export function Shell({
     (module?.settings?.product_name as string | undefined) ?? undefined;
 
   return (
-    <div className="min-h-screen bg-canvas">
-      <header className="sticky top-0 z-40 bg-strong">
+    <div
+      className="relative isolate min-h-screen bg-[#050505] font-sans"
+      onMouseMove={(event) => {
+        const root = event.currentTarget;
+        root.style.setProperty('--cursor-x', `${event.clientX}px`);
+        root.style.setProperty('--cursor-y', `${event.clientY}px`);
+      }}
+    >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0"
+        style={{
+          background: 'radial-gradient(520px circle at var(--cursor-x, 50vw) var(--cursor-y, 50vh), rgba(196,166,106,0.105), transparent 72%)',
+          transition: 'background 180ms ease-out',
+          willChange: 'background',
+        }}
+      />
+      <div className="relative z-10">
+      <header className="sticky top-0 z-40 border-b border-white/[0.07] bg-strong shadow-lg shadow-black/10">
         <div className="mx-auto flex h-14 max-w-[1500px] items-center gap-3 px-3 sm:px-5">
+          {groups.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setSidebarCollapsed((value) => !value)}
+              aria-label={sidebarCollapsed ? 'Expandir menu lateral' : 'Recolher menu lateral'}
+              title={sidebarCollapsed ? 'Expandir menu' : 'Recolher menu'}
+              className="hidden h-9 w-9 shrink-0 place-items-center rounded-lg text-white/65 transition-colors hover:bg-white/10 hover:text-white lg:grid"
+            >
+              {sidebarCollapsed
+                ? <PanelLeftOpen className="h-[18px] w-[18px]" />
+                : <PanelLeftClose className="h-[18px] w-[18px]" />}
+            </button>
+          )}
           <Brand />
           <div className="mx-1 hidden h-6 w-px bg-white/10 sm:block" />
           <ModuleSwitcher
@@ -314,20 +347,22 @@ export function Shell({
 
       <div className="mx-auto flex w-full max-w-[1500px]">
         {groups.length > 0 && (
-          <aside className="mmv-scroll sticky top-14 hidden h-[calc(100vh-3.5rem)] w-[248px] shrink-0 overflow-y-auto border-r border-line bg-surface/70 px-3 py-5 lg:block">
-            <div className="mb-4 px-2">
-              <p className="mmv-label">{sidebarEyebrow ?? 'Aplicativo'}</p>
-              <p className="mt-1 truncate text-[13.5px] font-semibold text-ink">
-                {module?.name ?? 'Administração'}
-              </p>
-              {productName && (
-                <p className="text-[11.5px] text-muted">{productName}</p>
-              )}
-            </div>
+          <aside className={cx("mmv-scroll sticky top-14 hidden h-[calc(100vh-3.5rem)] shrink-0 overflow-y-auto border-r border-line bg-surface/70 py-5 transition-[width] duration-200 lg:block", sidebarCollapsed ? "w-[76px] px-2" : "w-[248px] px-3")}>
+            {!sidebarCollapsed && (
+              <div className="mb-4 px-2">
+                <p className="mmv-label">{sidebarEyebrow ?? 'Aplicativo'}</p>
+                <p className="mt-1 truncate text-[13.5px] font-semibold text-ink">
+                  {module?.name ?? 'Administração'}
+                </p>
+                {productName && (
+                  <p className="text-[11.5px] text-muted">{productName}</p>
+                )}
+              </div>
+            )}
 
             {groups.map((group) => (
               <div key={group.title} className="mb-5">
-                <p className="mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-wider2 text-muted/80">
+                <p className={cx("mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-wider2 text-muted/80", sidebarCollapsed && "sr-only")}>
                   {group.title}
                 </p>
                 <nav className="space-y-0.5">
@@ -336,9 +371,11 @@ export function Shell({
                       key={item.to}
                       to={item.to}
                       end={item.end}
+                      title={sidebarCollapsed ? item.label : undefined}
                       className={({ isActive }) =>
                         cx(
-                          'flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] transition-colors',
+                          'flex items-center rounded-lg py-2 text-[13px] transition-colors',
+                          sidebarCollapsed ? 'justify-center px-2' : 'gap-2.5 px-2.5',
                           isActive
                             ? 'bg-strong font-medium text-white'
                             : 'text-ink/75 hover:bg-ink/[0.05] hover:text-ink',
@@ -353,7 +390,7 @@ export function Shell({
                               isActive ? 'text-brass-soft' : 'text-muted',
                             )}
                           />
-                          <span className="truncate">{item.label}</span>
+                          {!sidebarCollapsed && <span className="truncate">{item.label}</span>}
                         </>
                       )}
                     </NavLink>
@@ -362,7 +399,7 @@ export function Shell({
               </div>
             ))}
 
-            <div className="mt-auto rounded-lg border border-line bg-canvas/70 p-3">
+            <div className={cx("mt-auto rounded-lg border border-line bg-canvas/70 p-3", sidebarCollapsed && "hidden")}>
               <p className="text-[11px] leading-relaxed text-muted">
                 Todos os aplicativos compartilham o mesmo acesso, perfil e
                 permissões.
@@ -406,11 +443,12 @@ export function Shell({
 
           {user && (
             <footer className="border-t border-line px-4 py-4 text-[11px] text-muted sm:px-6">
-              MMV Connect · {user.full_name} ·{' '}
+              MMV CREATIVE · {user.full_name} ·{' '}
               {user.roles.map((role) => ROLE_LABELS[role] ?? role).join(' · ')}
             </footer>
           )}
         </div>
+      </div>
       </div>
     </div>
   );
