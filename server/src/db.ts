@@ -49,22 +49,41 @@ export async function tx<T>(db: PoolClient, fn: () => Promise<T>): Promise<T> {
 export function releaseDb(req: any, res: any, next: any) {
   const client: PoolClient | undefined = req.db;
   if (!client) return next();
+
   let released = false;
-  const release = (err?: Error) => {
+  const destroy = (err: Error) => {
     if (released) return;
     released = true;
-    if (err) {
-      client.release(err as any);
-      return;
-    }
-    client
-      .query('DISCARD ALL')
-      .then(() => client.release())
-      .catch((e) => client.release(e));
+    client.release(err as any);
   };
-  res.on('finish', () => release());
-  res.on('close', () => release());
-  res.on('error', (e: Error) => release(e));
+
+  const releaseSafely = async () => {
+    if (released) return;
+    released = true;
+    try {
+      // Never return a connection with an open transaction or actor context.
+      await client.query('rollback');
+      await client.query(
+        `select set_config('mmv.actor_id', '', false),
+                set_config('mmv.actor_level', '', false)`,
+      );
+      client.release();
+    } catch (error) {
+      client.release(error as Error);
+    }
+  };
+
+  res.once('finish', () => {
+    void releaseSafely();
+  });
+  res.once('close', () => {
+    // A premature close can happen while an async route still uses the client.
+    // Destroy it rather than making it available to another request.
+    if (!res.writableFinished) {
+      destroy(new Error('HTTP response closed before completion'));
+    }
+  });
+  res.once('error', destroy);
 
   next();
 }
