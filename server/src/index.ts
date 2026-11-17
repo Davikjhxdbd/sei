@@ -22,7 +22,8 @@ import studioOperations from './routes/studio/operations';
 import productionTasks from './routes/studio/production';
 
 const app = express();
-app.set('trust proxy', true);
+// Render terminates one trusted proxy hop; do not trust arbitrary client-supplied X-Forwarded-For chains.
+app.set('trust proxy', 1);
 app.use(requestObservability);
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
