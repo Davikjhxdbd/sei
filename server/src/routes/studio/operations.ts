@@ -79,6 +79,8 @@ router.post(
     const eventId = optionalId(req.body?.event_id);
     if (!eventId) throw badRequest('Selecione o evento.');
     const roleTitle = required(req.body?.role_title, 'função / posto', 120);
+    const sectorId = optionalId(req.body?.sector_id);
+    const assignedUserId = optionalId(req.body?.user_id);
 
     const created = await tx(req.db, async () => {
       const { rows: eventRows } = await req.db.query(
@@ -87,6 +89,21 @@ router.post(
       );
       if (!eventRows.length) throw notFound('Evento não encontrado.');
 
+      if (sectorId) {
+        const { rows: sectorRows } = await req.db.query(
+          'select id from sectors where id = $1 and active = true',
+          [sectorId],
+        );
+        if (!sectorRows.length) throw badRequest('O setor selecionado não existe ou está inativo.');
+      }
+      if (assignedUserId) {
+        const { rows: userRows } = await req.db.query(
+          "select id from users where id = $1 and status = 'active'",
+          [assignedUserId],
+        );
+        if (!userRows.length) throw badRequest('A pessoa selecionada não existe ou não está ativa.');
+      }
+
       const { rows } = await req.db.query(
         `insert into schedules
            (event_id, sector_id, role_title, user_id, instructions, call_time, status, created_by)
@@ -94,9 +111,9 @@ router.post(
          returning *`,
         [
           eventId,
-          optionalId(req.body?.sector_id),
+          sectorId,
           roleTitle,
-          optionalId(req.body?.user_id),
+          assignedUserId,
           optionalText(req.body?.instructions, 2000),
           req.body?.call_time ? isoDate(req.body.call_time, 'apresentação') : null,
           req.user.id,
@@ -140,25 +157,47 @@ router.patch(
 
     const userProvided = req.body?.user_id !== undefined;
     const newUser = userProvided ? optionalId(req.body.user_id) : null;
+    const sectorProvided = req.body?.sector_id !== undefined;
+    const newSector = sectorProvided ? optionalId(req.body.sector_id) : null;
+    const statusProvided = req.body?.status !== undefined;
+    if (statusProvided && !ASSIGNMENT_STATUS.includes(req.body.status)) {
+      throw badRequest('Situação de designação inválida.');
+    }
 
     const updated = await tx(req.db, async () => {
+      if (sectorProvided && newSector) {
+        const { rows: sectorRows } = await req.db.query(
+          'select id from sectors where id = $1 and active = true',
+          [newSector],
+        );
+        if (!sectorRows.length) throw badRequest('O setor selecionado não existe ou está inativo.');
+      }
+      if (userProvided && newUser) {
+        const { rows: userRows } = await req.db.query(
+          "select id from users where id = $1 and status = 'active'",
+          [newUser],
+        );
+        if (!userRows.length) throw badRequest('A pessoa selecionada não existe ou não está ativa.');
+      }
+
       const { rows } = await req.db.query(
         `update schedules set
-           sector_id = coalesce($1::uuid, sector_id),
+           sector_id = case when $1::boolean then $2::uuid else sector_id end,
            role_title = coalesce($2, role_title),
            user_id = $3,
            instructions = coalesce($4, instructions),
            call_time = coalesce($5::timestamptz, call_time),
            status = coalesce($6::assignment_status, status),
            updated_at = now()
-         where id = $7 returning *`,
+         where id = $8 returning *`,
         [
-          optionalId(req.body?.sector_id),
+          sectorProvided,
+          newSector,
           req.body?.role_title ? String(req.body.role_title).slice(0, 120) : null,
           userProvided ? newUser : before.user_id,
           optionalText(req.body?.instructions, 2000),
           req.body?.call_time ? isoDate(req.body.call_time, 'apresentação') : null,
-          ASSIGNMENT_STATUS.includes(req.body?.status) ? req.body.status : null,
+          statusProvided ? req.body.status : null,
           req.params.id,
         ],
       );
@@ -215,6 +254,14 @@ router.post(
     }
 
     const updated = await tx(req.db, async () => {
+      const { rows: userRows } = await req.db.query(
+        "select id from users where id = $1 and status = 'active'",
+        [beforeRows[0].user_id],
+      );
+      if (!userRows.length) {
+        throw badRequest('A pessoa designada não está ativa. Atualize a escala antes de publicar.');
+      }
+
       const { rows } = await req.db.query(
         `update schedules set status = 'published', updated_at = now()
           where id = $1 returning *`,
