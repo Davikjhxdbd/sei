@@ -5,6 +5,7 @@ import {
   createSession,
   hashPassword,
   hashSessionToken,
+  parseLoginCredentials,
   requireAuth,
   verifyPassword,
 } from './auth';
@@ -102,4 +103,20 @@ test('requireAuth clears the cookie when the account is no longer active', async
   assert.equal(clearedCookie, true);
   assert.equal(error?.code, 'account_inactive');
   assert.equal(queries.length, 3);
+});
+
+test('login credentials reject missing, malformed and oversized input', () => {
+  assert.equal(parseLoginCredentials(null), null);
+  assert.equal(parseLoginCredentials({ username: 'user' }), null);
+  assert.equal(parseLoginCredentials({ username: ' ', password: 'pass' }), null);
+  assert.equal(parseLoginCredentials({ username: 'u'.repeat(161), password: 'pass' }), null);
+  assert.equal(parseLoginCredentials({ username: 'user', password: 'p'.repeat(129) }), null);
+  assert.equal(parseLoginCredentials({ username: 123, password: 'pass' }), null);
+});
+
+test('login credentials trim username and preserve password exactly', () => {
+  assert.deepEqual(
+    parseLoginCredentials({ username: '  pessoa  ', password: ' senha com espaço ' }),
+    { username: 'pessoa', password: ' senha com espaço ' },
+  );
 });
