@@ -108,14 +108,18 @@ router.get(
       )
     ).rows;
 
-    const recentActivity = (
-      await db.query(
-        `select a.id, a.actor_name, a.action, a.entity, a.entity_id,
-                a.created_at
-           from audit_log a
-          order by a.created_at desc limit 8`,
-      )
-    ).rows;
+    // O histórico de auditoria contém atividade global e é restrito à
+    // liderança sênior (mesmo nível exigido pela rota administrativa).
+    const recentActivity = req.user.level >= 4
+      ? (
+          await db.query(
+            `select a.id, a.actor_name, a.action, a.entity, a.entity_id,
+                    a.created_at
+               from audit_log a
+              order by a.created_at desc limit 8`,
+          )
+        ).rows
+      : [];
 
     res.json({
       totals,
