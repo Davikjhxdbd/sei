@@ -5,6 +5,7 @@ import {
   clearSessionCookie,
   createSession,
   hashPassword,
+  hashSessionToken,
   loadUser,
   requireAuth,
   setActorContext,
@@ -318,7 +319,10 @@ router.post(
   asyncHandler(async (req: any, res) => {
     const token = req.cookies?.mmv_session;
     if (token) {
-      await req.db.query('delete from sessions where token = $1', [token]);
+      await req.db.query('delete from sessions where token in ($1, $2)', [
+        hashSessionToken(token),
+        token,
+      ]);
     }
     await audit(req.db, req.user, {
       action: 'auth.logout',
@@ -411,8 +415,12 @@ router.post(
     // Mantém a sessão atual e revoga todas as outras sessões do usuário.
     const currentSessionToken = req.cookies?.mmv_session;
     await db.query(
-      'delete from sessions where user_id = $1 and token <> $2',
-      [req.user.id, currentSessionToken],
+      'delete from sessions where user_id = $1 and token not in ($2, $3)',
+      [
+        req.user.id,
+        hashSessionToken(currentSessionToken),
+        currentSessionToken,
+      ],
     );
 
     await audit(db, req.user, {
