@@ -281,12 +281,9 @@ router.post(
       throw unauthorized('Usuário ou senha inválidos.');
     }
 
-    // Credenciais corretas não devem consumir o limite de falhas,
-    // mesmo quando a conta ainda não está ativa.
-    await Promise.all([
-      clearRateLimit(db, buckets.account),
-      clearRateLimit(db, buckets.network),
-    ]);
+    // Credenciais corretas zeram apenas o limite da conta.
+    // O limite de rede permanece compartilhado entre todas as contas daquele IP.
+    await clearRateLimit(db, buckets.account);
 
     if (row.status !== 'active') {
       const message =
