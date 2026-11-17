@@ -8,6 +8,7 @@ import {
   isoDate,
 } from '../http';
 import { audit } from '../audit';
+import { tx } from '../db';
 
 const router = Router();
 const CATEGORIES = [
@@ -77,26 +78,29 @@ router.post(
     ensureAdmin(req.user);
     const data = eventData(req.body);
 
-    const { rows } = await req.db.query(
-      `insert into calendar_events
-        (title, description, category, location, starts_at, ends_at, all_day, created_by, updated_by)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$8)
-       returning *`,
-      [
-        data.title, data.description, data.category, data.location,
-        data.startsAt, data.endsAt, data.allDay, req.user.id,
-      ],
-    );
+    const event = await tx(req.db, async () => {
+      const { rows } = await req.db.query(
+        `insert into calendar_events
+          (title, description, category, location, starts_at, ends_at, all_day, created_by, updated_by)
+         values ($1,$2,$3,$4,$5,$6,$7,$8,$8)
+         returning *`,
+        [
+          data.title, data.description, data.category, data.location,
+          data.startsAt, data.endsAt, data.allDay, req.user.id,
+        ],
+      );
 
-    await audit(req.db, req.user, {
-      action: 'calendar.event_created',
-      entity: 'calendar_events',
-      entityId: rows[0].id,
-      after: rows[0],
-      moduleKey: 'calendar',
+      await audit(req.db, req.user, {
+        action: 'calendar.event_created',
+        entity: 'calendar_events',
+        entityId: rows[0].id,
+        after: rows[0],
+        moduleKey: 'calendar',
+      });
+      return rows[0];
     });
 
-    res.status(201).json({ event: rows[0] });
+    res.status(201).json({ event });
   }),
 );
 
@@ -105,37 +109,39 @@ router.patch(
   asyncHandler(async (req: any, res) => {
     ensureAdmin(req.user);
 
-    const { rows: beforeRows } = await req.db.query(
-      'select * from calendar_events where id = $1',
-      [req.params.id],
-    );
-    if (!beforeRows.length) throw notFound('Evento não encontrado.');
-
     const data = eventData(req.body);
+    const event = await tx(req.db, async () => {
+      const { rows: beforeRows } = await req.db.query(
+        'select * from calendar_events where id = $1 for update',
+        [req.params.id],
+      );
+      if (!beforeRows.length) throw notFound('Evento não encontrado.');
 
-    const { rows } = await req.db.query(
-      `update calendar_events set
-         title = $1, description = $2, category = $3, location = $4,
-         starts_at = $5, ends_at = $6, all_day = $7,
-         updated_by = $8, updated_at = now()
-       where id = $9
-       returning *`,
-      [
-        data.title, data.description, data.category, data.location,
-        data.startsAt, data.endsAt, data.allDay, req.user.id, req.params.id,
-      ],
-    );
+      const { rows } = await req.db.query(
+        `update calendar_events set
+           title = $1, description = $2, category = $3, location = $4,
+           starts_at = $5, ends_at = $6, all_day = $7,
+           updated_by = $8, updated_at = now()
+         where id = $9
+         returning *`,
+        [
+          data.title, data.description, data.category, data.location,
+          data.startsAt, data.endsAt, data.allDay, req.user.id, req.params.id,
+        ],
+      );
 
-    await audit(req.db, req.user, {
-      action: 'calendar.event_updated',
-      entity: 'calendar_events',
-      entityId: req.params.id,
-      before: beforeRows[0],
-      after: rows[0],
-      moduleKey: 'calendar',
+      await audit(req.db, req.user, {
+        action: 'calendar.event_updated',
+        entity: 'calendar_events',
+        entityId: req.params.id,
+        before: beforeRows[0],
+        after: rows[0],
+        moduleKey: 'calendar',
+      });
+      return rows[0];
     });
 
-    res.json({ event: rows[0] });
+    res.json({ event });
   }),
 );
 
@@ -144,18 +150,20 @@ router.delete(
   asyncHandler(async (req: any, res) => {
     ensureAdmin(req.user);
 
-    const { rows } = await req.db.query(
-      'delete from calendar_events where id = $1 returning *',
-      [req.params.id],
-    );
-    if (!rows.length) throw notFound('Evento não encontrado.');
+    await tx(req.db, async () => {
+      const { rows } = await req.db.query(
+        'delete from calendar_events where id = $1 returning *',
+        [req.params.id],
+      );
+      if (!rows.length) throw notFound('Evento não encontrado.');
 
-    await audit(req.db, req.user, {
-      action: 'calendar.event_deleted',
-      entity: 'calendar_events',
-      entityId: req.params.id,
-      before: rows[0],
-      moduleKey: 'calendar',
+      await audit(req.db, req.user, {
+        action: 'calendar.event_deleted',
+        entity: 'calendar_events',
+        entityId: req.params.id,
+        before: rows[0],
+        moduleKey: 'calendar',
+      });
     });
 
     res.json({ ok: true });
