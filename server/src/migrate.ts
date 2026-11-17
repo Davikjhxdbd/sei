@@ -10,7 +10,12 @@ async function main() {
     .sort();
 
   const client = await pool.connect();
+  let migrationLockAcquired = false;
   try {
+    // Serializa execuções do migrador entre instâncias/processos da aplicação.
+    await client.query('select pg_advisory_lock($1, $2)', [194726381, 1]);
+    migrationLockAcquired = true;
+
     await client.query(`create table if not exists mmv_migrations (
       name text primary key,
       applied_at timestamptz not null default now()
@@ -41,8 +46,14 @@ async function main() {
     }
     console.log('migrações concluídas.');
   } finally {
-    client.release();
-    await pool.end();
+    try {
+      if (migrationLockAcquired) {
+        await client.query('select pg_advisory_unlock($1, $2)', [194726381, 1]);
+      }
+    } finally {
+      client.release();
+      await pool.end();
+    }
   }
 }
 
