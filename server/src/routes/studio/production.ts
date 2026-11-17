@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { asyncHandler, badRequest, notFound, required, optionalText } from '../../http';
+import { asyncHandler, badRequest, forbidden, notFound, required, optionalText } from '../../http';
 import { assertAction, type Action } from '../../permissions';
 import { audit, notify } from '../../audit';
 
@@ -234,8 +234,21 @@ router.patch('/production/tasks/:id', asyncHandler(async (req: any, res) => {
   if (!beforeRows.length) throw notFound('Tarefa não encontrada.');
 
   const before = beforeRows[0];
-  const isOwner = before.assigned_to === req.user.id || before.created_by === req.user.id;
-  if (!isOwner && req.user.level < 3) throw notFound('Tarefa não encontrada.');
+  const isAssignee = before.assigned_to === req.user.id;
+  const isCreator = before.created_by === req.user.id;
+  const canManage = req.user.level >= 3;
+  if (!isAssignee && !isCreator && !canManage) {
+    throw notFound('Tarefa não encontrada.');
+  }
+  if (isAssignee && !isCreator && !canManage) {
+    const allowedFields = new Set(['status']);
+    if (Object.keys(req.body ?? {}).some((key) => !allowedFields.has(key))) {
+      throw forbidden('Responsáveis podem atualizar apenas a etapa da própria tarefa.');
+    }
+    if (req.body?.status === undefined) {
+      throw badRequest('Informe a nova etapa da tarefa.');
+    }
+  }
 
   const status = req.body?.status;
   if (status && !STATUSES.includes(status)) throw badRequest('Etapa inválida.');
