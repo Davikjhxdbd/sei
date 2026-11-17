@@ -1,6 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { hashPassword, verifyPassword } from './auth';
+import crypto from 'node:crypto';
+import {
+  createSession,
+  hashPassword,
+  hashSessionToken,
+  verifyPassword,
+} from './auth';
 
 test('password hash verifies the original password', async () => {
   const password = 'Senha-forte-123!';
@@ -20,4 +26,29 @@ test('password hash rejects a different password', async () => {
 test('password verification rejects malformed hashes', async () => {
   assert.equal(await verifyPassword('qualquer', ''), false);
   assert.equal(await verifyPassword('qualquer', 'bcrypt$invalid$hash'), false);
+});
+
+test('session token hashes are deterministic and do not expose the token', () => {
+  const token = 'opaque-session-token';
+  const hash = hashSessionToken(token);
+
+  assert.equal(hash, crypto.createHash('sha256').update(token).digest('hex'));
+  assert.notEqual(hash, token);
+  assert.equal(hashSessionToken(token), hash);
+});
+
+test('new sessions store only a hash and return the raw cookie token', async () => {
+  let insertedToken = '';
+  const db = {
+    query: async (_sql: string, values: unknown[]) => {
+      insertedToken = String(values[0]);
+      return { rows: [] };
+    },
+  };
+
+  const session = await createSession(db as any, 'user-id', 'test-agent');
+
+  assert.equal(insertedToken, hashSessionToken(session.token));
+  assert.notEqual(insertedToken, session.token);
+  assert.equal(insertedToken.length, 64);
 });
