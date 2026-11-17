@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import { attachDb, releaseDb, pool } from './db';
 import { requireAuth } from './auth';
 import { ApiError } from './http';
+import { logApiError, requestObservability } from './observability';
 
 import authRoutes from './routes/auth';
 import adminRoutes from './routes/admin';
@@ -23,6 +24,7 @@ const app = express();
 app.set('trust proxy', true);
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
+app.use(requestObservability);
 
 app.get('/api/health', async (_req, res) => {
   try {
@@ -66,7 +68,7 @@ app.use((err: any, _req: any, res: any, _next: any) => {
       detail: err.detail ?? null,
     });
   }
-  console.error('[api] erro inesperado:', err);
+  logApiError(_req, err);
   res.status(500).json({
     error: 'internal_error',
     message: 'Não foi possível concluir a operação. Tente novamente.',
