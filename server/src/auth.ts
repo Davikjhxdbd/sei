@@ -70,6 +70,9 @@ export async function createSession(
   userId: string,
   userAgent?: string,
 ): Promise<{ token: string; expiresAt: Date }> {
+  // Remove sessões expiradas oportunisticamente para evitar crescimento indefinido.
+  await db.query('delete from sessions where expires_at <= now()');
+
   const token = crypto.randomBytes(32).toString('hex');
   const expiresAt = new Date(Date.now() + SESSION_TTL_DAYS * 86400_000);
   await db.query(
