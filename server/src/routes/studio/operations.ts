@@ -183,11 +183,11 @@ router.patch(
       const { rows } = await req.db.query(
         `update schedules set
            sector_id = case when $1::boolean then $2::uuid else sector_id end,
-           role_title = coalesce($2, role_title),
-           user_id = $3,
-           instructions = coalesce($4, instructions),
-           call_time = coalesce($5::timestamptz, call_time),
-           status = coalesce($6::assignment_status, status),
+           role_title = coalesce($3, role_title),
+           user_id = $4,
+           instructions = coalesce($5, instructions),
+           call_time = coalesce($6::timestamptz, call_time),
+           status = coalesce($7::assignment_status, status),
            updated_at = now()
          where id = $8 returning *`,
         [
@@ -215,13 +215,15 @@ router.patch(
             optionalText(req.body?.reason, 1000) ?? 'Designação alterada',
           ],
         );
-        await notify(req.db, {
-          userId: newUser,
-          title: 'Nova designação em escala',
-          body: rows[0].role_title,
-          link: '/m/studio/schedules',
-          moduleKey: 'studio',
-        });
+        if (newUser) {
+          await notify(req.db, {
+            userId: newUser,
+            title: 'Nova designação em escala',
+            body: rows[0].role_title,
+            link: '/m/studio/schedules',
+            moduleKey: 'studio',
+          });
+        }
       }
 
       await audit(req.db, req.user, {
