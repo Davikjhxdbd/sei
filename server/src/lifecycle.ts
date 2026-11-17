@@ -1,5 +1,3 @@
-import type { Server } from 'node:http';
-
 export interface ClosablePool {
   end(): Promise<void>;
 }
@@ -9,7 +7,10 @@ export interface ClosablePool {
  * A deadline prevents a stuck request from keeping the process alive forever.
  */
 export function shutdownGracefully(
-  server: Pick<Server, 'close' | 'closeAllConnections'>,
+  server: {
+    close(callback: (error?: Error) => void): void;
+    closeAllConnections(): void;
+  },
   pool: ClosablePool,
   timeoutMs = 10_000,
 ): Promise<void> {
