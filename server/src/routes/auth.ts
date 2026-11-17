@@ -275,6 +275,10 @@ router.post(
       throw unauthorized('Usuário ou senha inválidos.');
     }
 
+    // Credenciais corretas não devem consumir o limite de falhas,
+    // mesmo quando a conta ainda não está ativa.
+    await clearRateLimit(db, key);
+
     if (row.status !== 'active') {
       const message =
         row.status === 'pending'
