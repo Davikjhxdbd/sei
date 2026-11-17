@@ -58,7 +58,8 @@ function safeJson(text: string) {
   }
 }
 
-export const get = <T = any,>(path: string) => api<T>(path);
+export const get = <T = any,>(path: string, signal?: AbortSignal) =>
+  api<T>(path, { signal });
 export const post = <T = any,>(path: string, body?: unknown) =>
   api<T>(path, { method: 'POST', body: body ?? {} });
 export const patch = <T = any,>(path: string, body?: unknown) =>
