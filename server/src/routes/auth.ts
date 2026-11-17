@@ -296,9 +296,6 @@ router.post(
       [username],
     );
     const row = rows[0];
-    console.log('[LOGIN DEBUG] conta encontrada:', !!row);
-    console.log('[LOGIN DEBUG] hash presente:', !!row?.password_hash);
-    console.log('[LOGIN DEBUG] senha válida:', !!row && verifyPassword(password, row.password_hash));
 
     if (!row || !verifyPassword(password, row.password_hash)) {
       registerFailure(key);
