@@ -2,7 +2,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import { attachDb, releaseDb, pool } from './db';
 import { requireAuth } from './auth';
-import { ApiError } from './http';
+import { ApiError, bodyParserErrorResponse } from './http';
 import { logApiError, requestObservability } from './observability';
 import { databaseReady } from './health';
 
@@ -23,9 +23,9 @@ import productionTasks from './routes/studio/production';
 
 const app = express();
 app.set('trust proxy', true);
+app.use(requestObservability);
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
-app.use(requestObservability);
 
 app.get('/api/health', async (req, res) => {
   const ready = await databaseReady(pool);
@@ -65,6 +65,13 @@ app.use('/api', (_req, res) => {
 
 // eslint-disable-next-line no-unused-vars
 app.use((err: any, _req: any, res: any, _next: any) => {
+  const bodyError = bodyParserErrorResponse(err);
+  if (bodyError) {
+    return res.status(bodyError.status).json({
+      error: bodyError.code,
+      message: bodyError.message,
+    });
+  }
   if (err instanceof ApiError) {
     return res.status(err.status).json({
       error: err.code ?? 'error',
