@@ -261,20 +261,22 @@ router.post(
         field: 'password',
       });
     }
-    const { rows } = await req.db.query(
-      'update users set password_hash = $1, updated_at = now() where id = $2 returning id',
-      [await hashPassword(password), req.params.id],
-    );
-    if (!rows.length) throw notFound('Usuário não encontrado.');
+    await tx(req.db, async () => {
+      const { rows } = await req.db.query(
+        'update users set password_hash = $1, updated_at = now() where id = $2 returning id',
+        [await hashPassword(password), req.params.id],
+      );
+      if (!rows.length) throw notFound('Usuário não encontrado.');
 
-    await req.db.query('delete from sessions where user_id = $1', [
-      req.params.id,
-    ]);
-    await audit(req.db, req.user, {
-      action: 'user.password_reset',
-      entity: 'users',
-      entityId: req.params.id,
-      moduleKey: 'platform',
+      await req.db.query('delete from sessions where user_id = $1', [
+        req.params.id,
+      ]);
+      await audit(req.db, req.user, {
+        action: 'user.password_reset',
+        entity: 'users',
+        entityId: req.params.id,
+        moduleKey: 'platform',
+      });
     });
     res.json({ ok: true });
   }),
