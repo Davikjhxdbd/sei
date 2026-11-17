@@ -1,4 +1,5 @@
 import express from 'express';
+import { shutdownGracefully } from './lifecycle';
 import cookieParser from 'cookie-parser';
 import { attachDb, releaseDb, pool } from './db';
 import { requireAuth } from './auth';
@@ -88,6 +89,29 @@ app.use((err: any, _req: any, res: any, _next: any) => {
 });
 
 const port = Number(process.env.PORT || 4000);
-app.listen(port, '0.0.0.0', () => {
+const server = app.listen(port, '0.0.0.0', () => {
   console.log(`MMV Connect API ouvindo em :${port}`);
 });
+
+let shuttingDown = false;
+const handleShutdown = (signal: NodeJS.Signals) => {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.log(JSON.stringify({ event: 'server.shutdown_started', signal }));
+  void shutdownGracefully(server, pool)
+    .then(() => {
+      console.log(JSON.stringify({ event: 'server.shutdown_completed', signal }));
+      process.exitCode = 0;
+    })
+    .catch((error: unknown) => {
+      console.error(JSON.stringify({
+        event: 'server.shutdown_failed',
+        signal,
+        error_name: error instanceof Error ? error.name : 'UnknownError',
+      }));
+      process.exitCode = 1;
+    });
+};
+
+process.on('SIGTERM', handleShutdown);
+process.on('SIGINT', handleShutdown);
