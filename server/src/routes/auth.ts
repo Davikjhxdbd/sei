@@ -248,7 +248,7 @@ router.post(
         `update users
             set password_hash = $1, updated_at = now()
           where id = $2`,
-        [hashPassword(nextPassword), userId],
+        [await hashPassword(nextPassword), userId],
       );
 
       // Revoga todas as sessões anteriores à troca de senha.
@@ -296,7 +296,7 @@ router.post(
     );
     const row = rows[0];
 
-    if (!row || !verifyPassword(password, row.password_hash)) {
+    if (!row || !await verifyPassword(password, row.password_hash)) {
       registerFailure(key);
       throw unauthorized('Usuário ou senha inválidos.');
     }
@@ -423,13 +423,13 @@ router.post(
       'select password_hash from users where id = $1',
       [req.user.id],
     );
-    if (!rows.length || !verifyPassword(current, rows[0].password_hash)) {
+    if (!rows.length || !await verifyPassword(current, rows[0].password_hash)) {
       throw badRequest('Senha atual incorreta.', { field: 'current_password' });
     }
 
     await db.query(
       'update users set password_hash = $1, updated_at = now() where id = $2',
-      [hashPassword(next), req.user.id],
+      [await hashPassword(next), req.user.id],
     );
 
     // Mantém a sessão atual e revoga todas as outras sessões do usuário.
