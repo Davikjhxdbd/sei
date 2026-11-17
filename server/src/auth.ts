@@ -7,6 +7,28 @@ import type { Db } from './db';
 export const SESSION_COOKIE = 'mmv_session';
 export const SESSION_TTL_DAYS = 7;
 
+export interface LoginCredentials {
+  username: string;
+  password: string;
+}
+
+/** Bounds credential input before database lookup and expensive scrypt work. */
+export function parseLoginCredentials(body: unknown): LoginCredentials | null {
+  if (!body || typeof body !== 'object') return null;
+  const input = body as Record<string, unknown>;
+  if (typeof input.username !== 'string' || typeof input.password !== 'string') {
+    return null;
+  }
+
+  const username = input.username.trim();
+  const password = input.password;
+  if (!username || username.length > 160 || !password || password.length > 128) {
+    return null;
+  }
+
+  return { username, password };
+}
+
 export function hashSessionToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
