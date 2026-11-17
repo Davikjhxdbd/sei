@@ -16,6 +16,14 @@ export function shutdownGracefully(
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     let settled = false;
+    let timedOut = false;
+    let poolEndPromise: Promise<void> | undefined;
+
+    const closePoolOnce = () => {
+      poolEndPromise ??= pool.end();
+      return poolEndPromise;
+    };
+
     const finish = (error?: Error) => {
       if (settled) return;
       settled = true;
@@ -25,20 +33,21 @@ export function shutdownGracefully(
     };
 
     const deadline = setTimeout(() => {
+      timedOut = true;
       server.closeAllConnections();
-      void pool.end()
+      void closePoolOnce()
         .catch(() => undefined)
         .then(() => finish(new Error('Graceful shutdown deadline exceeded.')));
     }, timeoutMs);
     deadline.unref();
 
     server.close((serverError) => {
-      if (settled) return;
+      if (settled || timedOut) return;
       if (serverError) {
         finish(serverError);
         return;
       }
-      pool.end().then(
+      void closePoolOnce().then(
         () => finish(),
         (error: unknown) =>
           finish(error instanceof Error ? error : new Error('Database pool shutdown failed.')),
