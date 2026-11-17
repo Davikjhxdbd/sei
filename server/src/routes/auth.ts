@@ -14,6 +14,7 @@ import {
 } from '../auth';
 import { actionLevels, allowedActions } from '../permissions';
 import { audit } from '../audit';
+import { tx } from '../db';
 import { clearRateLimit, consumeRateLimit, rateLimitBucket } from '../rateLimit';
 
 const router = Router();
@@ -407,27 +408,30 @@ router.post(
       throw badRequest('Senha atual incorreta.', { field: 'current_password' });
     }
 
-    await db.query(
-      'update users set password_hash = $1, updated_at = now() where id = $2',
-      [await hashPassword(next), req.user.id],
-    );
+    const passwordHash = await hashPassword(next);
+    await tx(db, async () => {
+      await db.query(
+        'update users set password_hash = $1, updated_at = now() where id = $2',
+        [passwordHash, req.user.id],
+      );
 
-    // Mantém a sessão atual e revoga todas as outras sessões do usuário.
-    const currentSessionToken = req.cookies?.mmv_session;
-    await db.query(
-      'delete from sessions where user_id = $1 and token not in ($2, $3)',
-      [
-        req.user.id,
-        hashSessionToken(currentSessionToken),
-        currentSessionToken,
-      ],
-    );
+      // Mantém a sessão atual e revoga todas as outras sessões do usuário.
+      const currentSessionToken = req.cookies?.mmv_session;
+      await db.query(
+        'delete from sessions where user_id = $1 and token not in ($2, $3)',
+        [
+          req.user.id,
+          hashSessionToken(currentSessionToken),
+          currentSessionToken,
+        ],
+      );
 
-    await audit(db, req.user, {
-      action: 'user.password_changed',
-      entity: 'users',
-      entityId: req.user.id,
-      moduleKey: 'platform',
+      await audit(db, req.user, {
+        action: 'user.password_changed',
+        entity: 'users',
+        entityId: req.user.id,
+        moduleKey: 'platform',
+      });
     });
 
     res.json({ ok: true });
