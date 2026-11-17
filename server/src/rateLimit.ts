@@ -55,3 +55,14 @@ export async function clearRateLimit(db: Db, bucketHash: string): Promise<void> 
     bucketHash,
   ]);
 }
+
+/** Separate account and network buckets prevent simple IP rotation bypasses. */
+export function loginRateLimitBuckets(username: string, ip: string): {
+  account: string;
+  network: string;
+} {
+  return {
+    account: rateLimitBucket('login-account', username.trim().toLowerCase()),
+    network: rateLimitBucket('login-network', ip),
+  };
+}
