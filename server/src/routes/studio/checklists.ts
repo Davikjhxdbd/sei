@@ -349,9 +349,13 @@ router.patch(
     if (!taskRows.length) throw notFound('Tarefa não encontrada.');
     const task = taskRows[0];
 
-    const isMine = task.assignee_id === req.user.id || task.assignee_id === null;
+    const isMine = task.assignee_id === req.user.id;
     if (!isMine && !can(req.user.level, 'checklists.assign')) {
-      throw forbidden('Esta tarefa está atribuída a outra pessoa.');
+      throw forbidden(
+        task.assignee_id === null
+          ? 'Esta tarefa ainda não tem responsável. Atribua-a antes de atualizá-la.'
+          : 'Esta tarefa está atribuída a outra pessoa.',
+      );
     }
 
     const newStatus =
