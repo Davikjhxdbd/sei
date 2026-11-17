@@ -24,11 +24,13 @@ test('shutdown closes HTTP server before PostgreSQL pool', async () => {
   assert.deepEqual(calls, ['server.close', 'pool.end']);
 });
 
-test('shutdown rejects when the HTTP server cannot close before deadline', async () => {
+test('shutdown forces connections closed at deadline and closes pool only once', async () => {
   let forcedClose = false;
+  let closeCallback: ((error?: Error) => void) | undefined;
+  let poolEndCount = 0;
   const server = {
-    close(_callback: (error?: Error) => void) {
-      // Simulate a server whose close callback never arrives.
+    close(callback: (error?: Error) => void) {
+      closeCallback = callback;
     },
     closeAllConnections() {
       forcedClose = true;
@@ -36,7 +38,7 @@ test('shutdown rejects when the HTTP server cannot close before deadline', async
   };
   const pool = {
     async end() {
-      throw new Error('Pool must not close while HTTP requests are still active.');
+      poolEndCount += 1;
     },
   };
 
@@ -45,4 +47,8 @@ test('shutdown rejects when the HTTP server cannot close before deadline', async
     /deadline exceeded/i,
   );
   assert.equal(forcedClose, true);
+
+  // A late server callback must not initiate a second pool shutdown.
+  closeCallback?.();
+  assert.equal(poolEndCount, 1);
 });
