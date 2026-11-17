@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import type { PoolClient } from 'pg';
 import { pool } from './db';
 
 /**
@@ -17,9 +18,14 @@ async function main() {
     .filter((file) => file.endsWith('.sql'))
     .sort();
 
-  const client = await pool.connect();
+  let client: PoolClient | undefined;
+  let transactionOpen = false;
+  let releaseError: Error | undefined;
+
   try {
+    client = await pool.connect();
     await client.query('begin read only');
+    transactionOpen = true;
 
     const { rows: ledgerRows } = await client.query(
       `select to_regclass('public.mmv_migrations') as ledger_table`,
@@ -91,9 +97,20 @@ async function main() {
       report.pgcryptoEnabled;
 
     await client.query('rollback');
+    transactionOpen = false;
     if (!healthy) process.exitCode = 1;
   } finally {
-    client.release();
+    if (client) {
+      if (transactionOpen) {
+        try {
+          await client.query('rollback');
+        } catch (error) {
+          releaseError =
+            error instanceof Error ? error : new Error('Falha ao encerrar diagnóstico');
+        }
+      }
+      client.release(releaseError);
+    }
     await pool.end();
   }
 }
