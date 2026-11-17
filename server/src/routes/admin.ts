@@ -114,6 +114,18 @@ router.post(
     if (!roles.length) roles.push('member');
 
     const created = await tx(db, async () => {
+      if (sectors.length) {
+        const { rows: activeSectors } = await db.query(
+          'select id from sectors where id = any($1::uuid[]) and active = true',
+          [sectors],
+        );
+        if (activeSectors.length !== sectors.length) {
+          throw badRequest('Todos os setores selecionados devem existir e estar ativos.');
+        }
+      }
+      if (leadSectors.some((id) => !sectors.includes(id))) {
+        throw badRequest('Um setor marcado como liderança precisa estar vinculado ao usuário.');
+      }
       const existing = await db.query(
         'select 1 from users where lower(username) = $1',
         [username],
@@ -201,6 +213,18 @@ router.patch(
     const leadSectors = normalizeIds(req.body?.lead_sectors);
 
     const updated = await tx(db, async () => {
+      if (sectorsProvided && sectors.length) {
+        const { rows: activeSectors } = await db.query(
+          'select id from sectors where id = any($1::uuid[]) and active = true',
+          [sectors],
+        );
+        if (activeSectors.length !== sectors.length) {
+          throw badRequest('Todos os setores selecionados devem existir e estar ativos.');
+        }
+      }
+      if (sectorsProvided && leadSectors.some((id) => !sectors.includes(id))) {
+        throw badRequest('Um setor marcado como liderança precisa estar vinculado ao usuário.');
+      }
       if (Object.keys(patch).length) {
         const keys = Object.keys(patch);
         const sets = keys.map((k, i) => `${k} = $${i + 1}`).join(', ');
