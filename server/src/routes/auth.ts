@@ -137,6 +137,7 @@ router.post(
           Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
+        signal: AbortSignal.timeout(10_000),
         body: JSON.stringify({
           from,
           to: [user.email],
@@ -159,15 +160,15 @@ router.post(
       });
 
       if (!emailResponse.ok) {
-        const detail = await emailResponse.text();
-        throw new Error(`Resend ${emailResponse.status}: ${detail}`);
+        throw new Error(`Resend request failed with status ${emailResponse.status}`);
       }
-    } catch (error) {
+    } catch {
       await req.db.query(
         'delete from password_resets where token_hash = $1',
         [tokenHash],
       );
-      console.error('[auth] falha ao enviar recuperação:', error);
+      // Não registrar resposta do provedor, endereço de e-mail ou detalhes do token.
+      console.error('[auth] falha ao enviar recuperação de senha.');
     }
 
     res.json(response);
