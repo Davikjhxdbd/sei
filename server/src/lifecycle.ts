@@ -26,9 +26,9 @@ export function shutdownGracefully(
 
     const deadline = setTimeout(() => {
       server.closeAllConnections();
-      void pool.end().finally(() =>
-        finish(new Error('Graceful shutdown deadline exceeded.')),
-      );
+      void pool.end()
+        .catch(() => undefined)
+        .then(() => finish(new Error('Graceful shutdown deadline exceeded.')));
     }, timeoutMs);
     deadline.unref();
 
