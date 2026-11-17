@@ -36,7 +36,7 @@ async function main() {
 
     const { rows: relationRows } = await client.query(
       `select name, to_regclass('public.' || name) is not null as exists
-         from unnest($1::text[]) as name
+         from unnest($1::text[]) as rel(name)
          order by name`,
       [[
         'users',
