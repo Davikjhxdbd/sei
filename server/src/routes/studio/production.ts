@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { asyncHandler, badRequest, forbidden, notFound, required, optionalText } from '../../http';
 import { assertAction, type Action } from '../../permissions';
 import { audit, notify } from '../../audit';
+import { tx } from '../../db';
 
 const router = Router();
 const STATUSES = ['planning', 'recording', 'editing', 'review', 'published'] as const;
@@ -206,40 +207,44 @@ router.post('/production/tasks', asyncHandler(async (req: any, res) => {
     }
   }
 
-  const { rows } = await req.db.query(`
-    insert into production_tasks
-      (area_id, title, description, assigned_to, due_date, recording_date, created_by)
-    values ($1, $2, $3, $4, $5, $6, $7)
-    returning *
-  `, [areaId, title, description, assignedTo, dueDate, recordingDate, req.user.id]);
+  const task = await tx(req.db, async () => {
+    const { rows } = await req.db.query(`
+      insert into production_tasks
+        (area_id, title, description, assigned_to, due_date, recording_date, created_by)
+      values ($1, $2, $3, $4, $5, $6, $7)
+      returning *
+    `, [areaId, title, description, assignedTo, dueDate, recordingDate, req.user.id]);
 
-  await req.db.query(`
-    insert into production_task_history (task_id, user_id, action, details)
-    values ($1, $2, 'created', $3)
-  `, [rows[0].id, req.user.id, JSON.stringify({ title })]);
+    await req.db.query(`
+      insert into production_task_history (task_id, user_id, action, details)
+      values ($1, $2, 'created', $3)
+    `, [rows[0].id, req.user.id, JSON.stringify({ title })]);
 
-  await audit(req.db, req.user, {
-    action: 'production.task_created',
-    entity: 'production_tasks',
-    entityId: rows[0].id,
-    after: rows[0],
-    moduleKey: 'studio'
+    await audit(req.db, req.user, {
+      action: 'production.task_created',
+      entity: 'production_tasks',
+      entityId: rows[0].id,
+      after: rows[0],
+      moduleKey: 'studio'
+    });
+
+    await notify(req.db, {
+      userId: assignedTo,
+      title: 'Nova tarefa de produção',
+      body: title,
+      link: '/m/studio/my-space',
+      moduleKey: 'studio'
+    });
+    return rows[0];
   });
 
-  await notify(req.db, {
-    userId: assignedTo,
-    title: 'Nova tarefa de produção',
-    body: title,
-    link: '/m/studio/my-space',
-    moduleKey: 'studio'
-  });
-
-  res.status(201).json({ task: rows[0] });
+  res.status(201).json({ task });
 }));
 
 router.patch('/production/tasks/:id', asyncHandler(async (req: any, res) => {
+  const task = await tx(req.db, async () => {
   const { rows: beforeRows } = await req.db.query(
-    'select * from production_tasks where id = $1',
+    'select * from production_tasks where id = $1 for update',
     [req.params.id]
   );
   if (!beforeRows.length) throw notFound('Tarefa não encontrada.');
@@ -289,8 +294,10 @@ router.patch('/production/tasks/:id', asyncHandler(async (req: any, res) => {
     after: rows[0],
     moduleKey: 'studio'
   });
+  return rows[0];
+  });
 
-  res.json({ task: rows[0] });
+  res.json({ task });
 }));
 
 export default router;
