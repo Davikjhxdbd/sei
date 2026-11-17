@@ -40,8 +40,10 @@ test('session token hashes are deterministic and do not expose the token', () =>
 test('new sessions store only a hash and return the raw cookie token', async () => {
   let insertedToken = '';
   const db = {
-    query: async (_sql: string, values: unknown[]) => {
-      insertedToken = String(values[0]);
+    query: async (sql: string, values: unknown[] = []) => {
+      if (sql.includes('insert into sessions')) {
+        insertedToken = String(values[0]);
+      }
       return { rows: [] };
     },
   };
