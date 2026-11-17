@@ -14,6 +14,7 @@ import { ROLE_LEVELS } from '../permissions';
 import { hashPassword, requireLevel } from '../auth';
 import { audit } from '../audit';
 import { tx } from '../db';
+import { buildUserUpdateQuery } from '../userUpdate';
 
 const router = Router();
 
@@ -225,13 +226,9 @@ router.patch(
       if (sectorsProvided && leadSectors.some((id) => !sectors.includes(id))) {
         throw badRequest('Um setor marcado como liderança precisa estar vinculado ao usuário.');
       }
-      if (Object.keys(patch).length) {
-        const keys = Object.keys(patch);
-        const sets = keys.map((k, i) => `${k} = $${i + 1}`).join(', ');
-        await db.query(
-          `update users set ${sets}, updated_at = now() where id = $${keys.length + 1}`,
-          [...keys.map((k) => patch[k]), targetId],
-        );
+      const userUpdate = buildUserUpdateQuery(patch, targetId);
+      if (userUpdate) {
+        await db.query(userUpdate.text, userUpdate.values);
       }
 
       // A conta perde imediatamente todas as sessões ao deixar de estar ativa.
