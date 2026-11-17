@@ -7,6 +7,10 @@ import type { Db } from './db';
 export const SESSION_COOKIE = 'mmv_session';
 export const SESSION_TTL_DAYS = 7;
 
+export function hashSessionToken(token: string): string {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
 export interface SessionUser {
   id: string;
   full_name: string;
@@ -78,7 +82,7 @@ export async function createSession(
   await db.query(
     `insert into sessions (token, user_id, expires_at, user_agent)
      values ($1, $2, $3, $4)`,
-    [token, userId, expiresAt, userAgent?.slice(0, 300) ?? null],
+    [hashSessionToken(token), userId, expiresAt, userAgent?.slice(0, 300) ?? null],
   );
   return { token, expiresAt };
 }
@@ -162,8 +166,8 @@ export const requireAuth: RequestHandler = (req: any, res, next) => {
     const db: Db = req.db;
     const { rows } = await db.query(
       `select user_id from sessions
-        where token = $1 and expires_at > now()`,
-      [token],
+        where token in ($1, $2) and expires_at > now()`,
+      [hashSessionToken(token), token],
     );
     if (!rows.length) {
       clearSessionCookie(res);
