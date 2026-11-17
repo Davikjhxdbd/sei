@@ -486,6 +486,18 @@ router.post(
   asyncHandler(async (req: any, res) => {
     ensure(req.user, 'media.create');
     const serviceDate = required(req.body?.service_date, 'data do culto', 20);
+    const editorId = optionalId(req.body?.editor_id);
+    const publisherId = optionalId(req.body?.publisher_id);
+    const assigneeIds = [editorId, publisherId].filter((id): id is string => Boolean(id));
+    if (assigneeIds.length) {
+      const { rows: activeUsers } = await req.db.query(
+        "select id from users where id = any($1::uuid[]) and status = 'active'",
+        [assigneeIds],
+      );
+      if (activeUsers.length !== new Set(assigneeIds).size) {
+        throw badRequest('Editor e publicador devem ser usuários ativos.');
+      }
+    }
     const { rows } = await req.db.query(
       `insert into media_records
          (service_date, service_time, preacher, event_name, record_type, status,
@@ -499,8 +511,8 @@ router.post(
         optionalText(req.body?.event_name, 160),
         optionalText(req.body?.record_type, 60) ?? 'Gravação',
         MEDIA_STATUS.includes(req.body?.status) ? req.body.status : 'awaiting_edit',
-        optionalId(req.body?.editor_id),
-        optionalId(req.body?.publisher_id),
+        editorId,
+        publisherId,
         optionalText(req.body?.platform, 60),
         optionalText(req.body?.published_url, 500),
         optionalText(req.body?.notes, 2000),
@@ -535,6 +547,23 @@ router.patch(
     );
     if (!beforeRows.length) throw notFound('Registro de mídia não encontrado.');
 
+    const editorId = req.body?.editor_id !== undefined
+      ? optionalId(req.body.editor_id)
+      : beforeRows[0].editor_id;
+    const publisherId = req.body?.publisher_id !== undefined
+      ? optionalId(req.body.publisher_id)
+      : beforeRows[0].publisher_id;
+    const assigneeIds = [editorId, publisherId].filter((id): id is string => Boolean(id));
+    if (assigneeIds.length) {
+      const { rows: activeUsers } = await req.db.query(
+        "select id from users where id = any($1::uuid[]) and status = 'active'",
+        [assigneeIds],
+      );
+      if (activeUsers.length !== new Set(assigneeIds).size) {
+        throw badRequest('Editor e publicador devem ser usuários ativos.');
+      }
+    }
+
     const { rows } = await req.db.query(
       `update media_records set
          preacher = coalesce($1, preacher),
@@ -551,8 +580,8 @@ router.patch(
         optionalText(req.body?.preacher, 160),
         optionalText(req.body?.event_name, 160),
         optionalText(req.body?.record_type, 60),
-        optionalId(req.body?.editor_id),
-        optionalId(req.body?.publisher_id),
+        editorId,
+        publisherId,
         optionalText(req.body?.platform, 60),
         optionalText(req.body?.published_url, 500),
         optionalText(req.body?.notes, 2000),
