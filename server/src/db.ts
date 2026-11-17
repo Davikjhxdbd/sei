@@ -5,6 +5,15 @@ export const pool = new Pool({
     process.env.DATABASE_URL ||
     'postgresql://mmv:mmv@localhost:5432/mmv_connect',
   max: 10,
+  // Falha rápido quando o banco não consegue entregar uma conexão.
+  connectionTimeoutMillis: 10_000,
+  // Libera conexões ociosas para não manter recursos presos no Neon.
+  idleTimeoutMillis: 30_000,
+});
+
+// Evita que erros em conexões ociosas do pool passem despercebidos.
+pool.on('error', () => {
+  console.error('[db] erro em uma conexão ociosa do pool PostgreSQL.');
 });
 
 /** Client available per request (see attachDb). */
