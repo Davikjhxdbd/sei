@@ -34,6 +34,10 @@ jobs:
         working-directory: server
         run: npx tsc --noEmit
 
+      - name: Test API
+        working-directory: server
+        run: npm test
+
       - name: Install web dependencies
         working-directory: web
         run: npm ci
