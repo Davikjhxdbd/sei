@@ -66,8 +66,11 @@ router.get(
       throw forbidden('Você não tem autorização para consultar outro perfil.');
     }
     const { rows } = await req.db.query(
-      `select u.id, u.full_name, u.username, u.email, u.status, u.created_at,
-              u.updated_at, u.last_login_at,
+      `select u.id, u.full_name,
+              case when $2::int >= 5 then u.username else null end as username,
+              case when $2::int >= 5 then u.email else null end as email,
+              u.status, u.created_at, u.updated_at,
+              case when $2::int >= 5 then u.last_login_at else null end as last_login_at,
               coalesce((select array_agg(ur.role::text order by ur.role::text)
                           from user_roles ur where ur.user_id = u.id), '{}') as roles,
               coalesce((select json_agg(json_build_object('id', s.id, 'name', s.name, 'is_lead', us.is_lead)
@@ -75,7 +78,7 @@ router.get(
                           from user_sectors us join sectors s on s.id = us.sector_id
                          where us.user_id = u.id), '[]'::json) as sectors
          from users u where u.id = $1`,
-      [req.params.id],
+      [req.params.id, req.user.level],
     );
     if (!rows.length) throw notFound('Perfil não encontrado.');
     res.json({ user: rows[0], stats: await stats(req.db, req.params.id) });
