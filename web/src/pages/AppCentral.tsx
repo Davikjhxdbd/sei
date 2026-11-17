@@ -80,27 +80,27 @@ export default function AppCentral() {
     to: calendarTo.toISOString(),
   }).toString();
 
-  const calendarData = useApi<{ items: { id: string; title: string; category: string; starts_at: string; location: string | null }[] }> (activeSection === 'visao' ? `/calendar?${calendarQuery}` : null));
+  const calendarData = useApi<{ items: { id: string; title: string; category: string; starts_at: string; location: string | null }[] }> (activeSection === 'visao' ? `/calendar?${calendarQuery}` : null);
   const calendarEvents = calendarData.data?.items ?? [];
   const selectedDayEvents = calendarEvents.filter(event => localDateKey(new Date(event.starts_at)) === selectedCalendarDate);
   const todayKey = localDateKey(new Date());
   const monthLabel = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(calendarMonth);
-  const reportsData = useApi<{ items: { id: string; title: string; event_name: string; status: string; updated_at: string; sections: number; sections_filled: number }[] }>(activeSection === 'visao' ? '/studio/reports' : null));
+  const reportsData = useApi<{ items: { id: string; title: string; event_name: string; status: string; updated_at: string; sections: number; sections_filled: number }[] }>(activeSection === 'visao' ? '/studio/reports' : null);
 
   const productionData = useApi<{
     totals: { areas: number; members: number; tasks: number; open: number; published: number };
     byStatus: { status: string; total: number }[];
     byArea: { id: string; name: string; slug: string; tasks: number; open_tasks: number; published: number }[];
-  }> (activeSection === 'visao' ? '/studio/production/summary' : null));
+  }> (activeSection === 'visao' ? '/studio/production/summary' : null);
 
 
 
-  const mediaStatsData = useApi<{ totals: Record<string, number> }>(activeSection === 'cultos' ? '/studio/media/stats' : null));
+  const mediaStatsData = useApi<{ totals: Record<string, number> }>(activeSection === 'cultos' ? '/studio/media/stats' : null);
   const mediaRecordsData = useApi<{ items: {
     id: string; service_date: string; service_time: string | null;
     preacher: string | null; event_name: string | null; status: string;
     editor_name: string | null;
-  }[]; total: number }> (activeSection === 'cultos' ? '/studio/media?limit=100' : null));
+  }[]; total: number }> (activeSection === 'cultos' ? '/studio/media?limit=100' : null);
 
   const today = new Intl.DateTimeFormat('pt-BR', {
     weekday: 'long',
