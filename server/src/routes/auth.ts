@@ -15,12 +15,13 @@ import {
 import { actionLevels, allowedActions } from '../permissions';
 import { audit } from '../audit';
 import { tx } from '../db';
-import { clearRateLimit, consumeRateLimit, rateLimitBucket } from '../rateLimit';
+import { clearRateLimit, consumeRateLimit, loginRateLimitBuckets, rateLimitBucket } from '../rateLimit';
 
 const router = Router();
 
 const ATTEMPT_WINDOW_MS = 10 * 60_000;
 const MAX_ATTEMPTS = 8;
+const MAX_NETWORK_ATTEMPTS = 30;
 const RECOVERY_WINDOW_MS = 15 * 60_000;
 const MAX_RECOVERY_ATTEMPTS = 10;
 
@@ -255,12 +256,15 @@ router.post(
     }
 
     const db = req.db;
-    const key = rateLimitBucket(
-      'login',
-      `${username.toLowerCase()}|${req.ip ?? ''}`,
-    );
-    const loginAttempts = await consumeRateLimit(db, key, ATTEMPT_WINDOW_MS);
-    if (loginAttempts > MAX_ATTEMPTS) {
+    const buckets = loginRateLimitBuckets(username, req.ip ?? '');
+    const [accountAttempts, networkAttempts] = await Promise.all([
+      consumeRateLimit(db, buckets.account, ATTEMPT_WINDOW_MS),
+      consumeRateLimit(db, buckets.network, ATTEMPT_WINDOW_MS),
+    ]);
+    if (
+      accountAttempts > MAX_ATTEMPTS ||
+      networkAttempts > MAX_NETWORK_ATTEMPTS
+    ) {
       throw forbidden(
         'Muitas tentativas de acesso. Aguarde alguns minutos e tente novamente.',
         'too_many_attempts',
@@ -279,7 +283,10 @@ router.post(
 
     // Credenciais corretas não devem consumir o limite de falhas,
     // mesmo quando a conta ainda não está ativa.
-    await clearRateLimit(db, key);
+    await Promise.all([
+      clearRateLimit(db, buckets.account),
+      clearRateLimit(db, buckets.network),
+    ]);
 
     if (row.status !== 'active') {
       const message =
