@@ -1,9 +1,17 @@
 import { Pool, type PoolClient } from 'pg';
 
+const databaseUrl =
+  process.env.DATABASE_URL ??
+  (process.env.NODE_ENV === 'production'
+    ? undefined
+    : 'postgresql://mmv:mmv@localhost:5432/mmv_connect');
+
+if (!databaseUrl) {
+  throw new Error('DATABASE_URL é obrigatório em ambiente de produção.');
+}
+
 export const pool = new Pool({
-  connectionString:
-    process.env.DATABASE_URL ||
-    'postgresql://mmv:mmv@localhost:5432/mmv_connect',
+  connectionString: databaseUrl,
   max: 10,
   // Falha rápido quando o banco não consegue entregar uma conexão.
   connectionTimeoutMillis: 10_000,
