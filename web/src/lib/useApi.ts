@@ -20,21 +20,23 @@ export function useApi<T>(path: string | null, deps: unknown[] = []) {
       setLoading(false);
       return undefined;
     }
-    let cancelled = false;
+    const controller = new AbortController();
     setLoading(true);
     setError(null);
-    get<T>(path)
+    get<T>(path, controller.signal)
       .then((result) => {
-        if (!cancelled) setData(result);
+        setData(result);
       })
       .catch((err) => {
-        if (!cancelled) setError(err?.message ?? 'Falha ao carregar os dados.');
+        if (err?.name !== 'AbortError') {
+          setError(err?.message ?? 'Falha ao carregar os dados.');
+        }
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       });
     return () => {
-      cancelled = true;
+      controller.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [path, tick, ...deps]);
