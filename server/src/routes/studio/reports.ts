@@ -152,6 +152,7 @@ router.get(
 router.patch(
   '/reports/:id',
   asyncHandler(async (req: any, res) => {
+    if (!can(req.user.level, 'reports.edit')) throw forbidden();
     const { rows: beforeRows } = await req.db.query(
       'select * from event_reports where id = $1',
       [req.params.id],
@@ -182,6 +183,7 @@ router.patch(
 router.patch(
   '/reports/:id/sections/:sectionId',
   asyncHandler(async (req: any, res) => {
+    if (!can(req.user.level, 'reports.edit')) throw forbidden();
     const db = req.db;
     const { rows: reportRows } = await db.query(
       `select r.*, e.name as event_name from event_reports r
