@@ -181,6 +181,7 @@ export const requireAuth: RequestHandler = (req: any, res, next) => {
     }
 
     if (user.status !== 'active') {
+      clearSessionCookie(res);
       throw forbidden(
         STATUS_MESSAGE[user.status] ?? 'Conta indisponível para acesso.',
         'account_inactive',
