@@ -32,7 +32,7 @@ app.get('/api/health', async (req, res) => {
   if (!ready) {
     console.error(JSON.stringify({
       event: 'health.database_unavailable',
-      request_id: req.requestId ?? null,
+      request_id: (req as any).requestId ?? null,
     }));
     return res.status(503).json({ ok: false, error: 'database_unavailable' });
   }
