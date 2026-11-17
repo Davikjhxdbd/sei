@@ -17,37 +17,72 @@ interface RequestOptions {
   signal?: AbortSignal;
 }
 
+const REQUEST_TIMEOUT_MS = 30_000;
+
 export async function api<T = any>(
   path: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  const response = await fetch(path.startsWith('/api') ? path : `/api${path}`, {
-    method: options.method ?? 'GET',
-    credentials: 'same-origin',
-    headers: options.body ? { 'Content-Type': 'application/json' } : undefined,
-    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
-    signal: options.signal,
-  });
+  const controller = new AbortController();
+  const timeoutReason = new DOMException(
+    'A solicitação excedeu o tempo limite.',
+    'TimeoutError',
+  );
+  const timeoutId = window.setTimeout(
+    () => controller.abort(timeoutReason),
+    REQUEST_TIMEOUT_MS,
+  );
+  const abortFromCaller = () => controller.abort(options.signal?.reason);
 
-  const text = await response.text();
-  const payload = text ? safeJson(text) : null;
-
-  if (!response.ok) {
-    const message =
-      (payload && (payload.message as string)) ||
-      'Não foi possível concluir a operação.';
-    if (response.status === 401) {
-      window.dispatchEvent(new CustomEvent('mmv:unauthorized'));
-    }
-    throw new ApiError(
-      response.status,
-      message,
-      payload?.error as string | undefined,
-      payload?.detail,
-    );
+  if (options.signal?.aborted) {
+    abortFromCaller();
+  } else {
+    options.signal?.addEventListener('abort', abortFromCaller, { once: true });
   }
 
-  return payload as T;
+  try {
+    const response = await fetch(path.startsWith('/api') ? path : `/api${path}`, {
+      method: options.method ?? 'GET',
+      credentials: 'same-origin',
+      headers: options.body !== undefined
+        ? { 'Content-Type': 'application/json' }
+        : undefined,
+      body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+      signal: controller.signal,
+    });
+
+    const text = await response.text();
+    const payload = text ? safeJson(text) : null;
+
+    if (!response.ok) {
+      const message =
+        (payload && (payload.message as string)) ||
+        'Não foi possível concluir a operação.';
+      if (response.status === 401) {
+        window.dispatchEvent(new CustomEvent('mmv:unauthorized'));
+      }
+      throw new ApiError(
+        response.status,
+        message,
+        payload?.error as string | undefined,
+        payload?.detail,
+      );
+    }
+
+    return payload as T;
+  } catch (error) {
+    if (controller.signal.reason === timeoutReason) {
+      throw new ApiError(
+        408,
+        'O servidor demorou para responder. Verifique sua conexão e tente novamente.',
+        'request_timeout',
+      );
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timeoutId);
+    options.signal?.removeEventListener('abort', abortFromCaller);
+  }
 }
 
 function safeJson(text: string) {
