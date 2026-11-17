@@ -4,6 +4,7 @@ import { attachDb, releaseDb, pool } from './db';
 import { requireAuth } from './auth';
 import { ApiError } from './http';
 import { logApiError, requestObservability } from './observability';
+import { databaseReady } from './health';
 
 import authRoutes from './routes/auth';
 import adminRoutes from './routes/admin';
@@ -26,13 +27,16 @@ app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 app.use(requestObservability);
 
-app.get('/api/health', async (_req, res) => {
-  try {
-    await pool.query('select 1');
-    res.json({ ok: true, service: 'mmv-connect-api' });
-  } catch (err) {
-    res.status(503).json({ ok: false, error: 'database_unavailable' });
+app.get('/api/health', async (req, res) => {
+  const ready = await databaseReady(pool);
+  if (!ready) {
+    console.error(JSON.stringify({
+      event: 'health.database_unavailable',
+      request_id: req.requestId ?? null,
+    }));
+    return res.status(503).json({ ok: false, error: 'database_unavailable' });
   }
+  res.json({ ok: true, service: 'mmv-connect-api' });
 });
 
 app.use(attachDb);
