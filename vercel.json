@@ -6,6 +6,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://mmv-connect-api-prod.onrender.com/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
