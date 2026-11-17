@@ -290,7 +290,6 @@ router.post(
     const key = throttleKey(username, req.ip ?? '');
     checkThrottle(key);
 
-    console.log('[LOGIN 1] buscando conta');
     const { rows } = await db.query(
       `select id, password_hash, status from users where lower(username) = lower($1)`,
       [username],
@@ -314,22 +313,17 @@ router.post(
 
     attempts.delete(key);
 
-    console.log('[LOGIN 2] criando sessão');
     const { token, expiresAt } = await createSession(
       db,
       row.id,
       req.headers['user-agent'],
     );
-    console.log('[LOGIN 3] atualizando último acesso');
     await db.query('update users set last_login_at = now() where id = $1', [
       row.id,
     ]);
 
-    console.log('[LOGIN 4] carregando perfil');
     const user = await loadUser(db, row.id);
-    console.log('[LOGIN 5] configurando contexto');
     await setActorContext(db, user);
-    console.log('[LOGIN 6] registrando auditoria');
     await audit(db, user, {
       action: 'auth.login',
       entity: 'session',
@@ -338,9 +332,7 @@ router.post(
     });
 
     setSessionCookie(res, token, expiresAt);
-    console.log('[LOGIN 7] carregando módulos e notificações');
     res.json(await buildBootstrap(db, user));
-    console.log('[LOGIN OK] concluído');
   }),
 );
 
