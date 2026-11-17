@@ -90,7 +90,7 @@ router.post(
 
     const apiKey = process.env.RESEND_API_KEY;
     const from = process.env.MAIL_FROM;
-    const appUrl = (process.env.APP_URL || 'https://mmv-connect.pages.dev')
+    const appUrl = (process.env.APP_URL || 'https://sei-delta.vercel.app')
       .replace(/\/+$/, '');
 
     if (!apiKey || !from) {
