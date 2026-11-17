@@ -33,6 +33,7 @@ export function shutdownGracefully(
     deadline.unref();
 
     server.close((serverError) => {
+      if (settled) return;
       if (serverError) {
         finish(serverError);
         return;
