@@ -195,21 +195,7 @@ export function requireLevel(level: number) {
   };
   return middleware;
 }
-);
-  if (
-    algo !== 'scrypt' ||
-    !saltHex ||
-    !keyHex ||
-    !/^[a-f0-9]{32}$/i.test(saltHex) ||
-    !/^[a-f0-9]{128}$/i.test(keyHex)
-  ) {
-    return false;
-  }
 
-  const expected = Buffer.from(keyHex, 'hex');
-  const actual = await scryptAsync(password, Buffer.from(saltHex, 'hex'), 64);
-  return crypto.timingSafeEqual(expected, actual);
-}
 
 export async function createSession(
   db: Db,
