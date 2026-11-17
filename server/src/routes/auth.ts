@@ -424,8 +424,8 @@ router.post(
     const current = String(req.body?.current_password ?? '');
     const next = String(req.body?.new_password ?? '');
 
-    if (next.length < 8) {
-      throw badRequest('A nova senha deve ter ao menos 8 caracteres.', {
+    if (next.length < 8 || next.length > 128) {
+      throw badRequest('A nova senha deve ter entre 8 e 128 caracteres.', {
         field: 'new_password',
       });
     }
@@ -441,6 +441,13 @@ router.post(
     await db.query(
       'update users set password_hash = $1, updated_at = now() where id = $2',
       [hashPassword(next), req.user.id],
+    );
+
+    // Mantém a sessão atual e revoga todas as outras sessões do usuário.
+    const currentSessionToken = req.cookies?.mmv_session;
+    await db.query(
+      'delete from sessions where user_id = $1 and token <> $2',
+      [req.user.id, currentSessionToken],
     );
 
     await audit(db, req.user, {
