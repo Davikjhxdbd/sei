@@ -126,7 +126,7 @@ router.post(
         `insert into users (full_name, username, email, password_hash, status)
          values ($1, $2, $3, $4, $5)
          returning id, full_name, username, email, status, created_at`,
-        [fullName, username, email, hashPassword(password), status],
+        [fullName, username, email, await hashPassword(password), status],
       );
       const user = rows[0];
 
@@ -263,7 +263,7 @@ router.post(
     }
     const { rows } = await req.db.query(
       'update users set password_hash = $1, updated_at = now() where id = $2 returning id',
-      [hashPassword(password), req.params.id],
+      [await hashPassword(password), req.params.id],
     );
     if (!rows.length) throw notFound('Usuário não encontrado.');
 
