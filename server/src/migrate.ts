@@ -46,12 +46,18 @@ async function main() {
     }
     console.log('migrações concluídas.');
   } finally {
+    let releaseError: Error | undefined;
     try {
       if (migrationLockAcquired) {
         await client.query('select pg_advisory_unlock($1, $2)', [194726381, 1]);
       }
+    } catch (error) {
+      // Never return a session that may still hold the advisory lock to the pool.
+      releaseError =
+        error instanceof Error ? error : new Error('Falha ao liberar lock de migração');
+      throw error;
     } finally {
-      client.release();
+      client.release(releaseError);
       await pool.end();
     }
   }
