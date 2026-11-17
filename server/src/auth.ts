@@ -42,14 +42,28 @@ function scryptAsync(
 export async function hashPassword(password: string): Promise<string> {
   const salt = crypto.randomBytes(16);
   const key = await scryptAsync(password, salt, 64);
-  return `scrypt${salt.toString('hex')}${key.toString('hex')}`;
+  return 'scrypt$' + salt.toString('hex') + '$' + key.toString('hex');
 }
 
 export async function verifyPassword(
   password: string,
   stored: string,
 ): Promise<boolean> {
-  const [algo, saltHex, keyHex] = String(stored || '').split('
+  const [algo, saltHex, keyHex] = String(stored || '').split('$');
+  if (
+    algo !== 'scrypt' ||
+    !saltHex ||
+    !keyHex ||
+    !/^[a-f0-9]{32}$/i.test(saltHex) ||
+    !/^[a-f0-9]{128}$/i.test(keyHex)
+  ) {
+    return false;
+  }
+
+  const expected = Buffer.from(keyHex, 'hex');
+  const actual = await scryptAsync(password, Buffer.from(saltHex, 'hex'), 64);
+  return crypto.timingSafeEqual(expected, actual);
+}
 
 export async function createSession(
   db: Db,
