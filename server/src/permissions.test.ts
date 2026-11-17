@@ -21,6 +21,10 @@ test('role levels increase from member to system administrator', () => {
 test('permission checks enforce the configured minimum level', () => {
   assert.equal(can(1, 'events.view'), true);
   assert.equal(can(1, 'events.create'), false);
+  assert.equal(can(1, 'reports.edit'), false);
+  assert.equal(can(2, 'reports.edit'), true);
+  assert.equal(can(1, 'errors.edit'), false);
+  assert.equal(can(2, 'errors.edit'), true);
   assert.equal(can(3, 'production.manage'), true);
   assert.equal(can(2, 'production.manage'), false);
   assert.equal(can(4, 'users.manage'), false);
