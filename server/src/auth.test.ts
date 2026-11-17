@@ -5,6 +5,7 @@ import {
   createSession,
   hashPassword,
   hashSessionToken,
+  requireAuth,
   verifyPassword,
 } from './auth';
 
@@ -53,4 +54,52 @@ test('new sessions store only a hash and return the raw cookie token', async () 
   assert.equal(insertedToken, hashSessionToken(session.token));
   assert.notEqual(insertedToken, session.token);
   assert.equal(insertedToken.length, 64);
+});
+
+
+test('requireAuth clears the cookie when the account is no longer active', async () => {
+  const queries: string[] = [];
+  const db = {
+    query: async (sql: string) => {
+      queries.push(sql);
+      if (sql.includes('select user_id from sessions')) {
+        return { rows: [{ user_id: 'user-1' }] };
+      }
+      if (sql.includes('from users u')) {
+        return {
+          rows: [{
+            id: 'user-1',
+            full_name: 'Pessoa',
+            username: 'pessoa',
+            email: null,
+            status: 'suspended',
+            created_at: new Date().toISOString(),
+            last_login_at: null,
+            roles: [],
+          }],
+        };
+      }
+      if (sql.includes('from user_sectors')) return { rows: [] };
+      throw new Error('Consulta inesperada no teste de autenticação');
+    },
+  };
+  let clearedCookie = false;
+  const req = {
+    cookies: { mmv_session: 'raw-session-token' },
+    db,
+  };
+  const res = {
+    clearCookie: (name: string) => {
+      assert.equal(name, 'mmv_session');
+      clearedCookie = true;
+    },
+  };
+
+  const error = await new Promise<any>((resolve) => {
+    requireAuth(req as any, res as any, (nextError?: any) => resolve(nextError));
+  });
+
+  assert.equal(clearedCookie, true);
+  assert.equal(error?.code, 'account_inactive');
+  assert.equal(queries.length, 3);
 });
