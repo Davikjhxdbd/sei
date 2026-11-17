@@ -6,6 +6,7 @@ import { requireAuth } from './auth';
 import { ApiError, bodyParserErrorResponse } from './http';
 import { logApiError, requestObservability } from './observability';
 import { databaseReady } from './health';
+import { securityHeaders } from './security';
 
 import authRoutes from './routes/auth';
 import adminRoutes from './routes/admin';
@@ -28,15 +29,7 @@ app.set('trust proxy', 1);
 app.use(requestObservability);
 
 // API responses contain account and operational data; never allow intermediary caching.
-app.use((_req, res, next) => {
-  res.setHeader('Cache-Control', 'no-store');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('Referrer-Policy', 'no-referrer');
-  res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
-  next();
-});
+app.use(securityHeaders);
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 
