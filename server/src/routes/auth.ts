@@ -289,8 +289,6 @@ router.post(
       throw forbidden(message, 'account_inactive');
     }
 
-    await clearRateLimit(db, key);
-
     const { token, expiresAt } = await createSession(
       db,
       row.id,
