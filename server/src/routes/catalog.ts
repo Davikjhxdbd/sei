@@ -62,9 +62,11 @@ router.get(
   '/people',
   asyncHandler(async (req: any, res) => {
     const { rows } = await req.db.query(
-      `select id, full_name, username
+      `select id, full_name,
+              case when $1::int >= 5 then username else null end as username
          from users where status = 'active'
          order by full_name limit 500`,
+      [req.user.level],
     );
     res.json({ items: rows });
   }),
