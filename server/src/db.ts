@@ -1,7 +1,7 @@
 import { Pool, type PoolClient } from 'pg';
 
 const databaseUrl =
-  process.env.DATABASE_URL ??
+  process.env.DATABASE_URL?.trim() ||
   (process.env.NODE_ENV === 'production'
     ? undefined
     : 'postgresql://mmv:mmv@localhost:5432/mmv_connect');
