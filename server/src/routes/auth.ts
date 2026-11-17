@@ -13,38 +13,14 @@ import {
 } from '../auth';
 import { actionLevels, allowedActions } from '../permissions';
 import { audit } from '../audit';
+import { clearRateLimit, consumeRateLimit, rateLimitBucket } from '../rateLimit';
 
 const router = Router();
 
 const ATTEMPT_WINDOW_MS = 10 * 60_000;
 const MAX_ATTEMPTS = 8;
-const attempts = new Map<string, { count: number; resetAt: number }>();
-
-function throttleKey(username: string, ip: string) {
-  return `${username.toLowerCase()}|${ip}`;
-}
-
-function checkThrottle(key: string) {
-  const now = Date.now();
-  const entry = attempts.get(key);
-  if (!entry || entry.resetAt < now) return;
-  if (entry.count >= MAX_ATTEMPTS) {
-    throw forbidden(
-      'Muitas tentativas de acesso. Aguarde alguns minutos e tente novamente.',
-      'too_many_attempts',
-    );
-  }
-}
-
-function registerFailure(key: string) {
-  const now = Date.now();
-  const entry = attempts.get(key);
-  if (!entry || entry.resetAt < now) {
-    attempts.set(key, { count: 1, resetAt: now + ATTEMPT_WINDOW_MS });
-    return;
-  }
-  entry.count += 1;
-}
+const RECOVERY_WINDOW_MS = 15 * 60_000;
+const MAX_RECOVERY_ATTEMPTS = 10;
 
 export async function buildBootstrap(db: any, user: any) {
   const { rows: modules } = await db.query(
@@ -74,22 +50,6 @@ export async function buildBootstrap(db: any, user: any) {
 }
 
 
-const recoveryAttempts = new Map<string, { count: number; resetAt: number }>();
-
-function recoveryAllowed(ip: string) {
-  const now = Date.now();
-  const entry = recoveryAttempts.get(ip);
-
-  if (!entry || entry.resetAt < now) {
-    recoveryAttempts.set(ip, { count: 1, resetAt: now + 15 * 60_000 });
-    return true;
-  }
-
-  if (entry.count >= 10) return false;
-  entry.count += 1;
-  return true;
-}
-
 function escapeHtml(value: string) {
   return value.replace(/[&<>"']/g, (char) => ({
     '&': '&amp;',
@@ -112,7 +72,13 @@ router.post(
       message: 'Se o endereço estiver cadastrado, você receberá as instruções por e-mail.',
     };
 
-    if (!recoveryAllowed(ip)) {
+    const recoveryBucket = rateLimitBucket('password-recovery', ip);
+    const recoveryAttempts = await consumeRateLimit(
+      req.db,
+      recoveryBucket,
+      RECOVERY_WINDOW_MS,
+    );
+    if (recoveryAttempts > MAX_RECOVERY_ATTEMPTS) {
       return res.json(response);
     }
 
@@ -287,8 +253,17 @@ router.post(
     }
 
     const db = req.db;
-    const key = throttleKey(username, req.ip ?? '');
-    checkThrottle(key);
+    const key = rateLimitBucket(
+      'login',
+      `${username.toLowerCase()}|${req.ip ?? ''}`,
+    );
+    const loginAttempts = await consumeRateLimit(db, key, ATTEMPT_WINDOW_MS);
+    if (loginAttempts > MAX_ATTEMPTS) {
+      throw forbidden(
+        'Muitas tentativas de acesso. Aguarde alguns minutos e tente novamente.',
+        'too_many_attempts',
+      );
+    }
 
     const { rows } = await db.query(
       `select id, password_hash, status from users where lower(username) = lower($1)`,
@@ -297,7 +272,6 @@ router.post(
     const row = rows[0];
 
     if (!row || !await verifyPassword(password, row.password_hash)) {
-      registerFailure(key);
       throw unauthorized('Usuário ou senha inválidos.');
     }
 
@@ -311,7 +285,7 @@ router.post(
       throw forbidden(message, 'account_inactive');
     }
 
-    attempts.delete(key);
+    await clearRateLimit(db, key);
 
     const { token, expiresAt } = await createSession(
       db,
