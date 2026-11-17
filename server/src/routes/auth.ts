@@ -7,6 +7,7 @@ import {
   hashPassword,
   hashSessionToken,
   loadUser,
+  parseLoginCredentials,
   requireAuth,
   setActorContext,
   setSessionCookie,
@@ -250,11 +251,11 @@ router.post(
 router.post(
   '/login',
   asyncHandler(async (req, res) => {
-    const username = String(req.body?.username ?? '').trim();
-    const password = String(req.body?.password ?? '');
-    if (!username || !password) {
-      throw badRequest('Informe usuário e senha.');
+    const credentials = parseLoginCredentials(req.body);
+    if (!credentials) {
+      throw badRequest('Informe usuário e senha válidos.');
     }
+    const { username, password } = credentials;
 
     const db = req.db;
     const buckets = loginRateLimitBuckets(username, req.ip ?? '');
