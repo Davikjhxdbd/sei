@@ -274,7 +274,7 @@ export function Shell({
 
   return (
     <div
-      className="relative isolate min-h-screen bg-[#050505] font-sans"
+      className="relative isolate min-h-screen bg-canvas font-sans"
       onMouseMove={(event) => {
         const root = event.currentTarget;
         root.style.setProperty('--cursor-x', `${event.clientX}px`);
