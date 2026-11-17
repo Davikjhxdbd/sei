@@ -187,12 +187,23 @@ router.post('/production/tasks', asyncHandler(async (req: any, res) => {
   const dueDate = req.body?.due_date || null;
   const recordingDate = req.body?.recording_date || null;
 
+  const area = await req.db.query(
+    'select 1 from production_areas where id = $1 and active = true',
+    [areaId]
+  );
+  if (!area.rows.length) throw badRequest('A área selecionada não existe ou está inativa.');
+
   if (assignedTo) {
     const member = await req.db.query(
-      'select 1 from production_members where area_id = $1 and user_id = $2',
+      `select 1
+         from production_members pm
+         join users u on u.id = pm.user_id
+        where pm.area_id = $1 and pm.user_id = $2 and u.status = 'active'`,
       [areaId, assignedTo]
     );
-    if (!member.rows.length) throw badRequest('O responsável não pertence a esta equipe.');
+    if (!member.rows.length) {
+      throw badRequest('O responsável precisa ser membro ativo desta equipe.');
+    }
   }
 
   const { rows } = await req.db.query(`
