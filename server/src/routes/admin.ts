@@ -285,6 +285,7 @@ router.post(
 // ---------------------------------------------------------------------
 router.get(
   '/sectors',
+  requireLevel(4),
   asyncHandler(async (req: any, res) => {
     const { rows } = await req.db.query(
       `select s.id, s.key, s.name, s.description, s.active, s.created_at,
