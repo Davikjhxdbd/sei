@@ -204,6 +204,7 @@ router.patch(
 router.post(
   '/errors/:id/notes',
   asyncHandler(async (req: any, res) => {
+    if (!can(req.user.level, 'errors.edit')) throw forbidden();
     const note = required(req.body?.note, 'nota', 4000);
     const { rows: exists } = await req.db.query(
       'select id from operational_errors where id = $1',
