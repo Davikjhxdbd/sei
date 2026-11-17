@@ -61,3 +61,20 @@ test('clearRateLimit deletes only the requested hashed bucket', async () => {
   assert.equal(call?.sql, 'delete from auth_rate_limits where bucket_hash = $1');
   assert.deepEqual(call?.values, ['c'.repeat(64)]);
 });
+
+import { loginRateLimitBuckets } from './rateLimit';
+
+test('login rate limit buckets isolate account and network dimensions', () => {
+  const first = loginRateLimitBuckets('Person@Example.com', '203.0.113.10');
+  const normalized = loginRateLimitBuckets(' person@example.com ', '203.0.113.10');
+  const otherAccount = loginRateLimitBuckets('other@example.com', '203.0.113.10');
+  const otherNetwork = loginRateLimitBuckets('person@example.com', '203.0.113.11');
+
+  assert.equal(first.account, normalized.account);
+  assert.equal(first.network, normalized.network);
+  assert.notEqual(first.account, otherAccount.account);
+  assert.equal(first.network, otherAccount.network);
+  assert.equal(first.account, otherNetwork.account);
+  assert.notEqual(first.network, otherNetwork.network);
+  assert.equal(first.account.includes('person@example.com'), false);
+});
