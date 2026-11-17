@@ -93,3 +93,29 @@ export function like(value: unknown): string | null {
   if (!v) return null;
   return `%${v.replace(/[%_]/g, (m) => '\\' + m)}%`;
 }
+
+/** Normaliza erros conhecidos do parser JSON sem expor detalhes internos. */
+export function bodyParserErrorResponse(error: unknown): {
+  status: number;
+  code: string;
+  message: string;
+} | null {
+  if (!error || typeof error !== 'object' || !('type' in error)) return null;
+
+  const type = (error as { type?: unknown }).type;
+  if (type === 'entity.parse.failed') {
+    return {
+      status: 400,
+      code: 'invalid_json',
+      message: 'O corpo da requisição contém JSON inválido.',
+    };
+  }
+  if (type === 'entity.too.large') {
+    return {
+      status: 413,
+      code: 'payload_too_large',
+      message: 'O corpo da requisição excede o tamanho permitido.',
+    };
+  }
+  return null;
+}
