@@ -227,9 +227,9 @@ router.patch(
       }
       if (Object.keys(patch).length) {
         const keys = Object.keys(patch);
-        const sets = keys.map((k, i) => `${k} = $$${i + 1}`).join(', ');
+        const sets = keys.map((k, i) => `${k} = $${i + 1}`).join(', ');
         await db.query(
-          `update users set ${sets}, updated_at = now() where id = $$${keys.length + 1}`,
+          `update users set ${sets}, updated_at = now() where id = $${keys.length + 1}`,
           [...keys.map((k) => patch[k]), targetId],
         );
       }
