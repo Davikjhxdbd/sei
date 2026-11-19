@@ -347,7 +347,10 @@ router.patch(
       if (!beforeRows.length) throw notFound('Preset não encontrado.');
       const current = beforeRows[0];
       const nextStartTime = startTime ?? String(current.start_time).slice(0, 5);
-      const nextEndTime = endTime ?? (current.end_time ? String(current.end_time).slice(0, 5) : null);
+      const endTimeProvided = Object.prototype.hasOwnProperty.call(req.body ?? {}, 'end_time');
+      const nextEndTime = endTimeProvided
+        ? endTime
+        : (current.end_time ? String(current.end_time).slice(0, 5) : null);
       if (nextEndTime && nextEndTime <= nextStartTime) {
         throw badRequest('O término do preset precisa ser posterior ao início.');
       }
@@ -358,7 +361,7 @@ router.patch(
            type = coalesce($2, type),
            weekday = coalesce($3, weekday),
            start_time = coalesce($4::time, start_time),
-           end_time = coalesce($5::time, end_time),
+           end_time = $5::time,
            notes = coalesce($6, notes),
            active = coalesce($7, active)
          where id = $8
