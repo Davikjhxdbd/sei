@@ -69,8 +69,9 @@ export default function AppCentral() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#0B0D10] text-[#F4F5F6]">
+    <main className="relative min-h-screen overflow-hidden bg-[#0B0D10] text-[#F4F5F6] selection:bg-[#8D9EFF]/30">
       <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute inset-0 opacity-[0.12]" style={{ backgroundImage: 'linear-gradient(rgba(164,180,197,.10) 1px, transparent 1px), linear-gradient(90deg, rgba(164,180,197,.10) 1px, transparent 1px)', backgroundSize: '72px 72px', maskImage: 'linear-gradient(to bottom, black, transparent 78%)' }} />
         <div className="absolute -right-56 -top-64 h-[34rem] w-[34rem] rounded-full bg-[#8D9EFF]/[0.055] blur-[150px]" />
         <div className="absolute -left-48 bottom-[-18rem] h-[30rem] w-[30rem] rounded-full bg-[#A4B4C5]/[0.035] blur-[150px]" />
       </div>
@@ -78,13 +79,12 @@ export default function AppCentral() {
       <div className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-6 sm:px-10 sm:py-8">
         <header className="flex items-center justify-between">
           <Link to="/" className="group flex items-center gap-3" aria-label="MMV CONNECT — início">
-            <span className="relative grid h-10 w-10 place-items-center overflow-hidden rounded-[13px] border border-[#8D9EFF]/30 bg-[#8D9EFF]/[0.09] shadow-[0_0_28px_rgba(141,158,255,0.12)]">
+            <span className="relative grid h-10 w-10 place-items-center overflow-hidden rounded-[12px] border border-[#8D9EFF]/35 bg-[#8D9EFF]/[0.08] shadow-[0_8px_28px_rgba(0,0,0,.24)]">
               <svg viewBox="0 0 40 40" className="h-7 w-7" fill="none" aria-hidden="true">
-                <path d="M7 29V11L20 23L33 11V29" stroke="#C6CEFF" strokeWidth="2.2" strokeLinecap="square" strokeLinejoin="round" />
-                <path d="M20 23V8" stroke="#8D9EFF" strokeWidth="2.2" strokeLinecap="square" />
-                <circle cx="20" cy="7" r="2" fill="#F4F5F6" />
+                <path d="M9 12.5C9 10.6 10.6 9 12.5 9H27.5C29.4 9 31 10.6 31 12.5V27.5C31 29.4 29.4 31 27.5 31H12.5C10.6 31 9 29.4 9 27.5V12.5Z" stroke="#AEBBFF" strokeWidth="1.35" />
+                <path d="M14 25V15L20 21L26 15V25" stroke="#F4F5F6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx="20" cy="8" r="2" fill="#8D9EFF" /><circle cx="32" cy="20" r="2" fill="#8D9EFF" />
               </svg>
-              <span className="absolute inset-x-2 bottom-0 h-px bg-gradient-to-r from-transparent via-[#8D9EFF] to-transparent" />
             </span>
             <span className="flex flex-col leading-none"><span className="text-[12px] font-semibold tracking-[0.19em] text-white">MMV<span className="text-[#8D9EFF]">/</span>CONNECT</span><span className="mt-1.5 text-[8px] font-medium tracking-[0.24em] text-white/35">PLATAFORMA INTEGRADA</span></span>
           </Link>
@@ -127,33 +127,33 @@ export default function AppCentral() {
         <section className="mx-auto my-auto w-full max-w-5xl py-14 sm:py-20">
           <div className="relative">
             <div aria-hidden="true" className="pointer-events-none absolute -right-2 -top-20 hidden h-[390px] w-[390px] items-center justify-center opacity-70 lg:flex">
-              <div className="absolute h-[340px] w-[340px] rounded-full border border-[#8D9EFF]/[0.10]" />
-              <div className="absolute h-[270px] w-[270px] rounded-full border border-[#A4B4C5]/[0.10]" />
-              <div className="absolute h-[190px] w-[190px] rounded-full border border-[#8D9EFF]/[0.16]" />
-              <div className="absolute h-[110px] w-[110px] rounded-full border border-[#8D9EFF]/[0.24] bg-[#8D9EFF]/[0.035] shadow-[0_0_90px_rgba(141,158,255,0.10)]" />
-              <svg viewBox="0 0 160 160" className="relative h-28 w-28" fill="none"><path d="M28 112V48L80 96L132 48V112" stroke="#A4B4C5" strokeOpacity=".42" strokeWidth="3"/><path d="M80 96V26" stroke="#8D9EFF" strokeOpacity=".65" strokeWidth="3"/><circle cx="80" cy="22" r="4" fill="#C6CEFF"/></svg>
-              <span className="absolute right-4 top-24 h-1.5 w-1.5 rounded-full bg-[#8D9EFF] shadow-[0_0_12px_#8D9EFF]" />
-              <span className="absolute bottom-16 left-8 h-1 w-1 rounded-full bg-[#A4B4C5]" />
+              <div className="absolute h-[280px] w-[280px] rounded-full border border-[#8D9EFF]/[0.13]" />
+              <div className="absolute h-[210px] w-[210px] rounded-full border border-dashed border-[#A4B4C5]/[0.17]" />
+              <div className="absolute h-[132px] w-[132px] rounded-[34px] border border-[#8D9EFF]/[0.28] bg-[#8D9EFF]/[0.045] rotate-45 shadow-[0_0_80px_rgba(141,158,255,0.08)]" />
+              <svg viewBox="0 0 160 160" className="relative h-32 w-32" fill="none"><path d="M34 80H126M80 34V126M48 48L112 112M112 48L48 112" stroke="#A4B4C5" strokeOpacity=".18" strokeWidth="1.2"/><path d="M49 80C49 63 63 49 80 49C97 49 111 63 111 80C111 97 97 111 80 111C63 111 49 97 49 80Z" stroke="#AEBBFF" strokeWidth="1.5"/><path d="M80 49V80H111" stroke="#8D9EFF" strokeWidth="2"/><circle cx="80" cy="49" r="4" fill="#F4F5F6"/><circle cx="111" cy="80" r="4" fill="#8D9EFF"/><circle cx="80" cy="111" r="3" fill="#A4B4C5"/></svg>
+              <span className="absolute right-7 top-16 h-2 w-2 rounded-full bg-[#8D9EFF] shadow-[0_0_14px_#8D9EFF]" />
+              <span className="absolute bottom-14 left-12 h-1.5 w-1.5 rounded-full bg-[#A4B4C5]" />
             </div>
-          <div className="mb-5 flex items-center gap-2">
-            <span className="h-px w-7 bg-[#8D9EFF]" />
-            <span className="text-[9px] font-semibold uppercase tracking-[0.24em] text-[#A4B4C5]/70">MMV CONNECT <span className="px-1.5 text-[#8D9EFF]/70">/</span> {sectorLabel}</span>
+          <div className="mb-6 flex items-center gap-3">
+            <span className="grid h-6 w-6 place-items-center rounded-md border border-[#8D9EFF]/25 bg-[#8D9EFF]/[0.08] text-[9px] font-semibold text-[#BFC8FF]">01</span>
+            <span className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#A4B4C5]/70">SEU AMBIENTE <span className="px-1.5 text-[#8D9EFF]/70">/</span> {sectorLabel}</span>
+            <span className="h-px w-12 bg-gradient-to-r from-[#8D9EFF]/45 to-transparent" />
           </div>
 
           <div className="max-w-3xl">
             <p className="text-[15px] font-medium tracking-wide text-[#A4B4C5]/75">{greeting},</p>
-            <h1 className="font-display mt-2 text-[clamp(3.4rem,8vw,6.4rem)] font-medium leading-[0.86] tracking-[-0.055em] text-[#F4F5F6]">{firstName(user?.full_name)}<span className="text-[#8D9EFF]">.</span></h1>
-            <p className="mt-5 max-w-xl text-[13px] leading-6 text-white/50 sm:text-sm">Seu dia, suas prioridades. Tudo pronto para você continuar.</p>
-            <div className="mt-7 flex items-center gap-3"><span className="h-px w-10 bg-[#8D9EFF]/55" /><span className="text-[9px] font-medium uppercase tracking-[0.2em] text-white/30">Um só lugar. Tudo conectado.</span></div>
+            <h1 className="font-display mt-2 text-[clamp(3rem,7vw,5.6rem)] font-medium leading-[0.9] tracking-[-0.06em] text-[#F4F5F6]">{firstName(user?.full_name)}<span className="text-[#8D9EFF]">.</span></h1>
+            <p className="mt-5 max-w-md text-[13px] leading-6 text-white/55 sm:text-sm">Seu trabalho conectado. Suas prioridades em movimento.</p>
+            <div className="mt-7 flex items-center gap-3"><span className="h-5 w-[2px] rounded-full bg-[#8D9EFF]" /><span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[#A4B4C5]/55">UM SÓ LUGAR. TUDO CONECTADO.</span></div>
           </div>
           </div>
 
-          <div className="relative mt-10 max-w-3xl overflow-hidden rounded-[24px] border border-[#A4B4C5]/[0.13] bg-[linear-gradient(135deg,rgba(30,36,48,0.82),rgba(15,18,24,0.92)_58%,rgba(18,21,29,0.88))] shadow-[0_28px_90px_rgba(0,0,0,0.34)] backdrop-blur-2xl">
+          <div className="relative mt-10 max-w-3xl overflow-hidden rounded-[20px] border border-[#A4B4C5]/[0.15] bg-[#11151C]/90 shadow-[0_24px_70px_rgba(0,0,0,0.32)] backdrop-blur-2xl">
             <div aria-hidden="true" className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[#8D9EFF]/65 to-transparent" />
-            <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full border border-[#8D9EFF]/[0.08] shadow-[0_0_70px_rgba(141,158,255,0.06)]" />
-            <div className="relative flex flex-wrap items-center justify-between gap-4 px-5 py-6 sm:px-7">
+            <div aria-hidden="true" className="pointer-events-none absolute right-0 top-0 h-full w-1 bg-gradient-to-b from-[#8D9EFF]/70 via-[#8D9EFF]/15 to-transparent" />
+            <div className="relative flex flex-wrap items-center justify-between gap-4 px-5 py-5 sm:px-7">
               <div>
-                <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-[#8D9EFF] shadow-[0_0_10px_rgba(141,158,255,0.9)]" /><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#A4B4C5]/75">Visão geral</p></div>
+                <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rotate-45 bg-[#8D9EFF] shadow-[0_0_10px_rgba(141,158,255,0.9)]" /><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#A4B4C5]/75">PAINEL DE ATIVIDADE</p></div>
                 <p className="mt-2 text-[13px] text-white/80">
                   {hasStudio ? <>Você tem <strong className="font-semibold text-white">{pending.length} {pending.length === 1 ? 'tarefa' : 'tarefas'}</strong> pendentes para acompanhar.</> : 'Seu espaço de trabalho está pronto para hoje.'}
                 </p>
@@ -171,8 +171,8 @@ export default function AppCentral() {
               <div className="relative grid gap-2 p-3 sm:grid-cols-3 sm:px-4 sm:pb-4">
                 {shortcuts.map((item) => {
                   const Icon = item.icon;
-                  return <Link key={item.to} to={item.to} className="group relative flex min-w-0 items-center gap-3 overflow-hidden rounded-[15px] border border-white/[0.055] bg-white/[0.025] px-3 py-3.5 transition duration-300 hover:-translate-y-0.5 hover:border-[#8D9EFF]/25 hover:bg-[#8D9EFF]/[0.055] hover:shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
-                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[13px] border border-[#A4B4C5]/[0.12] bg-gradient-to-br from-[#8D9EFF]/[0.13] to-white/[0.025] text-[#B8C3FF] shadow-inner shadow-white/[0.035] transition duration-300 group-hover:border-[#8D9EFF]/35 group-hover:text-[#E0E4FF]"><Icon className="h-[17px] w-[17px]" strokeWidth={1.7} /></span>
+                  return <Link key={item.to} to={item.to} className="group relative flex min-w-0 items-center gap-3 overflow-hidden rounded-[12px] border border-[#A4B4C5]/[0.10] bg-[#1A202A]/55 px-3 py-3.5 transition duration-300 hover:-translate-y-0.5 hover:border-[#8D9EFF]/25 hover:bg-[#8D9EFF]/[0.055] hover:shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] border border-[#8D9EFF]/[0.22] bg-[#8D9EFF]/[0.075] text-[#B8C3FF] shadow-inner shadow-white/[0.035] transition duration-300 group-hover:border-[#8D9EFF]/35 group-hover:text-[#E0E4FF]"><Icon className="h-[17px] w-[17px]" strokeWidth={1.7} /></span>
                     <span className="min-w-0 flex-1"><span className="block truncate text-[12px] font-medium text-white/85">{item.label}</span><span className="mt-1 block truncate text-[10px] text-white/35">{item.description}</span></span>
                     <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-white/25 transition duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[#C6CEFF]" />
                   </Link>;
