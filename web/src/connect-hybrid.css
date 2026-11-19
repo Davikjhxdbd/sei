@@ -283,3 +283,29 @@
   .connect-agenda-day,.connect-agenda-event,.connect-shortcut,.connect-shortcut::after,.connect-shortcut__arrow { transition:none!important; }
   .connect-agenda-skeleton { animation:none!important; }
 }
+
+/* Indicador de progresso em anel */
+.connect-progress-layout { display:grid;grid-template-columns:112px minmax(0,1fr);align-items:center;gap:20px;margin-top:23px; }
+.connect-progress-ring { position:relative;display:grid;width:108px;aspect-ratio:1;place-items:center;border-radius:50%;box-shadow:0 0 28px rgba(196,166,106,.08),inset 0 0 0 1px rgba(255,255,255,.05); }
+.connect-progress-ring::before { content:"";position:absolute;inset:7px;border:1px solid rgba(255,255,255,.075);border-radius:50%; }
+.connect-progress-ring__inner { position:relative;display:flex;width:84px;aspect-ratio:1;flex-direction:column;align-items:center;justify-content:center;border:1px solid rgba(216,189,134,.12);border-radius:50%;background:radial-gradient(circle at 50% 35%,rgba(196,166,106,.1),rgba(12,14,16,.98) 72%); }
+.connect-progress-ring__inner strong { color:#f0e3c4;font-size:27px;font-weight:750;line-height:1;letter-spacing:-.06em;font-variant-numeric:tabular-nums; }
+.connect-progress-ring__inner strong small { margin-left:1px;color:#c4a66a;font-size:12px; }
+.connect-progress-ring__inner span { margin-top:6px;color:rgba(216,189,134,.52);font-size:6px;font-weight:900;letter-spacing:.17em; }
+.connect-progress-stats { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px; }
+.connect-progress-stats>div { display:flex;min-width:0;flex-direction:column;gap:5px;padding-left:10px;border-left:1px solid rgba(255,255,255,.09); }
+.connect-progress-stats strong { color:rgba(244,242,237,.9);font-size:21px;font-weight:750;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.055em; }
+.connect-progress-stats strong.is-complete { color:#e5c98f; }
+.connect-progress-stats span { color:rgba(255,255,255,.36);font-size:7px;font-weight:850;letter-spacing:.11em; }
+.connect-progress-note { grid-column:1/-1;margin:0;color:rgba(255,255,255,.38);font-size:9px;line-height:1.6; }
+.connect-progress-ring--loading { border:2px solid rgba(216,189,134,.12);border-top-color:#d8bd86;animation:connect-core-rotate 1.2s linear infinite; }
+@media(max-width:480px) {
+  .connect-progress-layout { grid-template-columns:86px minmax(0,1fr);gap:12px; }
+  .connect-progress-ring { width:84px; }
+  .connect-progress-ring__inner { width:66px; }
+  .connect-progress-ring__inner strong { font-size:22px; }
+  .connect-progress-stats { gap:5px; }
+  .connect-progress-stats>div { padding-left:6px; }
+  .connect-progress-stats strong { font-size:17px; }
+  .connect-progress-stats span { font-size:6px;letter-spacing:.06em; }
+}
