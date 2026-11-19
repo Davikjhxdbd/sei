@@ -1,10 +1,10 @@
 import '../connect-hybrid.css';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowUpRight, Bell, CalendarDays, ChevronRight,
-  HelpCircle, LogOut, Menu, RefreshCw,
-  UserRound, X,
+  Activity, ArrowRight, Command, HelpCircle, LogOut, Menu, RefreshCw,
+  Search, UserRound, X,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useApi } from '../lib/useApi';
@@ -97,6 +97,25 @@ export default function AppCentral() {
   const navigate = useNavigate();
   const { user, modules, logout, state } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
+  const [commandQuery, setCommandQuery] = useState('');
+  const [clock, setClock] = useState(() => new Date());
+  useEffect(() => {
+    const timer = window.setInterval(() => setClock(new Date()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+  useEffect(() => {
+    function handleShortcut(event: KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setCommandOpen((open) => !open);
+        setCommandQuery('');
+      }
+      if (event.key === 'Escape') { setCommandOpen(false); setMenuOpen(false); }
+    }
+    window.addEventListener('keydown', handleShortcut);
+    return () => window.removeEventListener('keydown', handleShortcut);
+  }, []);
   const hasStudio = modules.some((module) => module.key === 'studio' || module.key.startsWith('studio_'));
   const { data: production, loading: productionLoading, error: productionError, reload: reloadProduction } = useApi<any>(hasStudio ? '/studio/production/mine' : null);
 
@@ -139,6 +158,13 @@ export default function AppCentral() {
   const activeWeekTasks = weekTaskItems.length - completedWeekTasks.length;
   const weekProgress = weekTaskItems.length ? Math.round((completedWeekTasks.length / weekTaskItems.length) * 100) : 0;
   const quickModules = modules.slice(0, 4);
+  const commandItems = [
+    ...modules.map((module) => ({ id: module.id, name: module.name, route: module.route, icon: moduleIcon(module.icon), group: 'MÓDULOS' })),
+    { id: 'calendar', name: 'Agenda', route: '/calendar', icon: CalendarDays, group: 'ESPAÇOS' },
+    { id: 'notifications', name: 'Notificações', route: '/notifications', icon: Bell, group: 'ESPAÇOS' },
+    { id: 'profile', name: 'Meu perfil', route: '/profile', icon: UserRound, group: 'ESPAÇOS' },
+    { id: 'help', name: 'Ajuda', route: '/help', icon: HelpCircle, group: 'ESPAÇOS' },
+  ].filter((item) => item.name.toLocaleLowerCase('pt-BR').includes(commandQuery.trim().toLocaleLowerCase('pt-BR')));
 
   async function handleLogout() {
     await logout();
@@ -169,6 +195,7 @@ export default function AppCentral() {
             </span>
           </Link>
           <div className="flex items-center gap-3">
+            <button type="button" onClick={() => { setCommandOpen(true); setCommandQuery(''); }} className="connect-header-command" aria-label="Abrir central de comandos"><Command size={16}/><span>COMANDOS</span><kbd>⌘ K</kbd></button>
             <span className="hidden text-right sm:block">
               <span className="block text-[11px] font-bold uppercase tracking-[0.12em] text-white/85">{firstName(user?.full_name)}</span>
               <span className="mt-1 block text-[9px] font-medium uppercase tracking-[0.16em] text-[#C4A66A]/65">{sectorLabel}</span>
@@ -195,42 +222,63 @@ export default function AppCentral() {
             <button onClick={handleLogout} className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-semibold text-white/45 transition hover:bg-white/[0.06] hover:text-white"><LogOut className="h-4 w-4" />Sair</button>
           </nav>
         </>}
+        {commandOpen && <div className="connect-command-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setCommandOpen(false); }}>
+          <section className="connect-command-modal" role="dialog" aria-modal="true" aria-label="Central de comandos">
+            <div className="connect-command-modal__search"><Search size={18}/><input autoFocus value={commandQuery} onChange={(event) => setCommandQuery(event.target.value)} placeholder="Buscar módulos, espaços e ferramentas..." /><kbd>ESC</kbd></div>
+            <div className="connect-command-modal__meta"><span>ACESSO RÁPIDO</span><span>{commandItems.length} RESULTADOS</span></div>
+            <div className="connect-command-results">
+              {commandItems.length ? commandItems.map((item) => {
+                const Icon = item.icon;
+                return <Link key={item.id} to={item.route} onClick={() => setCommandOpen(false)} className="connect-command-result"><span className="connect-command-result__icon"><Icon size={16}/></span><span>{item.name}<small>{item.group}</small></span><ArrowRight size={15}/></Link>;
+              }) : <p className="connect-command-empty">Nenhum resultado. Tente outro termo.</p>}
+            </div>
+            <div className="connect-command-modal__footer"><span>MMV / CONNECT</span><span><kbd>↑</kbd> <kbd>↓</kbd> navegar <kbd>↵</kbd> abrir</span></div>
+          </section>
+        </div>}
 
         <section className="mx-auto flex w-full max-w-[1180px] flex-1 flex-col justify-start gap-5 py-5 sm:gap-6 sm:py-6">
-          <div className="connect-hero relative overflow-hidden rounded-[26px] border border-[#C4A66A]/35 bg-[linear-gradient(120deg,rgba(37,31,21,.82),rgba(19,20,22,.76)_55%,rgba(12,13,15,.84))] p-6 shadow-[0_22px_70px_rgba(0,0,0,.38),inset_0_1px_0_rgba(255,255,255,.09)] backdrop-blur-2xl sm:p-9">
-            <div aria-hidden="true" className="connect-hero-orb pointer-events-none absolute -right-20 -top-28 h-80 w-80 rounded-full border border-[#C4A66A]/15" />
-            <div aria-hidden="true" className="connect-hero-orb connect-hero-orb-inner pointer-events-none absolute -right-4 -top-12 h-60 w-60 rounded-full border border-[#C4A66A]/10" />
-            <div aria-hidden="true" className="connect-hero-visual pointer-events-none absolute right-[7%] top-1/2 hidden h-[250px] w-[250px] -translate-y-1/2 lg:block xl:right-[10%]">
-              <div className="connect-hero-orb absolute inset-0 rounded-full border border-[#D8BD86]/20 bg-[radial-gradient(circle_at_38%_32%,rgba(240,227,196,.14),rgba(196,166,106,.035)_34%,transparent_68%)] shadow-[inset_0_0_55px_rgba(196,166,106,.08),0_0_75px_rgba(196,166,106,.07)]" />
-              <div className="connect-hero-orb connect-hero-orb-inner absolute inset-[22px] rounded-full border border-[#D8BD86]/15" />
-              <div className="absolute inset-[48px] rounded-full border border-dashed border-[#D8BD86]/20" />
-              <div className="absolute inset-[72px] rounded-full bg-[radial-gradient(circle_at_35%_30%,rgba(255,255,255,.18),rgba(196,166,106,.12)_25%,rgba(18,16,12,.2)_68%)] shadow-[0_0_45px_rgba(196,166,106,.12),inset_0_0_28px_rgba(255,255,255,.08)] backdrop-blur-xl" />
-              <div className="absolute left-1/2 top-1/2 h-[2px] w-[74%] -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-transparent via-[#E5C98F]/55 to-transparent" />
-              <div className="absolute left-1/2 top-1/2 h-[74%] w-[2px] -translate-x-1/2 -translate-y-1/2 bg-gradient-to-b from-transparent via-[#E5C98F]/45 to-transparent" />
-              <span className="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#F0E3C4]/70 bg-[#E5C98F] shadow-[0_0_22px_rgba(229,201,143,.8)]" />
-              <span className="absolute -right-1 top-[22%] h-1.5 w-1.5 rounded-full bg-[#F0E3C4] shadow-[0_0_14px_rgba(240,227,196,.9)]" />
-              <span className="absolute bottom-[17%] left-[12%] h-1 w-1 rounded-full bg-[#C4A66A] shadow-[0_0_12px_rgba(196,166,106,.9)]" />
-              <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[8px] font-bold tracking-[.32em] text-[#D8BD86]/45">CONECTANDO PROPÓSITOS</span>
+          <section className="connect-command-hero" aria-labelledby="connect-greeting">
+            <div className="connect-command-hero__topline">
+              <span className="connect-eyebrow"><span className="connect-live-dot" /> MMV CONNECT <span className="connect-topline-divider">/</span> CENTRAL DE OPERAÇÕES</span>
+              <span className="connect-session-code">SESSION {dateKey(clock).replaceAll('-','').slice(2)} · LOCAL</span>
             </div>
-            <div aria-hidden="true" className="pointer-events-none absolute right-16 top-0 h-full w-px rotate-[24deg] bg-gradient-to-b from-transparent via-[#C4A66A]/20 to-transparent" />
-            <div className="relative max-w-[820px]">
-              <div className="mb-4 flex flex-wrap items-center gap-3">
-                <span className="rounded-md border border-[#C4A66A]/40 bg-[#C4A66A]/10 px-2.5 py-1 text-[9px] font-extrabold tracking-[0.19em] text-[#E5C98F]">SEU AMBIENTE</span>
-                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/45">{sectorLabel}</span>
+            <div className="connect-command-hero__body">
+              <div className="connect-command-hero__copy">
+                <p className="connect-date-line">{new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).format(clock)}</p>
+                <p className="connect-greeting-line">{getGreeting()},</p>
+                <h1 id="connect-greeting" className="connect-main-greeting">{firstName(user?.full_name)}<span>.</span></h1>
+                <p className="connect-hero-message">{personalizedMessage || verse.text}</p>
+                {!personalizedMessage && <span className="connect-verse-reference">{verse.reference}</span>}
+                <button type="button" className="connect-command-trigger" onClick={() => { setCommandOpen(true); setCommandQuery(''); }}>
+                  <span className="connect-command-trigger__icon"><Search size={15}/></span>
+                  <span>O que você procura?</span>
+                  <kbd>⌘ K</kbd>
+                  <ArrowRight className="connect-command-trigger__arrow" size={15}/>
+                </button>
               </div>
-              <p className="text-[13px] font-bold uppercase tracking-[0.2em] text-[#D8BD86]">{getGreeting()},</p>
-              <h1 className="font-display mt-1 text-[clamp(3.1rem,8vw,6.5rem)] font-bold leading-[.88] tracking-[-0.045em] text-[#F4F2ED]">{firstName(user?.full_name)}<span className="text-[#C4A66A]">.</span></h1>
-              <div className="mt-6 max-w-[760px] border-l-[3px] border-[#C4A66A] pl-4 sm:pl-5">
-                <p className="text-[9px] font-extrabold uppercase tracking-[0.22em] text-[#C4A66A]/80">MENSAGEM DO DIA</p>
-                <p className="mt-2 text-[clamp(1.15rem,2.3vw,1.7rem)] font-semibold leading-snug tracking-[-0.025em] text-white/90">
-                  {personalizedMessage || verse.text}
-                </p>
-                {!personalizedMessage && <p className="mt-3 text-[10px] font-extrabold tracking-[0.2em] text-[#D8BD86]">{verse.reference}</p>}
+              <div className="connect-core-panel" aria-label="Núcleo visual do MMV CONNECT">
+                <div className="connect-core-panel__coordinates">CORE / 001<br/>MMV SYSTEM</div>
+                <div className="connect-core">
+                  <div className="connect-core__orbit connect-core__orbit--one"/>
+                  <div className="connect-core__orbit connect-core__orbit--two"/>
+                  <div className="connect-core__orbit connect-core__orbit--three"/>
+                  <div className="connect-core__axis connect-core__axis--x"/>
+                  <div className="connect-core__axis connect-core__axis--y"/>
+                  <div className="connect-core__center"><span>M</span></div>
+                  <i className="connect-core__node connect-core__node--one"/>
+                  <i className="connect-core__node connect-core__node--two"/>
+                  <i className="connect-core__node connect-core__node--three"/>
+                </div>
+                <div className="connect-core-panel__footer"><span>PROPÓSITO EM CONEXÃO</span><span>01 — 04</span></div>
               </div>
             </div>
-            <div className="pointer-events-none absolute bottom-0 right-0 hidden h-2/3 w-[28%] bg-gradient-to-l from-[#C4A66A]/[0.055] to-transparent lg:block" />
-          </div>
-
+            <div className="connect-telemetry">
+              <div className="connect-telemetry__clock"><span className="connect-telemetry__label">HORÁRIO LOCAL</span><strong>{clock.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</strong></div>
+              <div><span className="connect-telemetry__label">AGENDA DA SEMANA</span><strong>{calendarLoading ? '—' : String(events.length).padStart(2,'0')} <small>compromissos</small></strong></div>
+              <div><span className="connect-telemetry__label">NOTIFICAÇÕES</span><strong>{String(unread).padStart(2,'0')} <small>não lidas</small></strong></div>
+              <div><span className="connect-telemetry__label">AMBIENTE</span><strong>{sectorLabel}</strong></div>
+            </div>
+          </section>
           <div className="connect-content-grid grid gap-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,.85fr)]">
             <section className="connect-glass-card overflow-hidden rounded-[23px] border border-[#C4A66A]/25 bg-[linear-gradient(145deg,rgba(34,31,25,.68),rgba(17,19,22,.78)_55%,rgba(12,13,15,.84))] shadow-[0_18px_55px_rgba(0,0,0,.32),inset_0_1px_0_rgba(255,255,255,.075)] backdrop-blur-2xl">
               <div className="flex items-center justify-between gap-3 border-b border-[#C4A66A]/15 px-5 py-4 sm:px-6">
