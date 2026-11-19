@@ -1,0 +1,77 @@
+/* MMV CONNECT — camada visual híbrida da Dashboard */
+.connect-hero-visual {
+  perspective: 900px;
+  transform-style: preserve-3d;
+  animation: connect-visual-float 9s ease-in-out infinite;
+}
+.connect-hero-visual::before {
+  content: "";
+  position: absolute;
+  inset: -18px;
+  border-radius: 50%;
+  background: conic-gradient(from 20deg, transparent 0 28%, rgba(216,189,134,.16) 34%, transparent 42% 72%, rgba(216,189,134,.09) 80%, transparent 88%);
+  filter: blur(18px);
+  opacity: .55;
+  animation: connect-visual-aura 24s linear infinite;
+}
+.connect-hero-visual > div:nth-child(3) {
+  animation: connect-visual-rotate 38s linear infinite;
+}
+.connect-hero-visual > div:nth-child(4) {
+  animation: connect-visual-core 7s ease-in-out infinite alternate;
+}
+.connect-hero-visual > span:nth-last-child(-n+2) {
+  animation: connect-visual-signal 3.8s ease-in-out infinite alternate;
+}
+.connect-dashboard .connect-hero {
+  background-size: 180% 180%;
+  animation: connect-hero-enter 850ms cubic-bezier(.2,.8,.2,1) both, connect-hero-light 18s ease-in-out 900ms infinite alternate;
+}
+.connect-dashboard .connect-glass-card {
+  transform-style: preserve-3d;
+}
+.connect-dashboard a,
+.connect-dashboard button {
+  transition-timing-function: cubic-bezier(.2,.8,.2,1);
+}
+.connect-dashboard a:focus-visible,
+.connect-dashboard button:focus-visible {
+  outline-color: rgba(229,201,143,.9);
+  outline-offset: 3px;
+}
+@keyframes connect-visual-float {
+  0%, 100% { transform: translate3d(0,-50%,0) rotateX(0deg); }
+  50% { transform: translate3d(0,calc(-50% - 8px),0) rotateX(2deg); }
+}
+@keyframes connect-visual-aura {
+  to { transform: rotate(360deg); }
+}
+@keyframes connect-visual-rotate {
+  to { transform: rotate(360deg); }
+}
+@keyframes connect-visual-core {
+  from { transform: scale(.97); opacity: .78; }
+  to { transform: scale(1.04); opacity: 1; }
+}
+@keyframes connect-visual-signal {
+  from { opacity: .35; box-shadow: 0 0 5px rgba(229,201,143,.35); }
+  to { opacity: 1; box-shadow: 0 0 16px rgba(229,201,143,.9); }
+}
+@keyframes connect-hero-light {
+  from { background-position: 0% 50%; }
+  to { background-position: 100% 50%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .connect-hero-visual,
+  .connect-hero-visual::before,
+  .connect-hero-visual > div,
+  .connect-hero-visual > span,
+  .connect-dashboard .connect-hero {
+    animation: none !important;
+  }
+}
+@media (max-width: 1023px) {
+  .connect-dashboard .connect-hero {
+    background-size: auto;
+  }
+}
