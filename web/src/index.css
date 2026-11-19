@@ -207,3 +207,150 @@ html, body, #root {
     animation-delay: 0ms;
   }
 }
+
+
+/* MMV CONNECT — identidade híbrida: futurismo premium + cinema + Liquid Glass */
+.connect-dashboard {
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse at 78% 12%, rgba(196,166,106,.075), transparent 34%),
+    radial-gradient(ellipse at 8% 72%, rgba(117,91,48,.055), transparent 36%),
+    #090a0c;
+}
+.connect-atmosphere { z-index: 0; }
+.connect-grid {
+  opacity: .12;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,.9), transparent 82%);
+  animation: connect-grid-breathe 12s ease-in-out infinite alternate;
+}
+.connect-glow { will-change: transform, opacity; }
+.connect-glow-one { animation: connect-glow-drift 22s ease-in-out infinite alternate; }
+.connect-glow-two { animation: connect-glow-drift-reverse 26s ease-in-out infinite alternate; }
+.connect-orbit { transform-origin: center; animation: connect-orbit-turn 48s linear infinite; }
+.connect-orbit-two { animation-duration: 62s; animation-direction: reverse; }
+.connect-brand-mark {
+  position: relative;
+  box-shadow: 0 8px 30px rgba(196,166,106,.13), inset 0 1px 0 rgba(255,255,255,.16);
+  transition: transform 500ms cubic-bezier(.2,.8,.2,1), box-shadow 500ms ease;
+}
+.connect-brand-mark::after {
+  content: "";
+  position: absolute;
+  inset: -55%;
+  background: linear-gradient(110deg, transparent 42%, rgba(255,255,255,.22) 50%, transparent 58%);
+  transform: translateX(-75%) rotate(18deg);
+  animation: connect-brand-sheen 8s ease-in-out infinite;
+}
+.connect-hero {
+  isolation: isolate;
+  backdrop-filter: blur(26px) saturate(135%);
+  -webkit-backdrop-filter: blur(26px) saturate(135%);
+  box-shadow: 0 28px 90px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.13);
+  animation: connect-hero-enter 850ms cubic-bezier(.2,.8,.2,1) both;
+}
+.connect-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: .6;
+  background:
+    radial-gradient(ellipse at 82% 18%, rgba(216,189,134,.13), transparent 35%),
+    linear-gradient(115deg, rgba(255,255,255,.045), transparent 42%, rgba(255,255,255,.018));
+}
+.connect-hero::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(125deg, rgba(255,255,255,.10), transparent 22%, transparent 70%, rgba(216,189,134,.07));
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  padding: 1px;
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+}
+.connect-hero-orb { animation: connect-orb-breathe 9s ease-in-out infinite alternate; }
+.connect-hero-orb-inner { animation-duration: 7s; animation-direction: alternate-reverse; }
+.connect-glass-card {
+  position: relative;
+  isolation: isolate;
+  backdrop-filter: blur(22px) saturate(125%);
+  -webkit-backdrop-filter: blur(22px) saturate(125%);
+  box-shadow: 0 18px 55px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.09);
+  transition: transform 420ms cubic-bezier(.2,.8,.2,1), border-color 420ms ease, box-shadow 420ms ease, background-color 420ms ease;
+}
+.connect-glass-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: .55;
+  background: linear-gradient(135deg, rgba(255,255,255,.055), transparent 35%, transparent 70%, rgba(196,166,106,.035));
+}
+.connect-feature-card::after {
+  content: "";
+  position: absolute;
+  width: 11rem;
+  height: 11rem;
+  right: -4rem;
+  bottom: -6rem;
+  border-radius: 50%;
+  border: 1px solid rgba(216,189,134,.12);
+  box-shadow: 0 0 50px rgba(196,166,106,.07), inset 0 0 40px rgba(196,166,106,.035);
+  pointer-events: none;
+  animation: connect-orb-breathe 8s ease-in-out infinite alternate;
+}
+.connect-assistant-card { overflow: hidden; }
+.connect-assistant-card::after {
+  content: "";
+  position: absolute;
+  right: 5%;
+  top: -65%;
+  width: 18rem;
+  height: 18rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(196,166,106,.11), transparent 68%);
+  pointer-events: none;
+  animation: connect-assistant-pulse 8s ease-in-out infinite alternate;
+}
+.connect-content-grid { animation: connect-content-enter 900ms cubic-bezier(.2,.8,.2,1) both; }
+.connect-dashboard button, .connect-dashboard a { -webkit-tap-highlight-color: transparent; }
+@media (hover: hover) and (pointer: fine) {
+  .connect-glass-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(216,189,134,.42);
+    box-shadow: 0 25px 70px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.13);
+  }
+  .connect-brand-mark:hover { transform: translateY(-2px) rotate(-3deg); box-shadow: 0 12px 38px rgba(196,166,106,.22); }
+}
+@keyframes connect-grid-breathe { from { opacity: .7; } to { opacity: 1; } }
+@keyframes connect-glow-drift { from { transform: translate3d(0,0,0) scale(.94); } to { transform: translate3d(-35px,28px,0) scale(1.08); } }
+@keyframes connect-glow-drift-reverse { from { transform: translate3d(0,0,0) scale(1); } to { transform: translate3d(28px,-24px,0) scale(.92); } }
+@keyframes connect-orbit-turn { to { transform: rotate(360deg); } }
+@keyframes connect-orb-breathe { from { opacity: .45; transform: scale(.96); } to { opacity: .9; transform: scale(1.04); } }
+@keyframes connect-brand-sheen {
+  0%, 68%, 100% { transform: translateX(-75%) rotate(18deg); opacity: 0; }
+  76% { opacity: .8; }
+  90% { transform: translateX(75%) rotate(18deg); opacity: 0; }
+}
+@keyframes connect-hero-enter { from { opacity: 0; transform: translateY(14px) scale(.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes connect-content-enter { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes connect-assistant-pulse { from { transform: translate3d(0,0,0) scale(.9); opacity: .5; } to { transform: translate3d(-24px,18px,0) scale(1.15); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .connect-grid, .connect-glow, .connect-orbit, .connect-brand-mark::after,
+  .connect-hero, .connect-hero-orb, .connect-glass-card, .connect-feature-card::after,
+  .connect-assistant-card::after, .connect-content-grid {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+@media (max-width: 640px) {
+  .connect-orbit { opacity: .45; }
+  .connect-hero { backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+  .connect-glass-card { backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+}
