@@ -303,6 +303,9 @@ router.post(
     }
     const startTime = validatePresetTime(required(req.body?.start_time, 'horário inicial', 8), 'início')!;
     const endTime = validatePresetTime(optionalText(req.body?.end_time, 8), 'término', true);
+    if (endTime && endTime <= startTime) {
+      throw badRequest('O término do preset precisa ser posterior ao início.');
+    }
 
     const created = await tx(req.db, async () => {
       const { rows } = await req.db.query(
@@ -342,6 +345,12 @@ router.patch(
         [req.params.id],
       );
       if (!beforeRows.length) throw notFound('Preset não encontrado.');
+      const current = beforeRows[0];
+      const nextStartTime = startTime ?? String(current.start_time).slice(0, 5);
+      const nextEndTime = endTime ?? (current.end_time ? String(current.end_time).slice(0, 5) : null);
+      if (nextEndTime && nextEndTime <= nextStartTime) {
+        throw badRequest('O término do preset precisa ser posterior ao início.');
+      }
 
       const { rows } = await req.db.query(
         `update event_presets set
