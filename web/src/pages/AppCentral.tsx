@@ -149,17 +149,17 @@ export default function AppCentral() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#090A0C] text-[#F4F2ED] selection:bg-[#C4A66A]/35">
-      <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.16]" style={{ backgroundImage: 'linear-gradient(rgba(196,166,106,.055) 1px, transparent 1px), linear-gradient(90deg, rgba(196,166,106,.055) 1px, transparent 1px)', backgroundSize: '76px 76px', maskImage: 'linear-gradient(to bottom, black, transparent 86%)' }} />
-        <div className="absolute -right-48 -top-56 h-[34rem] w-[34rem] rounded-full bg-[#C4A66A]/[0.09] blur-[145px]" />
-        <div className="absolute -left-48 bottom-[-20rem] h-[34rem] w-[34rem] rounded-full bg-[#8C6B37]/[0.07] blur-[150px]" />
+    <main className="connect-dashboard relative min-h-screen overflow-hidden bg-[#090A0C] text-[#F4F2ED] selection:bg-[#C4A66A]/35">
+      <div aria-hidden="true" className="connect-atmosphere pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="connect-grid absolute inset-0 opacity-[0.16]" style={{ backgroundImage: 'linear-gradient(rgba(196,166,106,.055) 1px, transparent 1px), linear-gradient(90deg, rgba(196,166,106,.055) 1px, transparent 1px)', backgroundSize: '76px 76px', maskImage: 'linear-gradient(to bottom, black, transparent 86%)' }} />
+        <div className="connect-glow connect-glow-one absolute -right-48 -top-56 h-[34rem] w-[34rem] rounded-full bg-[#C4A66A]/[0.09] blur-[145px]" />
+        <div className="connect-glow connect-glow-two absolute -left-48 bottom-[-20rem] h-[34rem] w-[34rem] rounded-full bg-[#8C6B37]/[0.07] blur-[150px]" /><div className="connect-orbit connect-orbit-one absolute right-[12%] top-[18%] h-56 w-56 rounded-full border border-[#D8BD86]/[0.08]" /><div className="connect-orbit connect-orbit-two absolute right-[15%] top-[21%] h-40 w-40 rounded-full border border-[#D8BD86]/[0.06]" />
       </div>
 
       <div className="relative mx-auto flex min-h-screen w-full max-w-[1440px] flex-col px-4 py-5 sm:px-7 sm:py-7 lg:px-10">
         <header className="flex items-center justify-between border-b border-[#C4A66A]/20 pb-5">
           <Link to="/" className="group flex items-center gap-3" aria-label="MMV CONNECT — início">
-            <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-[13px] border border-[#C4A66A]/45 bg-gradient-to-br from-[#C4A66A]/20 to-[#17130D]/70 shadow-[0_8px_30px_rgba(196,166,106,.13)]">
+            <span className="connect-brand-mark grid h-11 w-11 place-items-center overflow-hidden rounded-[13px] border border-[#C4A66A]/45 bg-gradient-to-br from-[#C4A66A]/20 to-[#17130D]/70 shadow-[0_8px_30px_rgba(196,166,106,.13)]">
               <ConnectMark />
             </span>
             <span className="flex flex-col leading-none">
@@ -196,9 +196,9 @@ export default function AppCentral() {
         </>}
 
         <section className="mx-auto flex w-full max-w-[1180px] flex-1 flex-col justify-start gap-5 py-5 sm:gap-6 sm:py-6">
-          <div className="relative overflow-hidden rounded-[26px] border border-[#C4A66A]/35 bg-[linear-gradient(120deg,rgba(37,31,21,.96),rgba(19,20,22,.93)_55%,rgba(12,13,15,.96))] p-6 shadow-[0_22px_70px_rgba(0,0,0,.38),inset_0_1px_0_rgba(255,255,255,.09)] backdrop-blur-2xl sm:p-9">
-            <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-28 h-80 w-80 rounded-full border border-[#C4A66A]/15" />
-            <div aria-hidden="true" className="pointer-events-none absolute -right-4 -top-12 h-60 w-60 rounded-full border border-[#C4A66A]/10" />
+          <div className="connect-hero relative overflow-hidden rounded-[26px] border border-[#C4A66A]/35 bg-[linear-gradient(120deg,rgba(37,31,21,.82),rgba(19,20,22,.76)_55%,rgba(12,13,15,.84))] p-6 shadow-[0_22px_70px_rgba(0,0,0,.38),inset_0_1px_0_rgba(255,255,255,.09)] backdrop-blur-2xl sm:p-9">
+            <div aria-hidden="true" className="connect-hero-orb pointer-events-none absolute -right-20 -top-28 h-80 w-80 rounded-full border border-[#C4A66A]/15" />
+            <div aria-hidden="true" className="connect-hero-orb connect-hero-orb-inner pointer-events-none absolute -right-4 -top-12 h-60 w-60 rounded-full border border-[#C4A66A]/10" />
             <div aria-hidden="true" className="pointer-events-none absolute right-16 top-0 h-full w-px rotate-[24deg] bg-gradient-to-b from-transparent via-[#C4A66A]/20 to-transparent" />
             <div className="relative max-w-[820px]">
               <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -218,8 +218,8 @@ export default function AppCentral() {
             <div className="pointer-events-none absolute bottom-0 right-0 hidden h-2/3 w-[28%] bg-gradient-to-l from-[#C4A66A]/[0.055] to-transparent lg:block" />
           </div>
 
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,.85fr)]">
-            <section className="overflow-hidden rounded-[23px] border border-[#C4A66A]/25 bg-[linear-gradient(145deg,rgba(34,31,25,.82),rgba(17,19,22,.91)_55%,rgba(12,13,15,.94))] shadow-[0_18px_55px_rgba(0,0,0,.32),inset_0_1px_0_rgba(255,255,255,.075)] backdrop-blur-2xl">
+          <div className="connect-content-grid grid gap-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,.85fr)]">
+            <section className="connect-glass-card overflow-hidden rounded-[23px] border border-[#C4A66A]/25 bg-[linear-gradient(145deg,rgba(34,31,25,.68),rgba(17,19,22,.78)_55%,rgba(12,13,15,.84))] shadow-[0_18px_55px_rgba(0,0,0,.32),inset_0_1px_0_rgba(255,255,255,.075)] backdrop-blur-2xl">
               <div className="flex items-center justify-between gap-3 border-b border-[#C4A66A]/15 px-5 py-4 sm:px-6">
                 <div>
                   <p className="text-[9px] font-extrabold uppercase tracking-[0.22em] text-[#C4A66A]">PLANEJAMENTO</p>
@@ -270,7 +270,7 @@ export default function AppCentral() {
               </div>
             </section>
 
-            <section className="relative flex min-h-[220px] flex-col justify-between overflow-hidden rounded-[23px] border border-[#C4A66A]/35 bg-[linear-gradient(145deg,rgba(55,43,25,.78),rgba(25,22,18,.91)_48%,rgba(14,15,16,.96))] p-5 shadow-[0_18px_55px_rgba(0,0,0,.34),inset_0_1px_0_rgba(255,255,255,.10)] backdrop-blur-2xl sm:p-6">
+            <section className="connect-glass-card connect-feature-card relative flex min-h-[220px] flex-col justify-between overflow-hidden rounded-[23px] border border-[#C4A66A]/35 bg-[linear-gradient(145deg,rgba(55,43,25,.65),rgba(25,22,18,.78)_48%,rgba(14,15,16,.86))] p-5 shadow-[0_18px_55px_rgba(0,0,0,.34),inset_0_1px_0_rgba(255,255,255,.10)] backdrop-blur-2xl sm:p-6">
               <div aria-hidden="true" className="pointer-events-none absolute -right-14 -top-16 h-48 w-48 rounded-full border border-[#D8BD86]/15" />
               <div aria-hidden="true" className="pointer-events-none absolute -right-2 -top-5 h-32 w-32 rounded-full border border-[#D8BD86]/10" />
               <div className="relative">
@@ -289,8 +289,8 @@ export default function AppCentral() {
               )}
             </section>
           </div>
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,.85fr)]">
-            <section className="rounded-[23px] border border-[#C4A66A]/25 bg-[linear-gradient(145deg,rgba(34,31,25,.78),rgba(15,17,19,.94))] p-5 shadow-[0_16px_45px_rgba(0,0,0,.28)] sm:p-6">
+          <div className="connect-content-grid grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,.85fr)]">
+            <section className="connect-glass-card rounded-[23px] border border-[#C4A66A]/25 bg-[linear-gradient(145deg,rgba(34,31,25,.64),rgba(15,17,19,.82))] p-5 shadow-[0_16px_45px_rgba(0,0,0,.28)] sm:p-6">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-[9px] font-extrabold uppercase tracking-[0.22em] text-[#C4A66A]">ACOMPANHAMENTO</p>
@@ -318,7 +318,7 @@ export default function AppCentral() {
               )}
             </section>
 
-            <section className="rounded-[23px] border border-[#C4A66A]/25 bg-[linear-gradient(145deg,rgba(28,27,23,.82),rgba(14,16,18,.95))] p-5 shadow-[0_16px_45px_rgba(0,0,0,.28)] sm:p-6">
+            <section className="connect-glass-card rounded-[23px] border border-[#C4A66A]/25 bg-[linear-gradient(145deg,rgba(28,27,23,.66),rgba(14,16,18,.84))] p-5 shadow-[0_16px_45px_rgba(0,0,0,.28)] sm:p-6">
               <p className="text-[9px] font-extrabold uppercase tracking-[0.22em] text-[#C4A66A]">SEU ESPAÇO</p>
               <h2 className="mt-1 text-xl font-extrabold text-white">ACESSOS RÁPIDOS</h2>
               <div className="mt-4 grid grid-cols-2 gap-2">
@@ -331,7 +331,7 @@ export default function AppCentral() {
             </section>
           </div>
 
-          <section className="relative overflow-hidden rounded-[23px] border border-[#C4A66A]/30 bg-[linear-gradient(110deg,rgba(45,36,23,.82),rgba(17,19,21,.96)_62%)] p-5 shadow-[0_16px_45px_rgba(0,0,0,.26)] sm:p-6">
+          <section className="connect-glass-card connect-assistant-card relative overflow-hidden rounded-[23px] border border-[#C4A66A]/30 bg-[linear-gradient(110deg,rgba(45,36,23,.68),rgba(17,19,21,.84)_62%)] p-5 shadow-[0_16px_45px_rgba(0,0,0,.26)] sm:p-6">
             <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-20 h-56 w-56 rounded-full border border-[#D8BD86]/10" />
             <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="max-w-2xl">
