@@ -441,7 +441,7 @@ router.post(
         `select coalesce(max(substring(code from 5)::int), 0) + 1 as next
            from problems where code ~ '^PRB-[0-9]+$'`,
       );
-           from problems where code ~ '^PRB-[0-9]+      const code = `PRB-${String(seq[0].next).padStart(4, '0')}`;
+      const code = `PRB-${String(seq[0].next).padStart(4, '0')}`;
 
       const { rows } = await req.db.query(
         `insert into problems
