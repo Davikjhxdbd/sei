@@ -145,8 +145,9 @@ router.patch(
   '/schedules/:id',
   asyncHandler(async (req: any, res) => {
     ensure(req.user, 'schedules.manage');
+    const updated = await tx(req.db, async () => {
     const { rows: beforeRows } = await req.db.query(
-      'select * from schedules where id = $1',
+      'select * from schedules where id = $1 for update',
       [req.params.id],
     );
     if (!beforeRows.length) throw notFound('Designação não encontrada.');
@@ -164,7 +165,6 @@ router.patch(
       throw badRequest('Situação de designação inválida.');
     }
 
-    const updated = await tx(req.db, async () => {
       if (sectorProvided && newSector) {
         const { rows: sectorRows } = await req.db.query(
           'select id from sectors where id = $1 and active = true',
@@ -247,7 +247,7 @@ router.post(
   asyncHandler(async (req: any, res) => {
     ensure(req.user, 'schedules.manage');
     const { rows: beforeRows } = await req.db.query(
-      'select * from schedules where id = $1',
+      'select * from schedules where id = $1 for update',
       [req.params.id],
     );
     if (!beforeRows.length) throw notFound('Designação não encontrada.');
@@ -301,7 +301,7 @@ router.post(
   asyncHandler(async (req: any, res) => {
     ensure(req.user, 'schedules.manage');
     const { rows: beforeRows } = await req.db.query(
-      'select id, status from schedules where id = $1',
+      'select id, status from schedules where id = $1 for update',
       [req.params.id],
     );
     if (!beforeRows.length) throw notFound('Designação não encontrada.');
