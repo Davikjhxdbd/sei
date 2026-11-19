@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   CalendarDays, ChevronLeft, ChevronRight, Plus, MapPin,
   Clock3, Pencil, Trash2, X,
@@ -70,12 +71,14 @@ function categoryColor(category: string) {
 }
 
 export default function CalendarPage() {
+  const [searchParams] = useSearchParams();
+  const requestedDate = searchParams.get('date');
   const { level } = useAuth();
   const toast = useToast();
   const canManage = level >= 4;
 
-  const [month, setMonth] = useState(() => new Date());
-  const [selectedDay, setSelectedDay] = useState(() => dateKey(new Date()));
+  const [month, setMonth] = useState(() => requestedDate ? new Date(`${requestedDate}T12:00:00`) : new Date());
+  const [selectedDay, setSelectedDay] = useState(() => requestedDate || dateKey(new Date()));
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<CalendarEvent | null>(null);
@@ -113,6 +116,16 @@ export default function CalendarPage() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (requestedDate && /^\\d{4}-\\d{2}-\\d{2}$/.test(requestedDate)) {
+      const selected = new Date(`${requestedDate}T12:00:00`);
+      if (!Number.isNaN(selected.getTime())) {
+        setMonth(new Date(selected.getFullYear(), selected.getMonth(), 1));
+        setSelectedDay(requestedDate);
+      }
+    }
+  }, [requestedDate]);
 
   useEffect(() => {
     void loadEvents();
