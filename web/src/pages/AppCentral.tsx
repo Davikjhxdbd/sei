@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowUpRight, Bell, CalendarDays, ChevronRight,
-  Activity, ArrowRight, Command, HelpCircle, LogOut, Menu, RefreshCw,
+  ArrowRight, Command, HelpCircle, LogOut, Menu, RefreshCw,
   Search, UserRound, X,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
