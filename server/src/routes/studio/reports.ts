@@ -189,37 +189,114 @@ router.patch(
     if (!can(req.user.level, 'reports.edit')) throw forbidden();
     const updated = await tx(req.db, async () => {
       const db = req.db;
-      const updated = await tx(db, async () => {
       const { rows: reportRows } = await db.query(
         `select r.*, e.name as event_name from event_reports r
-           join events e on e.id = r.event_id where r.id = $1
-           for update of r`,
+           join events e on e.id = r.event_id where r.id = $1 for update of r`,
         [req.params.id],
       );
       if (!reportRows.length) throw notFound('Relatório não encontrado.');
       const report = reportRows[0];
 
-      if (target === report.status) {
-        throw badRequest('O relatório já está nesta situação.');
-      }
-      if (target === 'in_review') {
-        if (report.status !== 'draft') throw badRequest('Somente relatórios em rascunho podem ir para revisão.');
-        if (report.created_by !== req.user.id && !can(req.user.level, 'reports.finalize')) {
-          throw forbidden('Apenas o autor ou a liderança pode enviar para revisão.');
-        }
-      }
-      if (target === 'finalized') {
-        if (report.status !== 'in_review') throw badRequest('Envie o relatório para revisão antes de finalizar.');
-        if (!can(req.user.level, 'reports.finalize')) throw forbidden('Seu cargo não permite finalizar relatórios.');
-        if (report.created_by === req.user.id && req.user.level < 3) {
-          throw forbidden('A finalização exige revisão de outra pessoa.');
-        }
-      }
-      if (target === 'draft') {
-        if (!can(req.user.level, 'reports.reopen')) throw forbidden('Reabrir relatórios exige liderança sênior.');
-        if (!notes) throw badRequest('Informe a justificativa da reabertura.');
+      if (report.status === 'finalized' && !can(req.user.level, 'reports.reopen')) {
+        throw forbidden(
+          'Este relatório está finalizado. Reabra o relatório antes de editá-lo.',
+        );
       }
 
+      const { rows: sectionRows } = await db.query(
+        'select * from report_sections where id = $1 and report_id = $2 for update',
+        [req.params.sectionId, req.params.id],
+      );
+      if (!sectionRows.length) throw notFound('Seção não encontrada.');
+
+      const content =
+        req.body?.content !== undefined
+          ? optionalText(req.body.content, 20000)
+          : sectionRows[0].content;
+      const notApplicable =
+        typeof req.body?.not_applicable === 'boolean'
+          ? req.body.not_applicable
+          : sectionRows[0].not_applicable;
+
+      const { rows } = await db.query(
+        `update report_sections set
+           content = $1, not_applicable = $2, author_id = $3, updated_at = now()
+         where id = $4 returning *`,
+        [content, notApplicable, req.user.id, req.params.sectionId],
+      );
+      await db.query(
+        'update event_reports set updated_at = now() where id = $1',
+        [report.id],
+      );
+
+      await audit(db, req.user, {
+        action: 'report.section_updated',
+        entity: 'report_sections',
+        entityId: req.params.sectionId,
+        before: {
+          content: sectionRows[0].content,
+          not_applicable: sectionRows[0].not_applicable,
+        },
+        after: { content, not_applicable: notApplicable },
+        moduleKey: 'studio',
+      });
+      return rows[0];
+    });
+
+    res.json({ section: updated });
+  }),
+);
+
+router.post(
+  '/reports/:id/status',
+  asyncHandler(async (req: any, res) => {
+    const db = req.db;
+    const target = oneOf(req.body?.status, REPORT_STATUS, 'situação');
+    const notes = optionalText(req.body?.notes, 1000);
+
+    const { rows: reportRows } = await db.query(
+      `select r.*, e.name as event_name from event_reports r
+         join events e on e.id = r.event_id where r.id = $1`,
+      [req.params.id],
+    );
+    if (!reportRows.length) throw notFound('Relatório não encontrado.');
+    const report = reportRows[0];
+
+    if (target === report.status) {
+      throw badRequest('O relatório já está nesta situação.');
+    }
+
+    if (target === 'in_review') {
+      if (report.status !== 'draft') {
+        throw badRequest('Somente relatórios em rascunho podem ir para revisão.');
+      }
+      if (report.created_by !== req.user.id && !can(req.user.level, 'reports.finalize')) {
+        throw forbidden('Apenas o autor ou a liderança pode enviar para revisão.');
+      }
+    }
+
+    if (target === 'finalized') {
+      if (report.status !== 'in_review') {
+        throw badRequest('Envie o relatório para revisão antes de finalizar.');
+      }
+      if (!can(req.user.level, 'reports.finalize')) {
+        throw forbidden('Seu cargo não permite finalizar relatórios.');
+      }
+      if (report.created_by === req.user.id && req.user.level < 3) {
+        throw forbidden('A finalização exige revisão de outra pessoa.');
+      }
+    }
+
+    if (target === 'draft') {
+      if (!can(req.user.level, 'reports.reopen')) {
+        throw forbidden('Reabrir relatórios exige liderança sênior.');
+      }
+      if (!notes) {
+        throw badRequest('Informe a justificativa da reabertura.');
+      }
+    }
+
+    const updated = await tx(db, async () => {
       const { rows } = await db.query(
         `update event_reports set
            status = $1,
