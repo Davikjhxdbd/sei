@@ -99,6 +99,7 @@ export default function AppCentral() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [commandQuery, setCommandQuery] = useState('');
+  const [commandIndex, setCommandIndex] = useState(0);
   const [clock, setClock] = useState(() => new Date());
   useEffect(() => {
     const timer = window.setInterval(() => setClock(new Date()), 1000);
@@ -165,6 +166,27 @@ export default function AppCentral() {
     { id: 'profile', name: 'Meu perfil', route: '/profile', icon: UserRound, group: 'ESPAÇOS' },
     { id: 'help', name: 'Ajuda', route: '/help', icon: HelpCircle, group: 'ESPAÇOS' },
   ].filter((item) => item.name.toLocaleLowerCase('pt-BR').includes(commandQuery.trim().toLocaleLowerCase('pt-BR')));
+  useEffect(() => {
+    if (!commandOpen) return;
+    setCommandIndex(0);
+    function handleCommandKeys(event: KeyboardEvent) {
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        setCommandIndex((index) => commandItems.length ? (index + 1) % commandItems.length : 0);
+      }
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        setCommandIndex((index) => commandItems.length ? (index - 1 + commandItems.length) % commandItems.length : 0);
+      }
+      if (event.key === 'Enter' && commandItems.length) {
+        event.preventDefault();
+        navigate(commandItems[Math.min(commandIndex, commandItems.length - 1)].route);
+        setCommandOpen(false);
+      }
+    }
+    window.addEventListener('keydown', handleCommandKeys);
+    return () => window.removeEventListener('keydown', handleCommandKeys);
+  }, [commandOpen, commandItems, commandIndex, navigate]);
 
   async function handleLogout() {
     await logout();
@@ -195,7 +217,7 @@ export default function AppCentral() {
             </span>
           </Link>
           <div className="flex items-center gap-3">
-            <button type="button" onClick={() => { setCommandOpen(true); setCommandQuery(''); }} className="connect-header-command" aria-label="Abrir central de comandos"><Command size={16}/><span>COMANDOS</span><kbd>⌘ K</kbd></button>
+            <button type="button" onClick={() => { setCommandOpen(true); setCommandQuery(''); setCommandIndex(0); }} className="connect-header-command" aria-label="Abrir central de comandos"><Command size={16}/><span>COMANDOS</span><kbd>⌘ K</kbd></button>
             <span className="hidden text-right sm:block">
               <span className="block text-[11px] font-bold uppercase tracking-[0.12em] text-white/85">{firstName(user?.full_name)}</span>
               <span className="mt-1 block text-[9px] font-medium uppercase tracking-[0.16em] text-[#C4A66A]/65">{sectorLabel}</span>
@@ -224,15 +246,15 @@ export default function AppCentral() {
         </>}
         {commandOpen && <div className="connect-command-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setCommandOpen(false); }}>
           <section className="connect-command-modal" role="dialog" aria-modal="true" aria-label="Central de comandos">
-            <div className="connect-command-modal__search"><Search size={18}/><input autoFocus value={commandQuery} onChange={(event) => setCommandQuery(event.target.value)} placeholder="Buscar módulos, espaços e ferramentas..." /><kbd>ESC</kbd></div>
+            <div className="connect-command-modal__search"><Search size={18}/><input autoFocus value={commandQuery} onChange={(event) => { setCommandQuery(event.target.value); setCommandIndex(0); }} placeholder="Buscar módulos, espaços e ferramentas..." /><kbd>ESC</kbd></div>
             <div className="connect-command-modal__meta"><span>ACESSO RÁPIDO</span><span>{commandItems.length} RESULTADOS</span></div>
             <div className="connect-command-results">
               {commandItems.length ? commandItems.map((item) => {
                 const Icon = item.icon;
-                return <Link key={item.id} to={item.route} onClick={() => setCommandOpen(false)} className="connect-command-result"><span className="connect-command-result__icon"><Icon size={16}/></span><span>{item.name}<small>{item.group}</small></span><ArrowRight size={15}/></Link>;
+                return <Link key={item.id} to={item.route} onClick={() => setCommandOpen(false)} className={`connect-command-result ${commandItems[commandIndex]?.id === item.id ? "is-active" : ""}`}><span className="connect-command-result__icon"><Icon size={16}/></span><span>{item.name}<small>{item.group}</small></span><ArrowRight size={15}/></Link>;
               }) : <p className="connect-command-empty">Nenhum resultado. Tente outro termo.</p>}
             </div>
-            <div className="connect-command-modal__footer"><span>MMV / CONNECT</span><span><kbd>↑</kbd> <kbd>↓</kbd> navegar <kbd>↵</kbd> abrir</span></div>
+            <div className="connect-command-modal__footer"><span>MMV / CONNECT</span><span>ESC FECHAR · ↑ ↓ NAVEGAR · ENTER ABRIR</span></div>
           </section>
         </div>}
 
