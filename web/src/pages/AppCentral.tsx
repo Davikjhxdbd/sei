@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowUpRight, Bell, CalendarDays, Camera, CheckCircle2, Clapperboard,
-  Film, HelpCircle, LayoutGrid, LogOut, Menu, UserRound, X,
+  Film, HelpCircle, LogOut, Menu, UserRound, X,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useApi } from '../lib/useApi';
@@ -78,10 +78,15 @@ export default function AppCentral() {
       <div className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-6 sm:px-10 sm:py-8">
         <header className="flex items-center justify-between">
           <Link to="/" className="group flex items-center gap-3" aria-label="MMV CONNECT — início">
-            <span className="grid h-9 w-9 place-items-center rounded-xl border border-white/[0.11] bg-white/[0.045] shadow-inner shadow-white/[0.025]">
-              <LayoutGrid className="h-4 w-4 text-[#A4B4C5]" strokeWidth={1.7} />
+            <span className="relative grid h-10 w-10 place-items-center overflow-hidden rounded-[13px] border border-[#8D9EFF]/30 bg-[#8D9EFF]/[0.09] shadow-[0_0_28px_rgba(141,158,255,0.12)]">
+              <svg viewBox="0 0 40 40" className="h-7 w-7" fill="none" aria-hidden="true">
+                <path d="M7 29V11L20 23L33 11V29" stroke="#C6CEFF" strokeWidth="2.2" strokeLinecap="square" strokeLinejoin="round" />
+                <path d="M20 23V8" stroke="#8D9EFF" strokeWidth="2.2" strokeLinecap="square" />
+                <circle cx="20" cy="7" r="2" fill="#F4F5F6" />
+              </svg>
+              <span className="absolute inset-x-2 bottom-0 h-px bg-gradient-to-r from-transparent via-[#8D9EFF] to-transparent" />
             </span>
-            <span className="text-[11px] font-semibold tracking-[0.2em] text-white/85">MMV <span className="text-[#A4B4C5]">CONNECT</span></span>
+            <span className="flex flex-col leading-none"><span className="text-[12px] font-semibold tracking-[0.19em] text-white">MMV<span className="text-[#8D9EFF]">/</span>CONNECT</span><span className="mt-1.5 text-[8px] font-medium tracking-[0.24em] text-white/35">PLATAFORMA INTEGRADA</span></span>
           </Link>
 
           <div className="flex items-center gap-2">
@@ -119,16 +124,28 @@ export default function AppCentral() {
           </>
         )}
 
-        <section className="mx-auto my-auto w-full max-w-4xl py-16 sm:py-20">
+        <section className="mx-auto my-auto w-full max-w-5xl py-14 sm:py-20">
+          <div className="relative">
+            <div aria-hidden="true" className="pointer-events-none absolute -right-2 -top-20 hidden h-[390px] w-[390px] items-center justify-center opacity-70 lg:flex">
+              <div className="absolute h-[340px] w-[340px] rounded-full border border-[#8D9EFF]/[0.10]" />
+              <div className="absolute h-[270px] w-[270px] rounded-full border border-[#A4B4C5]/[0.10]" />
+              <div className="absolute h-[190px] w-[190px] rounded-full border border-[#8D9EFF]/[0.16]" />
+              <div className="absolute h-[110px] w-[110px] rounded-full border border-[#8D9EFF]/[0.24] bg-[#8D9EFF]/[0.035] shadow-[0_0_90px_rgba(141,158,255,0.10)]" />
+              <svg viewBox="0 0 160 160" className="relative h-28 w-28" fill="none"><path d="M28 112V48L80 96L132 48V112" stroke="#A4B4C5" strokeOpacity=".42" strokeWidth="3"/><path d="M80 96V26" stroke="#8D9EFF" strokeOpacity=".65" strokeWidth="3"/><circle cx="80" cy="22" r="4" fill="#C6CEFF"/></svg>
+              <span className="absolute right-4 top-24 h-1.5 w-1.5 rounded-full bg-[#8D9EFF] shadow-[0_0_12px_#8D9EFF]" />
+              <span className="absolute bottom-16 left-8 h-1 w-1 rounded-full bg-[#A4B4C5]" />
+            </div>
           <div className="mb-5 flex items-center gap-2">
-            <span className="h-px w-7 bg-[#8D9EFF]/70" />
-            <span className="text-[9px] font-semibold uppercase tracking-[0.24em] text-[#A4B4C5]/65">{sectorLabel}</span>
+            <span className="h-px w-7 bg-[#8D9EFF]" />
+            <span className="text-[9px] font-semibold uppercase tracking-[0.24em] text-[#A4B4C5]/70">MMV CONNECT <span className="px-1.5 text-[#8D9EFF]/70">/</span> {sectorLabel}</span>
           </div>
 
           <div className="max-w-3xl">
             <p className="text-[15px] font-medium tracking-wide text-[#A4B4C5]/75">{greeting},</p>
-            <h1 className="mt-2 text-[clamp(2.7rem,7vw,5.2rem)] font-medium leading-[0.98] tracking-[-0.065em] text-[#F4F5F6]">{firstName(user?.full_name)}<span className="text-[#8D9EFF]">.</span></h1>
-            <p className="mt-5 max-w-xl text-[13px] leading-6 text-white/45 sm:text-sm">Seu dia, suas prioridades. Tudo pronto para você continuar.</p>
+            <h1 className="font-display mt-2 text-[clamp(3.4rem,8vw,6.4rem)] font-medium leading-[0.86] tracking-[-0.055em] text-[#F4F5F6]">{firstName(user?.full_name)}<span className="text-[#8D9EFF]">.</span></h1>
+            <p className="mt-5 max-w-xl text-[13px] leading-6 text-white/50 sm:text-sm">Seu dia, suas prioridades. Tudo pronto para você continuar.</p>
+            <div className="mt-7 flex items-center gap-3"><span className="h-px w-10 bg-[#8D9EFF]/55" /><span className="text-[9px] font-medium uppercase tracking-[0.2em] text-white/30">Um só lugar. Tudo conectado.</span></div>
+          </div>
           </div>
 
           <div className="mt-10 max-w-3xl overflow-hidden rounded-[22px] border border-white/[0.10] bg-gradient-to-br from-white/[0.065] to-white/[0.018] shadow-[0_24px_80px_rgba(0,0,0,0.22)] backdrop-blur-xl">
