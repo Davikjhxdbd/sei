@@ -121,7 +121,7 @@ router.post(
   
       return rows[0];
     });
-    res.status(201).json({ error: result })
+    res.status(201).json({ error: result });
   }),
 );
 
@@ -205,7 +205,7 @@ router.patch(
   
       return rows[0];
     });
-    res.json({ error: result })
+    res.json({ error: result });
   }),
 );
 
@@ -238,7 +238,7 @@ router.post(
   
       return rows[0];
     });
-    res.status(201).json({ note: result })
+    res.status(201).json({ note: result });
   }),
 );
 
@@ -262,7 +262,7 @@ router.delete(
   
       return true;
     });
-    res.json({ ok: result })
+    res.json({ ok: result });
   }),
 );
 
@@ -338,7 +338,7 @@ router.post(
   
       return rows[0];
     });
-    res.status(201).json({ occurrence: result })
+    res.status(201).json({ occurrence: result });
   }),
 );
 
@@ -558,81 +558,85 @@ router.patch(
   '/problems/:id',
   asyncHandler(async (req: any, res) => {
     if (!can(req.user.level, 'problems.edit')) throw forbidden();
-    const { rows: beforeRows } = await req.db.query(
-      'select * from problems where id = $1',
-      [req.params.id],
-    );
-    if (!beforeRows.length) throw notFound('Problema não encontrado.');
-    const before = beforeRows[0];
-
-    const status = PROBLEM_STATUS.includes(req.body?.status)
-      ? req.body.status
-      : null;
-    const rootCause =
-      req.body?.root_cause !== undefined
-        ? optionalText(req.body.root_cause, 4000)
+    const result = await tx(req.db, async () => {
+      const { rows: beforeRows } = await req.db.query(
+        'select * from problems where id = $1',
+        [req.params.id],
+      );
+      if (!beforeRows.length) throw notFound('Problema não encontrado.');
+      const before = beforeRows[0];
+  
+      const status = PROBLEM_STATUS.includes(req.body?.status)
+        ? req.body.status
         : null;
-
-    const { rows } = await req.db.query(
-      `update problems set
-         title = coalesce($1, title),
-         description = coalesce($2, description),
-         category = coalesce($3, category),
-         impact = coalesce($4, impact),
-         urgency = coalesce($5::severity_level, urgency),
-         priority = coalesce($6::severity_level, priority),
-         status = coalesce($7::problem_status, status),
-         owner_id = coalesce($8::uuid, owner_id),
-         root_cause = coalesce($9, root_cause),
-         cause_confirmed_by = case when $9::text is not null then $10::uuid
-                                   else cause_confirmed_by end,
-         cause_confirmed_at = case when $9::text is not null then now()
-                                   else cause_confirmed_at end,
-         resolution_due = coalesce($11::date, resolution_due),
-         final_result = coalesce($12, final_result),
-         updated_at = now()
-       where id = $13 returning *`,
-      [
-        req.body?.title ? String(req.body.title).slice(0, 200) : null,
-        req.body?.description ? String(req.body.description).slice(0, 6000) : null,
-        optionalText(req.body?.category, 80),
-        optionalText(req.body?.impact, 1000),
-        SEVERITY.includes(req.body?.urgency) ? req.body.urgency : null,
-        SEVERITY.includes(req.body?.priority) ? req.body.priority : null,
-        status,
-        optionalId(req.body?.owner_id),
-        rootCause,
-        req.user.id,
-        req.body?.resolution_due ?? null,
-        optionalText(req.body?.final_result, 4000),
-        req.params.id,
-      ],
-    );
-
-    if (status && status !== before.status) {
-      await req.db.query(
-        `insert into problem_updates
-           (problem_id, user_id, kind, body, from_status, to_status)
-         values ($1, $2, 'status', $3, $4::problem_status, $5::problem_status)`,
+      const rootCause =
+        req.body?.root_cause !== undefined
+          ? optionalText(req.body.root_cause, 4000)
+          : null;
+  
+      const { rows } = await req.db.query(
+        `update problems set
+           title = coalesce($1, title),
+           description = coalesce($2, description),
+           category = coalesce($3, category),
+           impact = coalesce($4, impact),
+           urgency = coalesce($5::severity_level, urgency),
+           priority = coalesce($6::severity_level, priority),
+           status = coalesce($7::problem_status, status),
+           owner_id = coalesce($8::uuid, owner_id),
+           root_cause = coalesce($9, root_cause),
+           cause_confirmed_by = case when $9::text is not null then $10::uuid
+                                     else cause_confirmed_by end,
+           cause_confirmed_at = case when $9::text is not null then now()
+                                     else cause_confirmed_at end,
+           resolution_due = coalesce($11::date, resolution_due),
+           final_result = coalesce($12, final_result),
+           updated_at = now()
+         where id = $13 returning *`,
         [
-          req.params.id,
-          req.user.id,
-          optionalText(req.body?.status_note, 1000) ?? 'Situação atualizada.',
-          before.status,
+          req.body?.title ? String(req.body.title).slice(0, 200) : null,
+          req.body?.description ? String(req.body.description).slice(0, 6000) : null,
+          optionalText(req.body?.category, 80),
+          optionalText(req.body?.impact, 1000),
+          SEVERITY.includes(req.body?.urgency) ? req.body.urgency : null,
+          SEVERITY.includes(req.body?.priority) ? req.body.priority : null,
           status,
+          optionalId(req.body?.owner_id),
+          rootCause,
+          req.user.id,
+          req.body?.resolution_due ?? null,
+          optionalText(req.body?.final_result, 4000),
+          req.params.id,
         ],
       );
-    }
-
-    await audit(req.db, req.user, {
-      action: 'problem.updated',
-      entity: 'problems',
-      entityId: req.params.id,
-      before,
-      after: rows[0],
-      moduleKey: 'studio',
+  
+      if (status && status !== before.status) {
+        await req.db.query(
+          `insert into problem_updates
+             (problem_id, user_id, kind, body, from_status, to_status)
+           values ($1, $2, 'status', $3, $4::problem_status, $5::problem_status)`,
+          [
+            req.params.id,
+            req.user.id,
+            optionalText(req.body?.status_note, 1000) ?? 'Situação atualizada.',
+            before.status,
+            status,
+          ],
+        );
+      }
+  
+      await audit(req.db, req.user, {
+        action: 'problem.updated',
+        entity: 'problems',
+        entityId: req.params.id,
+        before,
+        after: rows[0],
+        moduleKey: 'studio',
+      });
+  
+      return rows[0];
     });
-    res.json({ problem: rows[0] });
+    res.json({ problem: result });
   }),
 );
 
@@ -641,46 +645,50 @@ router.post(
   asyncHandler(async (req: any, res) => {
     if (!can(req.user.level, 'problems.edit')) throw forbidden();
     const body = required(req.body?.body, 'comentário', 4000);
-    const { rows: exists } = await req.db.query(
-      'select id, status from problems where id = $1',
-      [req.params.id],
-    );
-    if (!exists.length) throw notFound('Problema não encontrado.');
-
-    const toStatus = PROBLEM_STATUS.includes(req.body?.to_status)
-      ? req.body.to_status
-      : null;
-
-    const { rows } = await req.db.query(
-      `insert into problem_updates
-         (problem_id, user_id, kind, body, from_status, to_status)
-       values ($1, $2, $3, $4, $5::problem_status, $6::problem_status)
-       returning *`,
-      [
-        req.params.id,
-        req.user.id,
-        toStatus ? 'status' : 'comment',
-        body,
-        toStatus ? exists[0].status : null,
-        toStatus,
-      ],
-    );
-
-    if (toStatus) {
-      await req.db.query(
-        'update problems set status = $1::problem_status, updated_at = now() where id = $2',
-        [toStatus, req.params.id],
+    const result = await tx(req.db, async () => {
+      const { rows: exists } = await req.db.query(
+        'select id, status from problems where id = $1',
+        [req.params.id],
       );
-    }
-
-    await audit(req.db, req.user, {
-      action: 'problem.update_added',
-      entity: 'problems',
-      entityId: req.params.id,
-      after: { body, to_status: toStatus },
-      moduleKey: 'studio',
+      if (!exists.length) throw notFound('Problema não encontrado.');
+  
+      const toStatus = PROBLEM_STATUS.includes(req.body?.to_status)
+        ? req.body.to_status
+        : null;
+  
+      const { rows } = await req.db.query(
+        `insert into problem_updates
+           (problem_id, user_id, kind, body, from_status, to_status)
+         values ($1, $2, $3, $4, $5::problem_status, $6::problem_status)
+         returning *`,
+        [
+          req.params.id,
+          req.user.id,
+          toStatus ? 'status' : 'comment',
+          body,
+          toStatus ? exists[0].status : null,
+          toStatus,
+        ],
+      );
+  
+      if (toStatus) {
+        await req.db.query(
+          'update problems set status = $1::problem_status, updated_at = now() where id = $2',
+          [toStatus, req.params.id],
+        );
+      }
+  
+      await audit(req.db, req.user, {
+        action: 'problem.update_added',
+        entity: 'problems',
+        entityId: req.params.id,
+        after: { body, to_status: toStatus },
+        moduleKey: 'studio',
+      });
+  
+      return rows[0];
     });
-    res.status(201).json({ update: rows[0] });
+    res.status(201).json({ update: result });
   }),
 );
 
@@ -689,54 +697,58 @@ router.post(
   asyncHandler(async (req: any, res) => {
     if (!can(req.user.level, 'problems.edit')) throw forbidden();
     const description = required(req.body?.description, 'descrição da solução', 6000);
-    const { rows: exists } = await req.db.query(
-      'select id from problems where id = $1',
-      [req.params.id],
-    );
-    if (!exists.length) throw notFound('Problema não encontrado.');
-
-    const { rows } = await req.db.query(
-      `insert into problem_solutions
-         (problem_id, description, rationale, resources, risks, expected_effects,
-          executors, test_method, success_criteria, rollback_plan,
-          requires_authorization, created_by)
-       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-       returning *`,
-      [
-        req.params.id,
-        description,
-        optionalText(req.body?.rationale, 3000),
-        optionalText(req.body?.resources, 3000),
-        optionalText(req.body?.risks, 3000),
-        optionalText(req.body?.expected_effects, 3000),
-        optionalText(req.body?.executors, 1000),
-        optionalText(req.body?.test_method, 2000),
-        optionalText(req.body?.success_criteria, 2000),
-        optionalText(req.body?.rollback_plan, 3000),
-        Boolean(req.body?.requires_authorization),
-        req.user.id,
-      ],
-    );
-
-    await req.db.query(
-      `insert into problem_updates (problem_id, user_id, kind, body)
-       values ($1, $2, 'solution', $3)`,
-      [req.params.id, req.user.id, 'Solução proposta registrada.'],
-    );
-    await req.db.query(
-      `update problems set status = 'solution_proposed', updated_at = now()
-        where id = $1 and status in ('open', 'in_analysis')`,
-      [req.params.id],
-    );
-
-    await audit(req.db, req.user, {
-      action: 'problem.solution_created',
-      entity: 'problem_solutions',
-      entityId: rows[0].id,
-      after: { description, requires_authorization: rows[0].requires_authorization },
-      moduleKey: 'studio',
+    const result = await tx(req.db, async () => {
+      const { rows: exists } = await req.db.query(
+        'select id from problems where id = $1',
+        [req.params.id],
+      );
+      if (!exists.length) throw notFound('Problema não encontrado.');
+  
+      const { rows } = await req.db.query(
+        `insert into problem_solutions
+           (problem_id, description, rationale, resources, risks, expected_effects,
+            executors, test_method, success_criteria, rollback_plan,
+            requires_authorization, created_by)
+         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         returning *`,
+        [
+          req.params.id,
+          description,
+          optionalText(req.body?.rationale, 3000),
+          optionalText(req.body?.resources, 3000),
+          optionalText(req.body?.risks, 3000),
+          optionalText(req.body?.expected_effects, 3000),
+          optionalText(req.body?.executors, 1000),
+          optionalText(req.body?.test_method, 2000),
+          optionalText(req.body?.success_criteria, 2000),
+          optionalText(req.body?.rollback_plan, 3000),
+          Boolean(req.body?.requires_authorization),
+          req.user.id,
+        ],
+      );
+  
+      await req.db.query(
+        `insert into problem_updates (problem_id, user_id, kind, body)
+         values ($1, $2, 'solution', $3)`,
+        [req.params.id, req.user.id, 'Solução proposta registrada.'],
+      );
+      await req.db.query(
+        `update problems set status = 'solution_proposed', updated_at = now()
+          where id = $1 and status in ('open', 'in_analysis')`,
+        [req.params.id],
+      );
+  
+      await audit(req.db, req.user, {
+        action: 'problem.solution_created',
+        entity: 'problem_solutions',
+        entityId: rows[0].id,
+        after: { description, requires_authorization: rows[0].requires_authorization },
+        moduleKey: 'studio',
+      });
+  
+      return rows[0];
     });
-    res.status(201).json({ solution: rows[0] });
+    res.status(201).json({ solution: result });
   }),
 );
 
