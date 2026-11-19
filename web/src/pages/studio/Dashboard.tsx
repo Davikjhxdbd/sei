@@ -141,6 +141,8 @@ function GlassPanel({
 export default function Dashboard() {
   const { data, loading } = useApi<DashboardPayload>('/studio/dashboard');
   const { user, level, can, state } = useAuth();
+  const [eventsOpen, setEventsOpen] = useState(true);
+  const [tasksOpen, setTasksOpen] = useState(true);
 
   if (loading || !data) return <LoadingBlock label="Preparando seu espaço…" />;
 
@@ -163,8 +165,6 @@ export default function Dashboard() {
     month: 'long',
   }).format(now);
 
-  const [eventsOpen, setEventsOpen] = useState(true);
-  const [tasksOpen, setTasksOpen] = useState(true);
   const nextEvents = data.upcoming.slice(0, 3);
   const myTasks = data.myTasks.slice(0, 3);
 
