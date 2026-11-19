@@ -439,6 +439,8 @@ router.post(
       await req.db.query('select pg_advisory_xact_lock(742019)');
       const { rows: seq } = await req.db.query(
         `select coalesce(max(substring(code from 5)::int), 0) + 1 as next
+           from problems where code ~ '^PRB-[0-9]+$'`,
+      );
            from problems where code ~ '^PRB-[0-9]+      const code = `PRB-${String(seq[0].next).padStart(4, '0')}`;
 
       const { rows } = await req.db.query(
