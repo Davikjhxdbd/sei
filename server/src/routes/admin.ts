@@ -335,19 +335,22 @@ router.post(
         ? req.body.key.trim().toLowerCase().replace(/\s+/g, '_')
         : name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '_');
 
-    const { rows } = await req.db.query(
-      `insert into sectors (key, name, description)
-       values ($1, $2, $3) returning id, key, name, description, active`,
-      [key, name, req.body?.description?.toString().trim() || null],
-    );
-    await audit(req.db, req.user, {
-      action: 'sector.created',
-      entity: 'sectors',
-      entityId: rows[0].id,
-      after: rows[0],
-      moduleKey: 'platform',
+    const sector = await tx(req.db, async () => {
+      const { rows } = await req.db.query(
+        `insert into sectors (key, name, description)
+         values ($1, $2, $3) returning id, key, name, description, active`,
+        [key, name, req.body?.description?.toString().trim() || null],
+      );
+      await audit(req.db, req.user, {
+        action: 'sector.created',
+        entity: 'sectors',
+        entityId: rows[0].id,
+        after: rows[0],
+        moduleKey: 'platform',
+      });
+      return rows[0];
     });
-    res.status(201).json({ sector: rows[0] });
+    res.status(201).json({ sector });
   }),
 );
 
