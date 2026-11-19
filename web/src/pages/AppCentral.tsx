@@ -128,13 +128,18 @@ export default function AppCentral() {
               Seu espaço de criação, colaboração e realização.
             </p>
           </div>
-          <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[.035] px-4 py-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Link to="/design-lab" className="inline-flex items-center gap-2 rounded-full border border-[#C4A66A]/35 bg-[#C4A66A]/[.08] px-4 py-2 text-[10px] font-semibold uppercase tracking-[.14em] text-[#D8BD86] transition hover:border-[#C4A66A]/60 hover:bg-[#C4A66A]/[.14]">
+              <Palette className="h-3.5 w-3.5" /> Laboratório visual
+            </Link>
+            <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[.035] px-4 py-2">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,.7)]" />
             <span className="text-[11px] uppercase tracking-wider text-white/65">
               Workspace ativo
             </span>
             <span className="mx-1 h-3 w-px bg-white/15" />
             <span className="text-[11px] capitalize text-white/45">{today}</span>
+            </div>
           </div>
         </section>
 
