@@ -562,7 +562,7 @@ router.patch(
     if (!can(req.user.level, 'problems.edit')) throw forbidden();
     const result = await tx(req.db, async () => {
       const { rows: beforeRows } = await req.db.query(
-        'select * from problems where id = $1',
+        'select * from problems where id = $1 for update',
         [req.params.id],
       );
       if (!beforeRows.length) throw notFound('Problema não encontrado.');
@@ -649,7 +649,7 @@ router.post(
     const body = required(req.body?.body, 'comentário', 4000);
     const result = await tx(req.db, async () => {
       const { rows: exists } = await req.db.query(
-        'select id, status from problems where id = $1',
+        'select id, status from problems where id = $1 for update',
         [req.params.id],
       );
       if (!exists.length) throw notFound('Problema não encontrado.');
@@ -701,7 +701,7 @@ router.post(
     const description = required(req.body?.description, 'descrição da solução', 6000);
     const result = await tx(req.db, async () => {
       const { rows: exists } = await req.db.query(
-        'select id from problems where id = $1',
+        'select id from problems where id = $1 for update',
         [req.params.id],
       );
       if (!exists.length) throw notFound('Problema não encontrado.');
@@ -766,13 +766,12 @@ router.post(
       throw badRequest('Selecione ao menos um responsável pela decisão.');
     }
 
-    const { rows: problemRows } = await req.db.query(
-      'select id, title, status from problems where id = $1',
-      [req.params.id],
-    );
-    if (!problemRows.length) throw notFound('Problema não encontrado.');
-
     const created = await tx(req.db, async () => {
+      const { rows: problemRows } = await req.db.query(
+        'select id, title, status from problems where id = $1 for update',
+        [req.params.id],
+      );
+      if (!problemRows.length) throw notFound('Problema não encontrado.');
       const { rows } = await req.db.query(
         `insert into authorization_requests
            (problem_id, solution_id, requested_by, scope, deciders, due_at)
