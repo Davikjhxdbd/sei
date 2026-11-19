@@ -10,6 +10,7 @@ import { CircleHelp, ShieldAlert } from 'lucide-react';
 import Login from './pages/Login';
 import ResetPassword from './pages/ResetPassword';
 import AppCentral from './pages/AppCentral';
+import DesignLab from './pages/DesignLab';
 import CalendarPage from './pages/Calendar';
 import Notifications from './pages/Notifications';
 import Profile from './pages/Profile';
@@ -235,6 +236,7 @@ export default function App() {
 
       <Route element={<Protected />}>
         <Route path="/" element={<AppCentral />} />
+        <Route path="/design-lab" element={<DesignLab />} />
         <Route path="/help" element={<Help />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/profile" element={<Profile />} />
