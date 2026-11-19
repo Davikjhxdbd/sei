@@ -832,35 +832,37 @@ router.post(
     );
     const note = required(req.body?.note, 'justificativa', 2000);
 
-    const { rows: requestRows } = await req.db.query(
-      `select ar.*, p.title, p.id as problem_id
-         from authorization_requests ar join problems p on p.id = ar.problem_id
-        where ar.id = $1`,
-      [req.params.id],
-    );
-    if (!requestRows.length) throw notFound('Solicitação não encontrada.');
-    const request = requestRows[0];
-    if (request.status !== 'pending') {
-      throw badRequest('Esta solicitação já foi decidida.');
-    }
-    if (request.requested_by === req.user.id && req.user.level < 5) {
-      throw forbidden('Não é permitido decidir a própria solicitação.');
-    }
-    if (
-      !request.deciders.includes(req.user.id) &&
-      req.user.level < 5
-    ) {
-      throw forbidden('Você não está entre os responsáveis pela decisão.');
-    }
-
     const updated = await tx(req.db, async () => {
+      const { rows: requestRows } = await req.db.query(
+        `select ar.*, p.title, p.id as problem_id
+           from authorization_requests ar
+           join problems p on p.id = ar.problem_id
+          where ar.id = $1
+          for update of ar`,
+        [req.params.id],
+      );
+      if (!requestRows.length) throw notFound('Solicitação não encontrada.');
+      const request = requestRows[0];
+      if (request.status !== 'pending') {
+        throw badRequest('Esta solicitação já foi decidida.');
+      }
+      if (request.requested_by === req.user.id && req.user.level < 5) {
+        throw forbidden('Não é permitido decidir a própria solicitação.');
+      }
+      if (!request.deciders.includes(req.user.id) && req.user.level < 5) {
+        throw forbidden('Você não está entre os responsáveis pela decisão.');
+      }
+
       const { rows } = await req.db.query(
         `update authorization_requests set
            status = $1::authorization_status,
            decided_by = $2, decision_note = $3, decided_at = now()
-         where id = $4 returning *`,
+         where id = $4 and status = 'pending' returning *`,
         [decision, req.user.id, note, req.params.id],
       );
+      if (!rows.length) {
+        throw badRequest('Esta solicitação já foi decidida.');
+      }
 
       if (decision === 'approved') {
         await req.db.query(
@@ -883,10 +885,9 @@ router.post(
 
       await notify(req.db, {
         userId: request.requested_by,
-        title:
-          decision === 'approved'
-            ? 'Autorização aprovada'
-            : 'Autorização reprovada',
+        title: decision === 'approved'
+          ? 'Autorização aprovada'
+          : 'Autorização reprovada',
         body: request.title,
         link: `/m/studio/problems/${request.problem_id}`,
         moduleKey: 'studio',
