@@ -147,7 +147,7 @@
 }
 
 
-/* MMV CREATIVE — fundo acompanha o tema ativo */
+/* MMV CONNECT — base visual e tokens compartilhados */
 html, body, #root {
   background-color: rgb(var(--mmv-canvas));
 }
