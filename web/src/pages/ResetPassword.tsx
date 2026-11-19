@@ -56,7 +56,7 @@ export default function ResetPassword() {
         </div>
         <div>
           <p className="text-[13px] font-semibold tracking-[0.24em] text-white">
-            MMV CREATIVE
+            MMV / CONNECT
           </p>
           <div className="mt-1 h-px w-12 bg-[#C4A66A]" />
         </div>
