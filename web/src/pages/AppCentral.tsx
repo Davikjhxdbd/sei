@@ -101,6 +101,7 @@ export default function AppCentral() {
   const [commandQuery, setCommandQuery] = useState('');
   const [commandIndex, setCommandIndex] = useState(0);
   const [clock, setClock] = useState(() => new Date());
+  const [selectedAgendaDay, setSelectedAgendaDay] = useState(() => dateKey(new Date()));
   useEffect(() => {
     const timer = window.setInterval(() => setClock(new Date()), 1000);
     return () => window.clearInterval(timer);
@@ -312,42 +313,44 @@ export default function AppCentral() {
                   Agenda completa <ArrowUpRight className="h-3.5 w-3.5" />
                 </button>
               </div>
-              <div className="grid grid-cols-7 gap-1 px-3 pt-4 sm:gap-2 sm:px-5">
+              <div className="connect-agenda-rail">
                 {weekDays.map((date) => {
                   const key = dateKey(date);
-                  const dayEvents = events.filter((event) => dateKey(new Date(event.starts_at)) === key).sort((a, b) => a.starts_at.localeCompare(b.starts_at));
+                  const dayEvents = events.filter((event) => dateKey(new Date(event.starts_at)) === key);
                   const isToday = key === todayKey;
+                  const isSelected = key === selectedAgendaDay;
                   return (
-                    <button key={key} onClick={() => openCalendar(date)} className={`group min-w-0 rounded-xl border px-1 py-2.5 text-center transition sm:px-2 sm:py-3 ${isToday ? 'border-[#C4A66A]/70 bg-[#C4A66A]/[0.14] shadow-[inset_0_1px_0_rgba(255,255,255,.09),0_6px_20px_rgba(196,166,106,.08)]' : 'border-white/[0.07] bg-black/20 hover:border-[#C4A66A]/40 hover:bg-[#C4A66A]/[0.07]'}`}>
-                      <span className={`block text-[8px] font-extrabold uppercase tracking-[0.08em] sm:text-[9px] ${isToday ? 'text-[#E5C98F]' : 'text-white/40'}`}>{new Intl.DateTimeFormat('pt-BR', { weekday: 'short' }).format(date).replace('.', '')}</span>
-                      <span className={`mt-1 block text-xl font-extrabold tabular-nums sm:text-2xl ${isToday ? 'text-[#F0D69F]' : 'text-white/90'}`}>{date.getDate()}</span>
-                      <span className="mt-2 flex min-h-[17px] items-center justify-center gap-1">
-                        {dayEvents.length > 0 ? <><span className="h-1.5 w-1.5 rounded-full bg-[#C4A66A]" />{dayEvents.length > 1 && <span className="text-[8px] font-bold text-[#D8BD86]">{dayEvents.length}</span>}</> : <span className="h-1 w-1 rounded-full bg-white/10" />}
-                      </span>
+                    <button key={key} onClick={() => setSelectedAgendaDay(key)} aria-pressed={isSelected} className={`connect-agenda-day ${isSelected ? 'is-selected' : ''} ${isToday ? 'is-today' : ''}`}>
+                      <span className="connect-agenda-day__weekday">{new Intl.DateTimeFormat('pt-BR', { weekday: 'short' }).format(date).replace('.', '')}</span>
+                      <strong>{date.getDate()}</strong>
+                      <span className="connect-agenda-day__activity">{dayEvents.length ? <><i />{dayEvents.length > 1 && <small>{dayEvents.length}</small></> : <i className="is-empty"/>}</span>
+                      {isToday && <span className="connect-agenda-day__today">HOJE</span>}
                     </button>
                   );
                 })}
               </div>
-              <div className="px-4 pb-4 pt-4 sm:px-5 sm:pb-5">
+              <div className="connect-agenda-details">
+                <div className="connect-agenda-details__heading">
+                  <div>
+                    <p className="connect-agenda-details__eyebrow">VISÃO DO DIA</p>
+                    <h3>{new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).format(weekDays.find((date) => dateKey(date) === selectedAgendaDay) || new Date())}</h3>
+                  </div>
+                  <button onClick={() => openCalendar(weekDays.find((date) => dateKey(date) === selectedAgendaDay) || new Date())}>ABRIR DIA <ArrowUpRight size={13}/></button>
+                </div>
                 {calendarLoading ? (
-                  <p className="rounded-xl border border-white/[0.07] bg-black/20 px-4 py-3 text-xs text-white/45">Carregando os compromissos da semana…</p>
-                ) : events.length === 0 ? (
-                  <p className="rounded-xl border border-white/[0.07] bg-black/20 px-4 py-3 text-xs text-white/45">Nenhuma atividade cadastrada nesta semana.</p>
+                  <div className="connect-agenda-empty"><span className="connect-agenda-skeleton"/><span className="connect-agenda-skeleton short"/></div>
+                ) : events.filter((event) => dateKey(new Date(event.starts_at)) === selectedAgendaDay).length === 0 ? (
+                  <div className="connect-agenda-empty"><CalendarDays size={18}/><span>Nenhum compromisso neste dia.</span><button onClick={() => openCalendar(weekDays.find((date) => dateKey(date) === selectedAgendaDay) || new Date())}>Adicionar à agenda <ArrowRight size={12}/></button></div>
                 ) : (
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    {weekDays.filter((date) => events.some((event) => dateKey(new Date(event.starts_at)) === dateKey(date))).slice(0, 2).map((date) => {
-                      const dayEvents = events.filter((event) => dateKey(new Date(event.starts_at)) === dateKey(date)).sort((a, b) => a.starts_at.localeCompare(b.starts_at));
-                      return (
-                        <button key={dateKey(date)} onClick={() => openCalendar(date)} className="flex min-w-0 items-start gap-3 rounded-xl border border-white/[0.07] bg-white/[0.035] px-3 py-3 text-left transition hover:border-[#C4A66A]/35 hover:bg-[#C4A66A]/[0.06]">
-                          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-[#C4A66A]/25 bg-[#C4A66A]/10 text-[#E5C98F]"><CalendarDays className="h-4 w-4" /></span>
-                          <span className="min-w-0 flex-1">
-                            <span className="block text-[9px] font-extrabold uppercase tracking-[0.13em] text-[#D8BD86]">{new Intl.DateTimeFormat('pt-BR', { weekday: 'long' }).format(date)}</span>
-                            <span className="mt-1 block truncate text-[11px] font-semibold text-white/85">{dayEvents.slice(0, 2).map((event) => `${event.all_day ? '' : `${formatTime(event.starts_at)} · `}${event.title}`).join('  •  ')}{dayEvents.length > 2 ? '…' : ''}</span>
-                          </span>
-                          <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-white/30" />
-                        </button>
-                      );
-                    })}
+                  <div className="connect-agenda-event-list">
+                    {events.filter((event) => dateKey(new Date(event.starts_at)) === selectedAgendaDay).sort((a,b) => a.starts_at.localeCompare(b.starts_at)).map((event) => (
+                      <button key={event.id} onClick={() => openCalendar(weekDays.find((date) => dateKey(date) === selectedAgendaDay) || new Date())} className="connect-agenda-event">
+                        <span className="connect-agenda-event__time">{event.all_day ? 'DIA TODO' : formatTime(event.starts_at)}</span>
+                        <span className="connect-agenda-event__marker"/>
+                        <span className="connect-agenda-event__title">{event.title}</span>
+                        <ChevronRight size={14}/>
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
