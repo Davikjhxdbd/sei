@@ -75,8 +75,8 @@ router.post(
     const type = optionalText(req.body?.type, 60) ?? 'Culto';
     const startsAt = isoDate(req.body?.starts_at, 'início');
     const endsAt = req.body?.ends_at ? isoDate(req.body.ends_at, 'término') : null;
-    if (endsAt && new Date(endsAt) < new Date(startsAt)) {
-      throw badRequest('O término não pode ser anterior ao início.');
+    if (endsAt && new Date(endsAt) <= new Date(startsAt)) {
+      throw badRequest('O término precisa ser posterior ao início.');
     }
     const notes = optionalText(req.body?.notes);
 
@@ -182,8 +182,11 @@ router.patch(
       }
 
       const nextStartsAt = req.body?.starts_at ? isoDate(req.body.starts_at, 'início') : before.starts_at;
-      const nextEndsAt = req.body?.ends_at ? isoDate(req.body.ends_at, 'término') : before.ends_at;
-      if (nextEndsAt && new Date(nextEndsAt) < new Date(nextStartsAt)) {
+      const endsAtProvided = Object.prototype.hasOwnProperty.call(req.body ?? {}, 'ends_at');
+      const nextEndsAt = endsAtProvided
+        ? (req.body.ends_at ? isoDate(req.body.ends_at, 'término') : null)
+        : before.ends_at;
+      if (nextEndsAt && new Date(nextEndsAt) <= new Date(nextStartsAt)) {
         throw badRequest('O término não pode ser anterior ao início.');
       }
 
