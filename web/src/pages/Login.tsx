@@ -62,7 +62,7 @@ export default function Login() {
   }
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#101010] px-5 py-10 sm:px-8 lg:justify-end lg:px-[10%]">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#0B0D10] px-5 py-10 sm:px-8 lg:justify-end lg:px-[10%]">
       {/* VÍDEO CINEMATOGRÁFICO DE FUNDO */}
       <video
         autoPlay
@@ -79,27 +79,31 @@ export default function Login() {
 
       {/* CAMADA DE LEITURA */}
       <div
-        className="pointer-events-none absolute inset-0 bg-black/35"
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(5,7,12,.28),rgba(5,7,12,.68))]"
         aria-hidden="true"
       />
 
-      {/* IDENTIDADE MMV */}
+      {/* IDENTIDADE MMV CONNECT */}
       <div className="absolute left-7 top-7 z-10 flex items-center gap-3 sm:left-10 sm:top-9">
-        <div className="grid h-11 w-11 place-items-center border border-[#C4A66A] bg-[#111111]/80 text-sm font-bold text-[#D8BD86] backdrop-blur-md">
-          M
+        <div className="grid h-11 w-11 place-items-center rounded-[12px] border border-[#8D9EFF]/40 bg-[#0B0D10]/80 shadow-[0_8px_28px_rgba(0,0,0,.3)] backdrop-blur-md">
+          <svg viewBox="0 0 64 64" className="h-8 w-8" fill="none" aria-hidden="true">
+            <path d="M12 47V18L32 37L52 18V47" stroke="#DCE1FF" strokeWidth="3.2" strokeLinecap="square" strokeLinejoin="round" />
+            <path d="M32 37V10" stroke="#8D9EFF" strokeWidth="3.2" strokeLinecap="square" />
+            <circle cx="32" cy="9" r="3.2" fill="#F4F5F6" />
+            <circle cx="12" cy="18" r="2.3" fill="#8D9EFF" />
+            <circle cx="52" cy="18" r="2.3" fill="#8D9EFF" />
+          </svg>
         </div>
         <div>
-          <p className="text-[13px] font-semibold tracking-[0.24em] text-white">
-            MMV CREATIVE
-          </p>
-          <div className="mt-1 h-px w-12 bg-[#C4A66A]" />
+          <p className="text-[13px] font-semibold tracking-[0.2em] text-white">MMV<span className="text-[#8D9EFF]">/</span>CONNECT</p>
+          <p className="mt-1.5 text-[8px] font-medium tracking-[0.24em] text-white/45">PLATAFORMA INTEGRADA</p>
         </div>
       </div>
 
       {/* PAINEL DE LOGIN SOBRE A IMAGEM */}
       <section className="relative z-20 w-full max-w-[420px] rounded-2xl border border-white/15 bg-[#111111]/85 px-7 py-9 shadow-[0_25px_100px_rgba(0,0,0,0.55)] backdrop-blur-2xl sm:px-10 sm:py-11">
         <div className="mb-7">
-          <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.24em] text-[#D8BD86]">
+          <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.24em] text-[#C6CEFF]">
             Área de acesso
           </p>
           <h2 className="font-display text-[44px] font-semibold leading-[1.02] tracking-[-0.04em] text-white sm:text-[50px]">
@@ -113,10 +117,10 @@ export default function Login() {
         <form onSubmit={onSubmit} className="space-y-5" noValidate>
           <Field label="Nome de usuário" required htmlFor="username">
             <div className="relative">
-              <UserRound className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C4A66A]/70" />
+              <UserRound className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8D9EFF]/70" />
               <Input
                 id="username"
-                className="h-12 border-white/15 bg-white/[0.06] pl-10 text-white placeholder:text-white/30 focus:border-[#C4A66A]"
+                className="h-12 border-white/15 bg-white/[0.06] pl-10 text-white placeholder:text-white/30 focus:border-[#8D9EFF]"
                 autoComplete="username"
                 autoCapitalize="none"
                 spellCheck={false}
@@ -130,10 +134,10 @@ export default function Login() {
 
           <Field label="Senha" required htmlFor="password">
             <div className="relative">
-              <LockKeyhole className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C4A66A]/70" />
+              <LockKeyhole className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8D9EFF]/70" />
               <Input
                 id="password"
-                className="h-12 border-white/15 bg-white/[0.06] pl-10 pr-11 text-white placeholder:text-white/30 focus:border-[#C4A66A]"
+                className="h-12 border-white/15 bg-white/[0.06] pl-10 pr-11 text-white placeholder:text-white/30 focus:border-[#8D9EFF]"
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"
                 value={password}
@@ -145,7 +149,7 @@ export default function Login() {
                 type="button"
                 onClick={() => setShowPassword((value) => !value)}
                 aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                className="absolute right-3 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center text-white/40 transition hover:text-[#D8BD86]"
+                className="absolute right-3 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center text-white/40 transition hover:text-[#C6CEFF]"
               >
                 {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
               </button>
@@ -157,17 +161,17 @@ export default function Login() {
               type="button"
               onClick={() => setShowRecoveryHelp((value) => !value)}
               aria-expanded={showRecoveryHelp}
-              className="text-[13px] font-semibold text-[#D8BD86] transition hover:text-[#C4A66A] hover:underline"
+              className="text-[13px] font-semibold text-[#C6CEFF] transition hover:text-[#8D9EFF] hover:underline"
             >
               Esqueci minha senha
             </button>
           </div>
 
           {showRecoveryHelp && (
-            <div className="rounded-xl border border-[#C4A66A]/30 bg-[#C4A66A]/[0.08] p-4">
+            <div className="rounded-xl border border-[#8D9EFF]/30 bg-[#8D9EFF]/[0.08] p-4">
               {recoverySent ? (
                 <>
-                  <p className="text-sm font-semibold text-[#D8BD86]">
+                  <p className="text-sm font-semibold text-[#C6CEFF]">
                     Verifique seu e-mail
                   </p>
                   <p className="mt-2 text-[13px] leading-6 text-white/65">
@@ -177,7 +181,7 @@ export default function Login() {
                 </>
               ) : (
                 <form onSubmit={onRecoverySubmit}>
-                  <p className="text-sm font-semibold text-[#D8BD86]">
+                  <p className="text-sm font-semibold text-[#C6CEFF]">
                     Recuperar acesso
                   </p>
                   <p className="mt-2 text-[13px] leading-6 text-white/65">
@@ -191,7 +195,7 @@ export default function Login() {
                     value={recoveryEmail}
                     onChange={(event) => setRecoveryEmail(event.target.value)}
                     placeholder="seuemail@exemplo.com"
-                    className="mt-3 h-11 border-white/15 bg-white/[0.06] text-white placeholder:text-white/30 focus:border-[#C4A66A]"
+                    className="mt-3 h-11 border-white/15 bg-white/[0.06] text-white placeholder:text-white/30 focus:border-[#8D9EFF]"
                   />
                   {recoveryError && (
                     <p role="alert" className="mt-2 text-[12px] text-red-300">
@@ -201,7 +205,7 @@ export default function Login() {
                   <button
                     type="submit"
                     disabled={recoveryLoading || !recoveryEmail.trim()}
-                    className="mt-3 h-11 w-full rounded-lg border border-[#C4A66A]/50 bg-[#171717] text-[13px] font-semibold text-[#D8BD86] transition hover:bg-[#252525] disabled:opacity-50"
+                    className="mt-3 h-11 w-full rounded-lg border border-[#8D9EFF]/50 bg-[#171717] text-[13px] font-semibold text-[#C6CEFF] transition hover:bg-[#252525] disabled:opacity-50"
                   >
                     {recoveryLoading ? 'Enviando...' : 'Enviar link de recuperação'}
                   </button>
@@ -215,7 +219,7 @@ export default function Login() {
           <Button
             type="submit"
             size="lg"
-            className="mt-4 h-14 w-full justify-center gap-3 text-[15px] font-semibold border border-[#C4A66A]/50 bg-[#171717] !text-[#D8BD86] hover:!bg-[#252525] hover:!text-[#D8BD86] active:!text-[#D8BD86] [&_svg]:!text-[#D8BD86]"
+            className="mt-4 h-14 w-full justify-center gap-3 text-[15px] font-semibold border border-[#8D9EFF]/50 bg-[#171717] !text-[#C6CEFF] hover:!bg-[#252525] hover:!text-[#C6CEFF] active:!text-[#C6CEFF] [&_svg]:!text-[#C6CEFF]"
             loading={submitting}
             disabled={!username.trim() || !password}
           >
@@ -233,7 +237,7 @@ export default function Login() {
       </section>
 
       <div className="absolute bottom-4 right-6 z-10 hidden text-[9px] uppercase tracking-[0.2em] text-white/35 sm:block">
-        MMV CREATIVE · Plataforma integrada
+        MMV CONNECT · Plataforma integrada
       </div>
     </main>
   );
