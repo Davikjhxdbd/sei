@@ -414,32 +414,35 @@ router.put(
   '/settings/:key',
   requireLevel(4),
   asyncHandler(async (req: any, res) => {
-    const { rows: beforeRows } = await req.db.query(
-      'select key, value from settings where key = $1',
-      [req.params.key],
-    );
-    if (!beforeRows.length) throw notFound('Configuração não encontrada.');
-
     const value = req.body?.value;
     if (!Array.isArray(value) && (typeof value !== 'object' || value === null)) {
       throw badRequest('O valor da configuração deve ser uma lista ou objeto.');
     }
 
-    const { rows } = await req.db.query(
-      `update settings set value = $1, updated_at = now(), updated_by = $2
-        where key = $3 returning key, value, label, category, updated_at`,
-      [JSON.stringify(value), req.user.id, req.params.key],
-    );
+    const setting = await tx(req.db, async () => {
+      const { rows: beforeRows } = await req.db.query(
+        'select key, value from settings where key = $1 for update',
+        [req.params.key],
+      );
+      if (!beforeRows.length) throw notFound('Configuração não encontrada.');
 
-    await audit(req.db, req.user, {
-      action: 'settings.updated',
-      entity: 'settings',
-      entityId: req.params.key,
-      before: beforeRows[0].value,
-      after: value,
-      moduleKey: 'platform',
+      const { rows } = await req.db.query(
+        `update settings set value = $1, updated_at = now(), updated_by = $2
+          where key = $3 returning key, value, label, category, updated_at`,
+        [JSON.stringify(value), req.user.id, req.params.key],
+      );
+
+      await audit(req.db, req.user, {
+        action: 'settings.updated',
+        entity: 'settings',
+        entityId: req.params.key,
+        before: beforeRows[0].value,
+        after: value,
+        moduleKey: 'platform',
+      });
+      return rows[0];
     });
-    res.json({ setting: rows[0] });
+    res.json({ setting });
   }),
 );
 
