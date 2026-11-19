@@ -37,87 +37,91 @@ router.get(
   '/errors',
   asyncHandler(async (req: any, res) => {
     const { limit, offset } = paging(req.query);
-    const { rows } = await req.db.query(
-      `select oe.id, oe.category, oe.severity, oe.impact, oe.occurred_at,
-              oe.description, oe.immediate_action, oe.stage, oe.status,
-              oe.created_at, oe.problem_id, oe.report_id,
-              e.id as event_id, e.name as event_name, e.starts_at,
-              s.id as sector_id, s.name as sector_name,
-              f.full_name as follow_up_name,
-              u.full_name as created_by_name
-         from operational_errors oe
-         left join events e on e.id = oe.event_id
-         left join sectors s on s.id = oe.sector_id
-         left join users f on f.id = oe.follow_up_user_id
-         left join users u on u.id = oe.created_by
-        where ($1::text is null or oe.status::text = $1)
-          and ($2::text is null or oe.category = $2)
-          and ($3::text is null or oe.severity::text = $3)
-          and ($4::uuid is null or oe.sector_id = $4)
-          and ($5::text is null or oe.description ilike $5 or oe.category ilike $5)
-        order by oe.occurred_at desc
-        limit $6 offset $7`,
-      [
-        ERROR_STATUS.includes(req.query.status) ? req.query.status : null,
-        req.query.category ?? null,
-        SEVERITY.includes(req.query.severity) ? req.query.severity : null,
-        optionalId(req.query.sector_id),
-        like(req.query.q),
-        limit,
-        offset,
-      ],
-    );
-
-    const { rows: totals } = await req.db.query(
-      `select count(*)::int as total,
-              count(*) filter (where status in ('open','in_analysis'))::int as open
-         from operational_errors`,
-    );
-    res.json({ items: rows, total: totals[0]?.total ?? 0, open: totals[0]?.open ?? 0 });
-  }),
-);
-
-router.post(
-  '/errors',
-  asyncHandler(async (req: any, res) => {
-    if (!can(req.user.level, 'errors.create')) throw forbidden();
-    const category = required(req.body?.category, 'categoria', 80);
-    const description = required(req.body?.description, 'descrição', 4000);
-    const severity = SEVERITY.includes(req.body?.severity)
-      ? req.body.severity
-      : 'medium';
-
-    const { rows } = await req.db.query(
-      `insert into operational_errors
-         (event_id, sector_id, category, severity, impact, occurred_at,
-          description, immediate_action, stage, follow_up_user_id, report_id, created_by)
-       values ($1, $2, $3, $4, $5, coalesce($6::timestamptz, now()), $7, $8, $9, $10, $11, $12)
-       returning *`,
-      [
-        optionalId(req.body?.event_id),
-        optionalId(req.body?.sector_id),
-        category,
-        severity,
-        optionalText(req.body?.impact, 500),
-        req.body?.occurred_at ? new Date(req.body.occurred_at).toISOString() : null,
-        description,
-        optionalText(req.body?.immediate_action, 2000),
-        optionalText(req.body?.stage, 120),
-        optionalId(req.body?.follow_up_user_id),
-        optionalId(req.body?.report_id),
-        req.user.id,
-      ],
-    );
-
-    await audit(req.db, req.user, {
-      action: 'error.created',
-      entity: 'operational_errors',
-      entityId: rows[0].id,
-      after: { category, severity, description },
-      moduleKey: 'studio',
-    });
-
-    res.status(201).json({ error: rows[0] });
+    const result = await tx(req.db, async () => {
+      const { rows } = await req.db.query(
+        `select oe.id, oe.category, oe.severity, oe.impact, oe.occurred_at,
+                oe.description, oe.immediate_action, oe.stage, oe.status,
+                oe.created_at, oe.problem_id, oe.report_id,
+                e.id as event_id, e.name as event_name, e.starts_at,
+                s.id as sector_id, s.name as sector_name,
+                f.full_name as follow_up_name,
+                u.full_name as created_by_name
+           from operational_errors oe
+           left join events e on e.id = oe.event_id
+           left join sectors s on s.id = oe.sector_id
+           left join users f on f.id = oe.follow_up_user_id
+           left join users u on u.id = oe.created_by
+          where ($1::text is null or oe.status::text = $1)
+            and ($2::text is null or oe.category = $2)
+            and ($3::text is null or oe.severity::text = $3)
+            and ($4::uuid is null or oe.sector_id = $4)
+            and ($5::text is null or oe.description ilike $5 or oe.category ilike $5)
+          order by oe.occurred_at desc
+          limit $6 offset $7`,
+        [
+          ERROR_STATUS.includes(req.query.status) ? req.query.status : null,
+          req.query.category ?? null,
+          SEVERITY.includes(req.query.severity) ? req.query.severity : null,
+          optionalId(req.query.sector_id),
+          like(req.query.q),
+          limit,
+          offset,
+        ],
+      );
+  
+      const { rows: totals } = await req.db.query(
+        `select count(*)::int as total,
+                count(*) filter (where status in ('open','in_analysis'))::int as open
+           from operational_errors`,
+      );
+      res.json({ items: rows, total: totals[0]?.total ?? 0, open: totals[0]?.open ?? 0 });
+    }),
+  );
+  
+  router.post(
+    '/errors',
+    asyncHandler(async (req: any, res) => {
+      if (!can(req.user.level, 'errors.create')) throw forbidden();
+      const category = required(req.body?.category, 'categoria', 80);
+      const description = required(req.body?.description, 'descrição', 4000);
+      const severity = SEVERITY.includes(req.body?.severity)
+        ? req.body.severity
+        : 'medium';
+  
+      const { rows } = await req.db.query(
+        `insert into operational_errors
+           (event_id, sector_id, category, severity, impact, occurred_at,
+            description, immediate_action, stage, follow_up_user_id, report_id, created_by)
+         values ($1, $2, $3, $4, $5, coalesce($6::timestamptz, now()), $7, $8, $9, $10, $11, $12)
+         returning *`,
+        [
+          optionalId(req.body?.event_id),
+          optionalId(req.body?.sector_id),
+          category,
+          severity,
+          optionalText(req.body?.impact, 500),
+          req.body?.occurred_at ? new Date(req.body.occurred_at).toISOString() : null,
+          description,
+          optionalText(req.body?.immediate_action, 2000),
+          optionalText(req.body?.stage, 120),
+          optionalId(req.body?.follow_up_user_id),
+          optionalId(req.body?.report_id),
+          req.user.id,
+        ],
+      );
+  
+      await audit(req.db, req.user, {
+        action: 'error.created',
+        entity: 'operational_errors',
+        entityId: rows[0].id,
+        after: { category, severity, description },
+        moduleKey: 'studio',
+      });
+  
+  
+  return rows[0];
+});
+    res.status(201).json({ error: result });
   }),
 );
 
@@ -154,50 +158,54 @@ router.patch(
   '/errors/:id',
   asyncHandler(async (req: any, res) => {
     if (!can(req.user.level, 'errors.edit')) throw forbidden();
-    const { rows: beforeRows } = await req.db.query(
-      'select * from operational_errors where id = $1',
-      [req.params.id],
-    );
-    if (!beforeRows.length) throw notFound('Erro operacional não encontrado.');
-
-    const { rows } = await req.db.query(
-      `update operational_errors set
-         category = coalesce($1, category),
-         severity = coalesce($2::severity_level, severity),
-         impact = coalesce($3, impact),
-         description = coalesce($4, description),
-         immediate_action = coalesce($5, immediate_action),
-         stage = coalesce($6, stage),
-         status = coalesce($7::error_status, status),
-         follow_up_user_id = coalesce($8::uuid, follow_up_user_id),
-         problem_id = coalesce($9::uuid, problem_id),
-         report_id = coalesce($10::uuid, report_id),
-         updated_at = now()
-       where id = $11 returning *`,
-      [
-        req.body?.category ? String(req.body.category).slice(0, 80) : null,
-        SEVERITY.includes(req.body?.severity) ? req.body.severity : null,
-        optionalText(req.body?.impact, 500),
-        req.body?.description ? String(req.body.description).slice(0, 4000) : null,
-        optionalText(req.body?.immediate_action, 2000),
-        optionalText(req.body?.stage, 120),
-        ERROR_STATUS.includes(req.body?.status) ? req.body.status : null,
-        optionalId(req.body?.follow_up_user_id),
-        optionalId(req.body?.problem_id),
-        optionalId(req.body?.report_id),
-        req.params.id,
-      ],
-    );
-
-    await audit(req.db, req.user, {
-      action: 'error.updated',
-      entity: 'operational_errors',
-      entityId: req.params.id,
-      before: beforeRows[0],
-      after: rows[0],
-      moduleKey: 'studio',
-    });
-    res.json({ error: rows[0] });
+    const result = await tx(req.db, async () => {
+      const { rows: beforeRows } = await req.db.query(
+        'select * from operational_errors where id = $1',
+        [req.params.id],
+      );
+      if (!beforeRows.length) throw notFound('Erro operacional não encontrado.');
+  
+      const { rows } = await req.db.query(
+        `update operational_errors set
+           category = coalesce($1, category),
+           severity = coalesce($2::severity_level, severity),
+           impact = coalesce($3, impact),
+           description = coalesce($4, description),
+           immediate_action = coalesce($5, immediate_action),
+           stage = coalesce($6, stage),
+           status = coalesce($7::error_status, status),
+           follow_up_user_id = coalesce($8::uuid, follow_up_user_id),
+           problem_id = coalesce($9::uuid, problem_id),
+           report_id = coalesce($10::uuid, report_id),
+           updated_at = now()
+         where id = $11 returning *`,
+        [
+          req.body?.category ? String(req.body.category).slice(0, 80) : null,
+          SEVERITY.includes(req.body?.severity) ? req.body.severity : null,
+          optionalText(req.body?.impact, 500),
+          req.body?.description ? String(req.body.description).slice(0, 4000) : null,
+          optionalText(req.body?.immediate_action, 2000),
+          optionalText(req.body?.stage, 120),
+          ERROR_STATUS.includes(req.body?.status) ? req.body.status : null,
+          optionalId(req.body?.follow_up_user_id),
+          optionalId(req.body?.problem_id),
+          optionalId(req.body?.report_id),
+          req.params.id,
+        ],
+      );
+  
+      await audit(req.db, req.user, {
+        action: 'error.updated',
+        entity: 'operational_errors',
+        entityId: req.params.id,
+        before: beforeRows[0],
+        after: rows[0],
+        moduleKey: 'studio',
+      });
+  
+  return rows[0];
+});
+    res.json({ error: result });
   }),
 );
 
@@ -206,27 +214,31 @@ router.post(
   asyncHandler(async (req: any, res) => {
     if (!can(req.user.level, 'errors.edit')) throw forbidden();
     const note = required(req.body?.note, 'nota', 4000);
-    const { rows: exists } = await req.db.query(
-      'select id from operational_errors where id = $1',
-      [req.params.id],
-    );
-    if (!exists.length) throw notFound('Erro operacional não encontrado.');
-
-    const { rows } = await req.db.query(
-      `insert into error_notes (error_id, note, user_id)
-       values ($1, $2, $3)
-       returning id, note, created_at`,
-      [req.params.id, note, req.user.id],
-    );
-
-    await audit(req.db, req.user, {
-      action: 'error.note_added',
-      entity: 'operational_errors',
-      entityId: req.params.id,
-      after: { note },
-      moduleKey: 'studio',
-    });
-    res.status(201).json({ note: rows[0] });
+    const result = await tx(req.db, async () => {
+      const { rows: exists } = await req.db.query(
+        'select id from operational_errors where id = $1',
+        [req.params.id],
+      );
+      if (!exists.length) throw notFound('Erro operacional não encontrado.');
+  
+      const { rows } = await req.db.query(
+        `insert into error_notes (error_id, note, user_id)
+         values ($1, $2, $3)
+         returning id, note, created_at`,
+        [req.params.id, note, req.user.id],
+      );
+  
+      await audit(req.db, req.user, {
+        action: 'error.note_added',
+        entity: 'operational_errors',
+        entityId: req.params.id,
+        after: { note },
+        moduleKey: 'studio',
+      });
+  
+  return rows[0];
+});
+    res.status(201).json({ note: result });
   }),
 );
 
@@ -234,18 +246,22 @@ router.delete(
   '/errors/:id',
   asyncHandler(async (req: any, res) => {
     if (!can(req.user.level, 'errors.delete')) throw forbidden();
-    const { rows } = await req.db.query(
-      'delete from operational_errors where id = $1 returning id, description',
-      [req.params.id],
-    );
-    if (!rows.length) throw notFound('Erro operacional não encontrado.');
-    await audit(req.db, req.user, {
-      action: 'error.deleted',
-      entity: 'operational_errors',
-      entityId: rows[0].id,
-      before: { description: rows[0].description },
-      moduleKey: 'studio',
-    });
+    const result = await tx(req.db, async () => {
+      const { rows } = await req.db.query(
+        'delete from operational_errors where id = $1 returning id, description',
+        [req.params.id],
+      );
+      if (!rows.length) throw notFound('Erro operacional não encontrado.');
+      await audit(req.db, req.user, {
+        action: 'error.deleted',
+        entity: 'operational_errors',
+        entityId: rows[0].id,
+        before: { description: rows[0].description },
+        moduleKey: 'studio',
+      });
+  
+  return true;
+});
     res.json({ ok: true });
   }),
 );
@@ -263,62 +279,66 @@ router.get(
   '/occurrences',
   asyncHandler(async (req: any, res) => {
     assertOccurrenceAccess(req.user);
-    const { rows } = await req.db.query(
-      `select o.id, o.person_name, o.type, o.description, o.action_taken,
-              o.penalty, o.status, o.created_at, o.updated_at,
-              e.id as event_id, e.name as event_name,
-              u.full_name as created_by_name
-         from occurrences o
-         left join events e on e.id = o.event_id
-         left join users u on u.id = o.created_by
-        where ($1::text is null or o.status::text = $1)
-          and ($2::text is null or o.type = $2)
-          and ($3::text is null or o.person_name ilike $3 or o.description ilike $3)
-        order by o.created_at desc limit 200`,
-      [
-        OCCURRENCE_STATUS.includes(req.query.status) ? req.query.status : null,
-        req.query.type ?? null,
-        like(req.query.q),
-      ],
-    );
-    res.json({ items: rows });
-  }),
-);
-
-router.post(
-  '/occurrences',
-  asyncHandler(async (req: any, res) => {
-    assertOccurrenceAccess(req.user);
-    if (!can(req.user.level, 'occurrences.manage')) throw forbidden();
-    const personName = required(req.body?.person_name, 'nome da pessoa', 160);
-    const type = required(req.body?.type, 'tipo de ocorrência', 80);
-    const description = required(req.body?.description, 'descrição', 4000);
-
-    const { rows } = await req.db.query(
-      `insert into occurrences
-         (person_name, person_id, type, description, event_id, action_taken, penalty, status, created_by)
-       values ($1, $2, $3, $4, $5, $6, $7, $8, $9) returning *`,
-      [
-        personName,
-        optionalId(req.body?.person_id),
-        type,
-        description,
-        optionalId(req.body?.event_id),
-        optionalText(req.body?.action_taken, 2000),
-        optionalText(req.body?.penalty, 500),
-        OCCURRENCE_STATUS.includes(req.body?.status) ? req.body.status : 'registered',
-        req.user.id,
-      ],
-    );
-
-    await audit(req.db, req.user, {
-      action: 'occurrence.created',
-      entity: 'occurrences',
-      entityId: rows[0].id,
-      after: { person_name: personName, type },
-      moduleKey: 'studio',
-    });
-    res.status(201).json({ occurrence: rows[0] });
+    const result = await tx(req.db, async () => {
+      const { rows } = await req.db.query(
+        `select o.id, o.person_name, o.type, o.description, o.action_taken,
+                o.penalty, o.status, o.created_at, o.updated_at,
+                e.id as event_id, e.name as event_name,
+                u.full_name as created_by_name
+           from occurrences o
+           left join events e on e.id = o.event_id
+           left join users u on u.id = o.created_by
+          where ($1::text is null or o.status::text = $1)
+            and ($2::text is null or o.type = $2)
+            and ($3::text is null or o.person_name ilike $3 or o.description ilike $3)
+          order by o.created_at desc limit 200`,
+        [
+          OCCURRENCE_STATUS.includes(req.query.status) ? req.query.status : null,
+          req.query.type ?? null,
+          like(req.query.q),
+        ],
+      );
+      res.json({ items: rows });
+    }),
+  );
+  
+  router.post(
+    '/occurrences',
+    asyncHandler(async (req: any, res) => {
+      assertOccurrenceAccess(req.user);
+      if (!can(req.user.level, 'occurrences.manage')) throw forbidden();
+      const personName = required(req.body?.person_name, 'nome da pessoa', 160);
+      const type = required(req.body?.type, 'tipo de ocorrência', 80);
+      const description = required(req.body?.description, 'descrição', 4000);
+  
+      const { rows } = await req.db.query(
+        `insert into occurrences
+           (person_name, person_id, type, description, event_id, action_taken, penalty, status, created_by)
+         values ($1, $2, $3, $4, $5, $6, $7, $8, $9) returning *`,
+        [
+          personName,
+          optionalId(req.body?.person_id),
+          type,
+          description,
+          optionalId(req.body?.event_id),
+          optionalText(req.body?.action_taken, 2000),
+          optionalText(req.body?.penalty, 500),
+          OCCURRENCE_STATUS.includes(req.body?.status) ? req.body.status : 'registered',
+          req.user.id,
+        ],
+      );
+  
+      await audit(req.db, req.user, {
+        action: 'occurrence.created',
+        entity: 'occurrences',
+        entityId: rows[0].id,
+        after: { person_name: personName, type },
+        moduleKey: 'studio',
+      });
+  
+  return rows[0];
+});
+    res.status(201).json({ occurrence: result });
   }),
 );
 
@@ -326,42 +346,46 @@ router.patch(
   '/occurrences/:id',
   asyncHandler(async (req: any, res) => {
     assertOccurrenceAccess(req.user);
-    const { rows: beforeRows } = await req.db.query(
-      'select * from occurrences where id = $1',
-      [req.params.id],
-    );
-    if (!beforeRows.length) throw notFound('Ocorrência não encontrada.');
-
-    const { rows } = await req.db.query(
-      `update occurrences set
-         person_name = coalesce($1, person_name),
-         type = coalesce($2, type),
-         description = coalesce($3, description),
-         action_taken = coalesce($4, action_taken),
-         penalty = coalesce($5, penalty),
-         status = coalesce($6::occurrence_status, status),
-         updated_at = now()
-       where id = $7 returning *`,
-      [
-        req.body?.person_name ? String(req.body.person_name).slice(0, 160) : null,
-        req.body?.type ? String(req.body.type).slice(0, 80) : null,
-        req.body?.description ? String(req.body.description).slice(0, 4000) : null,
-        optionalText(req.body?.action_taken, 2000),
-        optionalText(req.body?.penalty, 500),
-        OCCURRENCE_STATUS.includes(req.body?.status) ? req.body.status : null,
-        req.params.id,
-      ],
-    );
-
-    await audit(req.db, req.user, {
-      action: 'occurrence.updated',
-      entity: 'occurrences',
-      entityId: req.params.id,
-      before: beforeRows[0],
-      after: rows[0],
-      moduleKey: 'studio',
-    });
-    res.json({ occurrence: rows[0] });
+    const result = await tx(req.db, async () => {
+      const { rows: beforeRows } = await req.db.query(
+        'select * from occurrences where id = $1',
+        [req.params.id],
+      );
+      if (!beforeRows.length) throw notFound('Ocorrência não encontrada.');
+  
+      const { rows } = await req.db.query(
+        `update occurrences set
+           person_name = coalesce($1, person_name),
+           type = coalesce($2, type),
+           description = coalesce($3, description),
+           action_taken = coalesce($4, action_taken),
+           penalty = coalesce($5, penalty),
+           status = coalesce($6::occurrence_status, status),
+           updated_at = now()
+         where id = $7 returning *`,
+        [
+          req.body?.person_name ? String(req.body.person_name).slice(0, 160) : null,
+          req.body?.type ? String(req.body.type).slice(0, 80) : null,
+          req.body?.description ? String(req.body.description).slice(0, 4000) : null,
+          optionalText(req.body?.action_taken, 2000),
+          optionalText(req.body?.penalty, 500),
+          OCCURRENCE_STATUS.includes(req.body?.status) ? req.body.status : null,
+          req.params.id,
+        ],
+      );
+  
+      await audit(req.db, req.user, {
+        action: 'occurrence.updated',
+        entity: 'occurrences',
+        entityId: req.params.id,
+        before: beforeRows[0],
+        after: rows[0],
+        moduleKey: 'studio',
+      });
+  
+  return rows[0];
+});
+    res.json({ occurrence: result });
   }),
 );
 
