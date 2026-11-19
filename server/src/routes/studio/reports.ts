@@ -153,30 +153,33 @@ router.patch(
   '/reports/:id',
   asyncHandler(async (req: any, res) => {
     if (!can(req.user.level, 'reports.edit')) throw forbidden();
-    const { rows: beforeRows } = await req.db.query(
-      'select * from event_reports where id = $1',
-      [req.params.id],
-    );
-    if (!beforeRows.length) throw notFound('Relatório não encontrado.');
-    if (beforeRows[0].status === 'finalized' && !can(req.user.level, 'reports.reopen')) {
-      throw forbidden('Relatório finalizado: apenas liderança sênior pode alterar.');
-    }
+    const updated = await tx(req.db, async () => {
+      const { rows: beforeRows } = await req.db.query(
+        'select * from event_reports where id = $1 for update',
+        [req.params.id],
+      );
+      if (!beforeRows.length) throw notFound('Relatório não encontrado.');
+      if (beforeRows[0].status === 'finalized' && !can(req.user.level, 'reports.reopen')) {
+        throw forbidden('Relatório finalizado: apenas liderança sênior pode alterar.');
+      }
 
-    const { rows } = await req.db.query(
-      `update event_reports set title = coalesce($1, title), updated_at = now()
-        where id = $2 returning *`,
-      [req.body?.title ? String(req.body.title).trim().slice(0, 180) : null, req.params.id],
-    );
+      const { rows } = await req.db.query(
+        `update event_reports set title = coalesce($1, title), updated_at = now()
+          where id = $2 returning *`,
+        [req.body?.title ? String(req.body.title).trim().slice(0, 180) : null, req.params.id],
+      );
 
-    await audit(req.db, req.user, {
-      action: 'report.updated',
-      entity: 'event_reports',
-      entityId: req.params.id,
-      before: { title: beforeRows[0].title },
-      after: { title: rows[0].title },
-      moduleKey: 'studio',
+      await audit(req.db, req.user, {
+        action: 'report.updated',
+        entity: 'event_reports',
+        entityId: req.params.id,
+        before: { title: beforeRows[0].title },
+        after: { title: rows[0].title },
+        moduleKey: 'studio',
+      });
+      return rows[0];
     });
-    res.json({ report: rows[0] });
+    res.json({ report: updated });
   }),
 );
 
@@ -184,60 +187,63 @@ router.patch(
   '/reports/:id/sections/:sectionId',
   asyncHandler(async (req: any, res) => {
     if (!can(req.user.level, 'reports.edit')) throw forbidden();
-    const db = req.db;
-    const { rows: reportRows } = await db.query(
-      `select r.*, e.name as event_name from event_reports r
-         join events e on e.id = r.event_id where r.id = $1`,
-      [req.params.id],
-    );
-    if (!reportRows.length) throw notFound('Relatório não encontrado.');
-    const report = reportRows[0];
-
-    if (report.status === 'finalized' && !can(req.user.level, 'reports.reopen')) {
-      throw forbidden(
-        'Este relatório está finalizado. Reabra o relatório antes de editá-lo.',
+    const updated = await tx(req.db, async () => {
+      const db = req.db;
+      const { rows: reportRows } = await db.query(
+        `select r.*, e.name as event_name from event_reports r
+           join events e on e.id = r.event_id where r.id = $1 for update of r`,
+        [req.params.id],
       );
-    }
+      if (!reportRows.length) throw notFound('Relatório não encontrado.');
+      const report = reportRows[0];
 
-    const { rows: sectionRows } = await db.query(
-      'select * from report_sections where id = $1 and report_id = $2',
-      [req.params.sectionId, req.params.id],
-    );
-    if (!sectionRows.length) throw notFound('Seção não encontrada.');
+      if (report.status === 'finalized' && !can(req.user.level, 'reports.reopen')) {
+        throw forbidden(
+          'Este relatório está finalizado. Reabra o relatório antes de editá-lo.',
+        );
+      }
 
-    const content =
-      req.body?.content !== undefined
-        ? optionalText(req.body.content, 20000)
-        : sectionRows[0].content;
-    const notApplicable =
-      typeof req.body?.not_applicable === 'boolean'
-        ? req.body.not_applicable
-        : sectionRows[0].not_applicable;
+      const { rows: sectionRows } = await db.query(
+        'select * from report_sections where id = $1 and report_id = $2 for update',
+        [req.params.sectionId, req.params.id],
+      );
+      if (!sectionRows.length) throw notFound('Seção não encontrada.');
 
-    const { rows } = await db.query(
-      `update report_sections set
-         content = $1, not_applicable = $2, author_id = $3, updated_at = now()
-       where id = $4 returning *`,
-      [content, notApplicable, req.user.id, req.params.sectionId],
-    );
-    await db.query(
-      'update event_reports set updated_at = now() where id = $1',
-      [report.id],
-    );
+      const content =
+        req.body?.content !== undefined
+          ? optionalText(req.body.content, 20000)
+          : sectionRows[0].content;
+      const notApplicable =
+        typeof req.body?.not_applicable === 'boolean'
+          ? req.body.not_applicable
+          : sectionRows[0].not_applicable;
 
-    await audit(db, req.user, {
-      action: 'report.section_updated',
-      entity: 'report_sections',
-      entityId: req.params.sectionId,
-      before: {
-        content: sectionRows[0].content,
-        not_applicable: sectionRows[0].not_applicable,
-      },
-      after: { content, not_applicable: notApplicable },
-      moduleKey: 'studio',
+      const { rows } = await db.query(
+        `update report_sections set
+           content = $1, not_applicable = $2, author_id = $3, updated_at = now()
+         where id = $4 returning *`,
+        [content, notApplicable, req.user.id, req.params.sectionId],
+      );
+      await db.query(
+        'update event_reports set updated_at = now() where id = $1',
+        [report.id],
+      );
+
+      await audit(db, req.user, {
+        action: 'report.section_updated',
+        entity: 'report_sections',
+        entityId: req.params.sectionId,
+        before: {
+          content: sectionRows[0].content,
+          not_applicable: sectionRows[0].not_applicable,
+        },
+        after: { content, not_applicable: notApplicable },
+        moduleKey: 'studio',
+      });
+      return rows[0];
     });
 
-    res.json({ section: rows[0] });
+    res.json({ section: updated });
   }),
 );
 
