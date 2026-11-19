@@ -254,19 +254,21 @@ router.post(
     const target = oneOf(req.body?.status, REPORT_STATUS, 'situação');
     const notes = optionalText(req.body?.notes, 1000);
 
-    const { rows: reportRows } = await db.query(
+    const updated = await tx(db, async () => {
+      const { rows: reportRows } = await db.query(
       `select r.*, e.name as event_name from event_reports r
-         join events e on e.id = r.event_id where r.id = $1`,
+         join events e on e.id = r.event_id where r.id = $1
+           for update of r`,
       [req.params.id],
     );
-    if (!reportRows.length) throw notFound('Relatório não encontrado.');
-    const report = reportRows[0];
+      if (!reportRows.length) throw notFound('Relatório não encontrado.');
+      const report = reportRows[0];
 
-    if (target === report.status) {
+      if (target === report.status) {
       throw badRequest('O relatório já está nesta situação.');
     }
 
-    if (target === 'in_review') {
+      if (target === 'in_review') {
       if (report.status !== 'draft') {
         throw badRequest('Somente relatórios em rascunho podem ir para revisão.');
       }
@@ -275,7 +277,7 @@ router.post(
       }
     }
 
-    if (target === 'finalized') {
+      if (target === 'finalized') {
       if (report.status !== 'in_review') {
         throw badRequest('Envie o relatório para revisão antes de finalizar.');
       }
@@ -287,7 +289,7 @@ router.post(
       }
     }
 
-    if (target === 'draft') {
+      if (target === 'draft') {
       if (!can(req.user.level, 'reports.reopen')) {
         throw forbidden('Reabrir relatórios exige liderança sênior.');
       }
@@ -296,7 +298,6 @@ router.post(
       }
     }
 
-    const updated = await tx(db, async () => {
       const { rows } = await db.query(
         `update event_reports set
            status = $1,
