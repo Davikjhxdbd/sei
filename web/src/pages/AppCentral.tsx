@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  ArrowUpRight, Bell, CalendarDays, Camera, CheckCircle2, ChevronLeft,
-  ChevronRight, Clapperboard, Film, HelpCircle, LogOut, Menu, RefreshCw,
+  ArrowUpRight, Bell, CalendarDays, CheckCircle2, ChevronRight,
+  HelpCircle, LogOut, Menu, RefreshCw,
   UserRound, X,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
