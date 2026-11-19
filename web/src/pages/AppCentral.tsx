@@ -77,6 +77,9 @@ function dailyScripture() {
 }
 
 function getPersonalMessage(sector: string) {
+  if (/mídia|midia/.test(sector)) {
+    return 'Que cada conteúdo que você produz leve a mensagem mais longe e alcance vidas.';
+  }
   if (/foto|photograph|fotograf/.test(sector)) {
     return 'Que suas imagens contem histórias, despertem emoções e alcancem pessoas.';
   }
