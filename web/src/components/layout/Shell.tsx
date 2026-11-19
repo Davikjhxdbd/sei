@@ -44,17 +44,17 @@ function useOutside(open: boolean, onClose: () => void) {
 
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
-    <Link to="/" className="flex items-center gap-2.5" aria-label="MMV CREATIVE — central">
+    <Link to="/" className="flex items-center gap-2.5" aria-label="MMV CONNECT — central">
       <span className="grid h-8 w-8 place-items-center rounded-lg bg-brass text-[13px] font-bold tracking-tight text-white">
         MV
       </span>
       {!compact && (
         <span className="hidden flex-col leading-none sm:flex">
           <span className="text-[12.5px] font-semibold uppercase tracking-wider2 text-white">
-            MMV CREATIVE
+            MMV / CONNECT
           </span>
           <span className="mt-1 text-[10px] uppercase tracking-wider2 text-white/40">
-            Plataforma operacional
+            Plataforma integrada
           </span>
         </span>
       )}
@@ -443,7 +443,7 @@ export function Shell({
 
           {user && (
             <footer className="border-t border-line px-4 py-4 text-[11px] text-muted sm:px-6">
-              MMV CREATIVE · {user.full_name} ·{' '}
+              MMV / CONNECT · {user.full_name} ·{' '}
               {user.roles.map((role) => ROLE_LABELS[role] ?? role).join(' · ')}
             </footer>
           )}
