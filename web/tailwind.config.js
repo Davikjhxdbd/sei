@@ -70,7 +70,7 @@ export default {
           'Arial',
           'sans-serif',
         ],
-        display: ['Degular Display', 'Montserrat', 'sans-serif'],
+        display: ['Degular Display', 'Georgia', 'serif'],
       },
       boxShadow: {
         card: 'var(--mmv-shadow-card)',
