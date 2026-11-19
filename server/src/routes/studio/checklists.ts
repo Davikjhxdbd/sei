@@ -111,14 +111,14 @@ router.patch(
   '/checklist-templates/:id',
   asyncHandler(async (req: any, res) => {
     if (!can(req.user.level, 'checklists.manage')) throw forbidden();
-    const { rows: beforeRows } = await req.db.query(
-      'select * from checklist_templates where id = $1',
-      [req.params.id],
-    );
-    if (!beforeRows.length) throw notFound('Modelo não encontrado.');
     const items = parseItems(req.body?.items);
 
     const updated = await tx(req.db, async () => {
+      const { rows: beforeRows } = await req.db.query(
+        'select * from checklist_templates where id = $1 for update',
+        [req.params.id],
+      );
+      if (!beforeRows.length) throw notFound('Modelo não encontrado.');
       const { rows } = await req.db.query(
         `update checklist_templates set
            name = coalesce($1, name),
