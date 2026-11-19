@@ -203,13 +203,13 @@ router.post(
 
     const created = await tx(req.db, async () => {
       const { rows: eventRows } = await req.db.query(
-        'select id, name from events where id = $1',
+        'select id, name from events where id = $1 for share',
         [eventId],
       );
       if (!eventRows.length) throw notFound('Evento não encontrado.');
 
       const { rows: templateRows } = await req.db.query(
-        'select * from checklist_templates where id = $1',
+        'select * from checklist_templates where id = $1 for share',
         [templateId],
       );
       if (!templateRows.length) throw notFound('Modelo não encontrado.');
