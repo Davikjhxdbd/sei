@@ -384,33 +384,37 @@ router.post(
     if (!scheduleId) throw badRequest('Selecione a designação.');
     const state = oneOf(req.body?.state, READINESS, 'estado de prontidão');
 
-    const { rows: scheduleRows } = await req.db.query(
-      `select sc.id, sc.user_id, sc.role_title, e.name as event_name
-         from schedules sc join events e on e.id = sc.event_id
-        where sc.id = $1`,
-      [scheduleId],
-    );
-    if (!scheduleRows.length) throw notFound('Designação não encontrada.');
-    const schedule = scheduleRows[0];
-
-    if (schedule.user_id !== req.user.id && !can(req.user.level, 'schedules.manage')) {
-      throw forbidden('Somente a pessoa designada pode confirmar a prontidão.');
-    }
-
-    const { rows } = await req.db.query(
-      `insert into readiness_confirmations (schedule_id, user_id, state, note)
-       values ($1, $2, $3::readiness_state, $4) returning *`,
-      [scheduleId, req.user.id, state, optionalText(req.body?.note, 1000)],
-    );
-
-    await audit(req.db, req.user, {
-      action: 'readiness.confirmed',
-      entity: 'schedules',
-      entityId: scheduleId,
-      after: { state, role_title: schedule.role_title },
-      moduleKey: 'studio',
+    const result = await tx(req.db, async () => {
+      const { rows: scheduleRows } = await req.db.query(
+        `select sc.id, sc.user_id, sc.role_title, e.name as event_name
+           from schedules sc join events e on e.id = sc.event_id
+          where sc.id = $1`,
+        [scheduleId],
+      );
+      if (!scheduleRows.length) throw notFound('Designação não encontrada.');
+      const schedule = scheduleRows[0];
+  
+      if (schedule.user_id !== req.user.id && !can(req.user.level, 'schedules.manage')) {
+        throw forbidden('Somente a pessoa designada pode confirmar a prontidão.');
+      }
+  
+      const { rows } = await req.db.query(
+        `insert into readiness_confirmations (schedule_id, user_id, state, note)
+         values ($1, $2, $3::readiness_state, $4) returning *`,
+        [scheduleId, req.user.id, state, optionalText(req.body?.note, 1000)],
+      );
+  
+      await audit(req.db, req.user, {
+        action: 'readiness.confirmed',
+        entity: 'schedules',
+        entityId: scheduleId,
+        after: { state, role_title: schedule.role_title },
+        moduleKey: 'studio',
+      });
+  
+  
+      return rows[0];
     });
-
     res.status(201).json({ readiness: rows[0] });
   }),
 );
@@ -490,48 +494,52 @@ router.post(
     const publisherId = optionalId(req.body?.publisher_id);
     const assigneeIds = [editorId, publisherId].filter((id): id is string => Boolean(id));
     if (assigneeIds.length) {
+      const result = await tx(req.db, async () => {
       const { rows: activeUsers } = await req.db.query(
-        "select id from users where id = any($1::uuid[]) and status = 'active'",
-        [assigneeIds],
-      );
-      if (activeUsers.length !== new Set(assigneeIds).size) {
-        throw badRequest('Editor e publicador devem ser usuários ativos.');
+          "select id from users where id = any($1::uuid[]) and status = 'active'",
+          [assigneeIds],
+        );
+        if (activeUsers.length !== new Set(assigneeIds).size) {
+          throw badRequest('Editor e publicador devem ser usuários ativos.');
+        }
       }
-    }
-    const { rows } = await req.db.query(
-      `insert into media_records
-         (service_date, service_time, preacher, event_name, record_type, status,
-          editor_id, publisher_id, platform, published_url, notes, created_by)
-       values ($1::date, $2::time, $3, $4, $5, $6::media_status, $7, $8, $9, $10, $11, $12)
-       returning *`,
-      [
-        serviceDate,
-        req.body?.service_time || null,
-        optionalText(req.body?.preacher, 160),
-        optionalText(req.body?.event_name, 160),
-        optionalText(req.body?.record_type, 60) ?? 'Gravação',
-        MEDIA_STATUS.includes(req.body?.status) ? req.body.status : 'awaiting_edit',
-        editorId,
-        publisherId,
-        optionalText(req.body?.platform, 60),
-        optionalText(req.body?.published_url, 500),
-        optionalText(req.body?.notes, 2000),
-        req.user.id,
-      ],
-    );
-
-    await req.db.query(
-      `insert into media_history (media_id, user_id, to_status, comment)
-       values ($1, $2, $3::media_status, 'Registro criado')`,
-      [rows[0].id, req.user.id, rows[0].status],
-    );
-
-    await audit(req.db, req.user, {
-      action: 'media.created',
-      entity: 'media_records',
-      entityId: rows[0].id,
-      after: { service_date: serviceDate, status: rows[0].status },
-      moduleKey: 'studio',
+      const { rows } = await req.db.query(
+        `insert into media_records
+           (service_date, service_time, preacher, event_name, record_type, status,
+            editor_id, publisher_id, platform, published_url, notes, created_by)
+         values ($1::date, $2::time, $3, $4, $5, $6::media_status, $7, $8, $9, $10, $11, $12)
+         returning *`,
+        [
+          serviceDate,
+          req.body?.service_time || null,
+          optionalText(req.body?.preacher, 160),
+          optionalText(req.body?.event_name, 160),
+          optionalText(req.body?.record_type, 60) ?? 'Gravação',
+          MEDIA_STATUS.includes(req.body?.status) ? req.body.status : 'awaiting_edit',
+          editorId,
+          publisherId,
+          optionalText(req.body?.platform, 60),
+          optionalText(req.body?.published_url, 500),
+          optionalText(req.body?.notes, 2000),
+          req.user.id,
+        ],
+      );
+  
+      await req.db.query(
+        `insert into media_history (media_id, user_id, to_status, comment)
+         values ($1, $2, $3::media_status, 'Registro criado')`,
+        [rows[0].id, req.user.id, rows[0].status],
+      );
+  
+      await audit(req.db, req.user, {
+        action: 'media.created',
+        entity: 'media_records',
+        entityId: rows[0].id,
+        after: { service_date: serviceDate, status: rows[0].status },
+        moduleKey: 'studio',
+      });
+  
+      return rows[0];
     });
     res.status(201).json({ media: rows[0] });
   }),
@@ -541,63 +549,67 @@ router.patch(
   '/media/:id',
   asyncHandler(async (req: any, res) => {
     ensure(req.user, 'media.edit');
-    const { rows: beforeRows } = await req.db.query(
-      'select * from media_records where id = $1',
-      [req.params.id],
-    );
-    if (!beforeRows.length) throw notFound('Registro de mídia não encontrado.');
-
-    const editorId = req.body?.editor_id !== undefined
-      ? optionalId(req.body.editor_id)
-      : beforeRows[0].editor_id;
-    const publisherId = req.body?.publisher_id !== undefined
-      ? optionalId(req.body.publisher_id)
-      : beforeRows[0].publisher_id;
-    const assigneeIds = [editorId, publisherId].filter((id): id is string => Boolean(id));
-    if (assigneeIds.length) {
-      const { rows: activeUsers } = await req.db.query(
-        "select id from users where id = any($1::uuid[]) and status = 'active'",
-        [assigneeIds],
+    const result = await tx(req.db, async () => {
+      const { rows: beforeRows } = await req.db.query(
+        'select * from media_records where id = $1',
+        [req.params.id],
       );
-      if (activeUsers.length !== new Set(assigneeIds).size) {
-        throw badRequest('Editor e publicador devem ser usuários ativos.');
+      if (!beforeRows.length) throw notFound('Registro de mídia não encontrado.');
+  
+      const editorId = req.body?.editor_id !== undefined
+        ? optionalId(req.body.editor_id)
+        : beforeRows[0].editor_id;
+      const publisherId = req.body?.publisher_id !== undefined
+        ? optionalId(req.body.publisher_id)
+        : beforeRows[0].publisher_id;
+      const assigneeIds = [editorId, publisherId].filter((id): id is string => Boolean(id));
+      if (assigneeIds.length) {
+        const { rows: activeUsers } = await req.db.query(
+          "select id from users where id = any($1::uuid[]) and status = 'active'",
+          [assigneeIds],
+        );
+        if (activeUsers.length !== new Set(assigneeIds).size) {
+          throw badRequest('Editor e publicador devem ser usuários ativos.');
+        }
       }
-    }
-
-    const { rows } = await req.db.query(
-      `update media_records set
-         preacher = coalesce($1, preacher),
-         event_name = coalesce($2, event_name),
-         record_type = coalesce($3, record_type),
-         editor_id = case when $4::boolean then $5::uuid else editor_id end,
-         publisher_id = case when $6::boolean then $7::uuid else publisher_id end,
-         platform = coalesce($8, platform),
-         published_url = coalesce($9, published_url),
-         notes = coalesce($10, notes),
-         updated_at = now()
-       where id = $11 returning *`,
-      [
-        optionalText(req.body?.preacher, 160),
-        optionalText(req.body?.event_name, 160),
-        optionalText(req.body?.record_type, 60),
-        req.body?.editor_id !== undefined,
-        editorId,
-        req.body?.publisher_id !== undefined,
-        publisherId,
-        optionalText(req.body?.platform, 60),
-        optionalText(req.body?.published_url, 500),
-        optionalText(req.body?.notes, 2000),
-        req.params.id,
-      ],
-    );
-
-    await audit(req.db, req.user, {
-      action: 'media.updated',
-      entity: 'media_records',
-      entityId: req.params.id,
-      before: beforeRows[0],
-      after: rows[0],
-      moduleKey: 'studio',
+  
+      const { rows } = await req.db.query(
+        `update media_records set
+           preacher = coalesce($1, preacher),
+           event_name = coalesce($2, event_name),
+           record_type = coalesce($3, record_type),
+           editor_id = case when $4::boolean then $5::uuid else editor_id end,
+           publisher_id = case when $6::boolean then $7::uuid else publisher_id end,
+           platform = coalesce($8, platform),
+           published_url = coalesce($9, published_url),
+           notes = coalesce($10, notes),
+           updated_at = now()
+         where id = $11 returning *`,
+        [
+          optionalText(req.body?.preacher, 160),
+          optionalText(req.body?.event_name, 160),
+          optionalText(req.body?.record_type, 60),
+          req.body?.editor_id !== undefined,
+          editorId,
+          req.body?.publisher_id !== undefined,
+          publisherId,
+          optionalText(req.body?.platform, 60),
+          optionalText(req.body?.published_url, 500),
+          optionalText(req.body?.notes, 2000),
+          req.params.id,
+        ],
+      );
+  
+      await audit(req.db, req.user, {
+        action: 'media.updated',
+        entity: 'media_records',
+        entityId: req.params.id,
+        before: beforeRows[0],
+        after: rows[0],
+        moduleKey: 'studio',
+      });
+  
+      return rows[0];
     });
     res.json({ media: rows[0] });
   }),
