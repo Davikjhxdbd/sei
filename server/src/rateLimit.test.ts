@@ -78,3 +78,30 @@ test('login rate limit buckets isolate account and network dimensions', () => {
   assert.notEqual(first.network, otherNetwork.network);
   assert.equal(first.account.includes('person@example.com'), false);
 });
+
+test('consumeRateLimit falls back to an in-memory limit only when migration table is missing', async () => {
+  const db = {
+    query: async () => {
+      const error = new Error('relation "auth_rate_limits" does not exist') as Error & { code: string };
+      error.code = '42P01';
+      throw error;
+    },
+  };
+  const bucket = 'd'.repeat(64);
+  assert.equal(await consumeRateLimit(db as any, bucket, 60_000), 1);
+  assert.equal(await consumeRateLimit(db as any, bucket, 60_000), 2);
+});
+
+test('consumeRateLimit does not hide unrelated database failures', async () => {
+  const db = {
+    query: async () => {
+      const error = new Error('database unavailable') as Error & { code: string };
+      error.code = '08006';
+      throw error;
+    },
+  };
+  await assert.rejects(
+    () => consumeRateLimit(db as any, 'e'.repeat(64), 60_000),
+    /database unavailable/,
+  );
+});
