@@ -466,13 +466,6 @@ router.patch(
   '/modules/:id',
   requireLevel(5),
   asyncHandler(async (req: any, res) => {
-    const { rows: beforeRows } = await req.db.query(
-      'select * from modules where id = $1',
-      [req.params.id],
-    );
-    if (!beforeRows.length) throw notFound('Módulo não encontrado.');
-    const before = beforeRows[0];
-
     const allowedRoles = Array.isArray(req.body?.allowed_roles)
       ? normalizeRoles(req.body.allowed_roles)
       : null;
@@ -480,43 +473,53 @@ router.patch(
       throw badRequest('Selecione ao menos um cargo com acesso ao módulo.');
     }
 
-    const { rows } = await req.db.query(
-      `update modules set
-         name = coalesce($1, name),
-         description = coalesce($2, description),
-         icon = coalesce($3, icon),
-         color = coalesce($4, color),
-         active = coalesce($5, active),
-         sort_order = coalesce($6, sort_order),
-         allowed_roles = coalesce($7::user_role[], allowed_roles),
-         updated_at = now()
-       where id = $8
-       returning *`,
-      [
-        req.body?.name ? String(req.body.name).trim().slice(0, 80) : null,
-        req.body?.description !== undefined
-          ? String(req.body.description ?? '').trim() || null
-          : null,
-        req.body?.icon ? String(req.body.icon) : null,
-        req.body?.color ? String(req.body.color) : null,
-        typeof req.body?.active === 'boolean' ? req.body.active : null,
-        Number.isFinite(Number(req.body?.sort_order))
-          ? Number(req.body.sort_order)
-          : null,
-        allowedRoles,
-        req.params.id,
-      ],
-    );
+    const module = await tx(req.db, async () => {
+      const { rows: beforeRows } = await req.db.query(
+        'select * from modules where id = $1 for update',
+        [req.params.id],
+      );
+      if (!beforeRows.length) throw notFound('Módulo não encontrado.');
+      const before = beforeRows[0];
 
-    await audit(req.db, req.user, {
-      action: 'module.updated',
-      entity: 'modules',
-      entityId: req.params.id,
-      before: { active: before.active, allowed_roles: before.allowed_roles },
-      after: { active: rows[0].active, allowed_roles: rows[0].allowed_roles },
-      moduleKey: 'platform',
+      const { rows } = await req.db.query(
+        `update modules set
+           name = coalesce($1, name),
+           description = coalesce($2, description),
+           icon = coalesce($3, icon),
+           color = coalesce($4, color),
+           active = coalesce($5, active),
+           sort_order = coalesce($6, sort_order),
+           allowed_roles = coalesce($7::user_role[], allowed_roles),
+           updated_at = now()
+         where id = $8
+         returning *`,
+        [
+          req.body?.name ? String(req.body.name).trim().slice(0, 80) : null,
+          req.body?.description !== undefined
+            ? String(req.body.description ?? '').trim() || null
+            : null,
+          req.body?.icon ? String(req.body.icon) : null,
+          req.body?.color ? String(req.body.color) : null,
+          typeof req.body?.active === 'boolean' ? req.body.active : null,
+          Number.isFinite(Number(req.body?.sort_order))
+            ? Number(req.body.sort_order)
+            : null,
+          allowedRoles,
+          req.params.id,
+        ],
+      );
+
+      await audit(req.db, req.user, {
+        action: 'module.updated',
+        entity: 'modules',
+        entityId: req.params.id,
+        before: { active: before.active, allowed_roles: before.allowed_roles },
+        after: { active: rows[0].active, allowed_roles: rows[0].allowed_roles },
+        moduleKey: 'platform',
+      });
+      return rows[0];
     });
-    res.json({ module: rows[0] });
+    res.json({ module });
   }),
 );
 
