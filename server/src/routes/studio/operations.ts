@@ -415,7 +415,7 @@ router.post(
   
       return rows[0];
     });
-    res.status(201).json({ readiness: rows[0] });
+    res.status(201).json({ readiness: result });
   }),
 );
 
@@ -493,9 +493,10 @@ router.post(
     const editorId = optionalId(req.body?.editor_id);
     const publisherId = optionalId(req.body?.publisher_id);
     const assigneeIds = [editorId, publisherId].filter((id): id is string => Boolean(id));
-    if (assigneeIds.length) {
-      const result = await tx(req.db, async () => {
-      const { rows: activeUsers } = await req.db.query(
+
+    const created = await tx(req.db, async () => {
+      if (assigneeIds.length) {
+        const { rows: activeUsers } = await req.db.query(
           "select id from users where id = any($1::uuid[]) and status = 'active'",
           [assigneeIds],
         );
@@ -503,6 +504,7 @@ router.post(
           throw badRequest('Editor e publicador devem ser usuários ativos.');
         }
       }
+
       const { rows } = await req.db.query(
         `insert into media_records
            (service_date, service_time, preacher, event_name, record_type, status,
@@ -524,13 +526,13 @@ router.post(
           req.user.id,
         ],
       );
-  
+
       await req.db.query(
         `insert into media_history (media_id, user_id, to_status, comment)
          values ($1, $2, $3::media_status, 'Registro criado')`,
         [rows[0].id, req.user.id, rows[0].status],
       );
-  
+
       await audit(req.db, req.user, {
         action: 'media.created',
         entity: 'media_records',
@@ -538,10 +540,11 @@ router.post(
         after: { service_date: serviceDate, status: rows[0].status },
         moduleKey: 'studio',
       });
-  
+
       return rows[0];
     });
-    res.status(201).json({ media: rows[0] });
+
+    res.status(201).json({ media: created });
   }),
 );
 
@@ -611,7 +614,7 @@ router.patch(
   
       return rows[0];
     });
-    res.json({ media: rows[0] });
+    res.json({ media: result });
   }),
 );
 
