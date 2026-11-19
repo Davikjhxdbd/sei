@@ -123,45 +123,52 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-5">
-      <section className="relative isolate overflow-hidden rounded-2xl border border-[#C4A66A]/20 bg-gradient-to-br from-[#242019] via-[#151515] to-[#090909] p-6 shadow-[0_18px_50px_-28px_rgba(196,166,106,.25)] sm:p-8">
-        <div className="pointer-events-none absolute -right-16 -top-24 -z-10 h-72 w-72 rounded-full bg-[#C4A66A]/10 blur-3xl" />
-        <div className="flex flex-wrap items-end justify-between gap-6">
-          <div>
-            <p className="mb-3 text-[10px] font-semibold uppercase tracking-[.32em] text-[#C4A66A]">
-              MMV CREATIVE · GESTÃO DO ESTÚDIO
-            </p>
-            <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-4xl">
+      <section className="relative isolate overflow-hidden rounded-[22px] border border-[#C9AD78]/25 bg-[#0B0D10] px-6 py-7 shadow-[0_24px_70px_-38px_rgba(201,173,120,.32)] sm:px-9 sm:py-9">
+        <div className="pointer-events-none absolute inset-0 -z-10 opacity-60" style={{ backgroundImage: 'radial-gradient(ellipse at 82% 18%, rgba(201,173,120,.16), transparent 34%), linear-gradient(115deg, transparent 48%, rgba(255,255,255,.025) 48.2%, transparent 48.5%)' }} />
+        <div className="pointer-events-none absolute -right-12 -bottom-28 -z-10 h-72 w-72 rounded-full border border-[#C9AD78]/10" />
+        <div className="flex flex-wrap items-end justify-between gap-8">
+          <div className="max-w-2xl">
+            <div className="mb-6 flex items-center gap-3">
+              <span className="h-px w-8 bg-[#C9AD78]" />
+              <p className="text-[10px] font-bold uppercase tracking-[.34em] text-[#D8C29B]">
+                MMV STUDIO <span className="text-white/30">/</span> CENTRAL DE OPERAÇÕES
+              </p>
+            </div>
+            <h1 className="text-[2rem] font-black leading-[1.02] tracking-[-.055em] text-white sm:text-[3.35rem]">
               {new Date().getHours() < 12 ? 'Bom dia' : new Date().getHours() < 18 ? 'Boa tarde' : 'Boa noite'},{' '}
-              <span className="text-[#D8BD86]">{user?.full_name.split(' ')[0]}</span>.
+              <span className="text-[#D2B77F]">{user?.full_name.split(' ')[0]}</span>.
             </h1>
-            <p className="mt-2 text-[13px] text-white/55">
-              Aqui está o panorama da operação e das suas prioridades.
+            <p className="mt-4 max-w-lg text-[13px] leading-relaxed text-white/55 sm:text-sm">
+              Histórias que ganham vida. Mensagens que ganham o mundo.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-lg border border-white/10 bg-white/[.04] px-3 py-2 text-[11px] capitalize text-white/65">
+          <div className="flex flex-col items-start gap-3 sm:items-end">
+            <span className="text-[10px] font-medium uppercase tracking-[.2em] text-white/40">
               {new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).format(new Date())}
             </span>
-            {can('events.create') && (
+            <div className="flex flex-wrap items-center gap-2">
+              {can('events.create') && (
+                <Link
+                  to="/m/studio/events"
+                  className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#C9AD78]/35 bg-white/[.035] px-4 text-[12px] font-semibold text-[#E2CEA8] transition hover:border-[#C9AD78]/65 hover:bg-[#C9AD78]/10"
+                >
+                  <CalendarDays className="h-4 w-4" /> Eventos
+                </Link>
+              )}
               <Link
-                to="/m/studio/events"
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#C4A66A]/35 bg-[#C4A66A]/10 px-3 text-[12px] font-medium text-[#D8BD86] transition hover:bg-[#C4A66A]/20"
+                to="/m/studio/checklists"
+                className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#C9AD78] px-4 text-[12px] font-bold text-[#111] transition hover:bg-[#E0C99D]"
               >
-                <CalendarDays className="h-4 w-4" /> Eventos
+                <ClipboardList className="h-4 w-4" /> Checklists
               </Link>
-            )}
-            <Link
-              to="/m/studio/checklists"
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#C4A66A] px-3 text-[12px] font-semibold text-[#111] transition hover:bg-[#D8BD86]"
-            >
-              <ClipboardList className="h-4 w-4" /> Checklists
-            </Link>
+            </div>
           </div>
         </div>
-        <div className="mt-7 h-px w-full bg-gradient-to-r from-[#C4A66A]/50 via-white/10 to-transparent" />
-        <p className="mt-3 text-[9px] font-medium uppercase tracking-[.28em] text-white/30">
-          VISÃO GERAL DA OPERAÇÃO
-        </p>
+        <div className="mt-8 flex items-center gap-3 border-t border-white/10 pt-4">
+          <span className="text-[9px] font-bold uppercase tracking-[.28em] text-[#C9AD78]/80">STUDIO</span>
+          <span className="h-px flex-1 bg-gradient-to-r from-[#C9AD78]/35 to-transparent" />
+          <span className="text-[9px] uppercase tracking-[.2em] text-white/25">CRIAR · PRODUZIR · ENTREGAR</span>
+        </div>
       </section>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 [&>*]:transition-transform [&>*]:duration-300 [&>*]:hover:-translate-y-1">
