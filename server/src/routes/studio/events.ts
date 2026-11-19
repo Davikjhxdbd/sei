@@ -67,6 +67,9 @@ router.post(
     const type = optionalText(req.body?.type, 60) ?? 'Culto';
     const startsAt = isoDate(req.body?.starts_at, 'início');
     const endsAt = req.body?.ends_at ? isoDate(req.body.ends_at, 'término') : null;
+    if (endsAt && new Date(endsAt) < new Date(startsAt)) {
+      throw badRequest('O término não pode ser anterior ao início.');
+    }
     const notes = optionalText(req.body?.notes);
 
     const created = await tx(req.db, async () => {
@@ -170,6 +173,12 @@ router.patch(
         throw badRequest('Eventos cancelados não podem ser editados.');
       }
 
+      const nextStartsAt = req.body?.starts_at ? isoDate(req.body.starts_at, 'início') : before.starts_at;
+      const nextEndsAt = req.body?.ends_at ? isoDate(req.body.ends_at, 'término') : before.ends_at;
+      if (nextEndsAt && new Date(nextEndsAt) < new Date(nextStartsAt)) {
+        throw badRequest('O término não pode ser anterior ao início.');
+      }
+
       const { rows } = await req.db.query(
         `update events set
            name = coalesce($1, name),
@@ -183,8 +192,8 @@ router.patch(
         [
           req.body?.name ? String(req.body.name).trim().slice(0, 160) : null,
           req.body?.type ? String(req.body.type).trim().slice(0, 60) : null,
-          req.body?.starts_at ? isoDate(req.body.starts_at, 'início') : null,
-          req.body?.ends_at ? isoDate(req.body.ends_at, 'término') : before.ends_at,
+          req.body?.starts_at ? nextStartsAt : null,
+          nextEndsAt,
           req.body?.notes !== undefined ? optionalText(req.body.notes) : null,
           req.params.id,
         ],
