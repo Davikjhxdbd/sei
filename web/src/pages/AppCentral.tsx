@@ -44,7 +44,7 @@ export default function AppCentral() {
     if (hasStudio && (isPhoto || isVideo)) {
       const items = [];
       if (isPhoto) items.push({ label: 'Acervo de mídia', description: 'Fotos e materiais', to: '/m/studio/media', icon: Camera });
-      if (isVideo) items.push({ label: 'Minha produção', description: 'Projetos e entregas', to: '/m/studio/production/my-space', icon: Clapperboard });
+      if (isVideo) items.push({ label: 'Minha produção', description: 'Projetos e entregas', to: '/m/studio/my-space', icon: Clapperboard });
       items.push({ label: 'Eventos', description: 'Coberturas e agenda', to: '/m/studio/events', icon: CalendarDays });
       if (isVideo) items.push({ label: 'Central de produção', description: 'Acompanhar produções', to: '/m/studio/production', icon: Film });
       return items.slice(0, 3);
@@ -148,10 +148,12 @@ export default function AppCentral() {
           </div>
           </div>
 
-          <div className="mt-10 max-w-3xl overflow-hidden rounded-[22px] border border-white/[0.10] bg-gradient-to-br from-white/[0.065] to-white/[0.018] shadow-[0_24px_80px_rgba(0,0,0,0.22)] backdrop-blur-xl">
-            <div className="flex flex-wrap items-center justify-between gap-4 px-5 py-5 sm:px-7">
+          <div className="relative mt-10 max-w-3xl overflow-hidden rounded-[24px] border border-[#A4B4C5]/[0.13] bg-[linear-gradient(135deg,rgba(30,36,48,0.82),rgba(15,18,24,0.92)_58%,rgba(18,21,29,0.88))] shadow-[0_28px_90px_rgba(0,0,0,0.34)] backdrop-blur-2xl">
+            <div aria-hidden="true" className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[#8D9EFF]/65 to-transparent" />
+            <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full border border-[#8D9EFF]/[0.08] shadow-[0_0_70px_rgba(141,158,255,0.06)]" />
+            <div className="relative flex flex-wrap items-center justify-between gap-4 px-5 py-6 sm:px-7">
               <div>
-                <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[#A4B4C5]/65">Seu resumo</p>
+                <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-[#8D9EFF] shadow-[0_0_10px_rgba(141,158,255,0.9)]" /><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#A4B4C5]/75">Visão geral</p></div>
                 <p className="mt-2 text-[13px] text-white/80">
                   {hasStudio ? <>Você tem <strong className="font-semibold text-white">{pending.length} {pending.length === 1 ? 'tarefa' : 'tarefas'}</strong> pendentes para acompanhar.</> : 'Seu espaço de trabalho está pronto para hoje.'}
                 </p>
@@ -163,16 +165,16 @@ export default function AppCentral() {
             </div>
 
             {shortcuts.length > 0 && <>
-              <div className="border-t border-white/[0.08] px-5 pt-4 sm:px-7">
-                <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[#A4B4C5]/55">Acesso frequente</p>
+              <div className="relative border-t border-white/[0.08] px-5 pt-4 sm:px-7">
+                <div className="flex items-center justify-between"><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#A4B4C5]/65">Seus espaços</p><span className="text-[8px] font-medium tracking-[0.16em] text-white/25">ACESSO RÁPIDO</span></div>
               </div>
-              <div className="grid gap-2 p-3 sm:grid-cols-3 sm:px-4 sm:pb-4">
+              <div className="relative grid gap-2 p-3 sm:grid-cols-3 sm:px-4 sm:pb-4">
                 {shortcuts.map((item) => {
                   const Icon = item.icon;
-                  return <Link key={item.to} to={item.to} className="group flex min-w-0 items-center gap-3 rounded-xl border border-transparent px-3 py-3 transition duration-200 hover:border-white/[0.08] hover:bg-white/[0.045]">
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-white/[0.08] bg-white/[0.035] text-[#A4B4C5] transition group-hover:border-[#8D9EFF]/25 group-hover:text-[#C6CEFF]"><Icon className="h-[17px] w-[17px]" strokeWidth={1.7} /></span>
+                  return <Link key={item.to} to={item.to} className="group relative flex min-w-0 items-center gap-3 overflow-hidden rounded-[15px] border border-white/[0.055] bg-white/[0.025] px-3 py-3.5 transition duration-300 hover:-translate-y-0.5 hover:border-[#8D9EFF]/25 hover:bg-[#8D9EFF]/[0.055] hover:shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[13px] border border-[#A4B4C5]/[0.12] bg-gradient-to-br from-[#8D9EFF]/[0.13] to-white/[0.025] text-[#B8C3FF] shadow-inner shadow-white/[0.035] transition duration-300 group-hover:border-[#8D9EFF]/35 group-hover:text-[#E0E4FF]"><Icon className="h-[17px] w-[17px]" strokeWidth={1.7} /></span>
                     <span className="min-w-0 flex-1"><span className="block truncate text-[12px] font-medium text-white/85">{item.label}</span><span className="mt-1 block truncate text-[10px] text-white/35">{item.description}</span></span>
-                    <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-white/20 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[#A4B4C5]" />
+                    <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-white/25 transition duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[#C6CEFF]" />
                   </Link>;
                 })}
               </div>
