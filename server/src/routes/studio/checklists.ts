@@ -378,6 +378,16 @@ router.patch(
       ? optionalId(req.body.assignee_id)
       : null;
 
+    if (assigneeProvided && newAssignee) {
+      const { rows: assigneeRows } = await db.query(
+        "select id from users where id = $1 and status = 'active' for share",
+        [newAssignee],
+      );
+      if (!assigneeRows.length) {
+        throw badRequest('O responsável selecionado não existe ou está inativo.');
+      }
+    }
+
     const statusChanged = newStatus && newStatus !== task.status;
     if (statusChanged && task.status === 'done' && newStatus !== 'done') {
       if (!can(req.user.level, 'checklists.assign')) {
