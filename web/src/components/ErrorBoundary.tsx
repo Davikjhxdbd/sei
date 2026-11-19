@@ -28,8 +28,14 @@ export class ErrorBoundary extends Component<Props, State> {
           className="flex min-h-screen items-center justify-center bg-canvas px-6 py-12 text-ink"
         >
           <section className="w-full max-w-md text-center">
-            <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-brass/30 bg-brass/10 text-sm font-semibold text-brass">
-              MV
+            <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-brass/30 bg-brass/10">
+              <svg viewBox="0 0 64 64" className="h-10 w-10" fill="none" aria-hidden="true">
+                <path d="M12 47V18L32 37L52 18V47" stroke="#F0E3C4" strokeWidth="3.2" strokeLinecap="square" strokeLinejoin="round" />
+                <path d="M32 37V10" stroke="#C4A66A" strokeWidth="3.2" strokeLinecap="square" />
+                <circle cx="32" cy="9" r="3.2" fill="#F4F2ED" />
+                <circle cx="12" cy="18" r="2.3" fill="#C4A66A" />
+                <circle cx="52" cy="18" r="2.3" fill="#C4A66A" />
+              </svg>
             </span>
             <p className="mt-7 text-[10px] font-semibold uppercase tracking-[0.35em] text-brass">
               MMV / CONNECT
