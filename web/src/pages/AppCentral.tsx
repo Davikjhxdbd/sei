@@ -111,6 +111,7 @@ export default function AppCentral() {
         event.preventDefault();
         setCommandOpen((open) => !open);
         setCommandQuery('');
+        setCommandIndex(0);
       }
       if (event.key === 'Escape') { setCommandOpen(false); setMenuOpen(false); }
     }
@@ -168,7 +169,6 @@ export default function AppCentral() {
   ].filter((item) => item.name.toLocaleLowerCase('pt-BR').includes(commandQuery.trim().toLocaleLowerCase('pt-BR'))), [modules, commandQuery]);
   useEffect(() => {
     if (!commandOpen) return;
-    setCommandIndex(0);
     function handleCommandKeys(event: KeyboardEvent) {
       if (event.key === 'ArrowDown') {
         event.preventDefault();
