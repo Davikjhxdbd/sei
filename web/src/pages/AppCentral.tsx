@@ -7,7 +7,6 @@ import {
 import { useAuth } from '../lib/auth';
 import { useApi } from '../lib/useApi';
 import { moduleIcon } from '../modules/registry';
-import { ThemeToggle } from '../components/ThemeToggle';
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -30,8 +29,8 @@ export default function AppCentral() {
   const [menuOpen, setMenuOpen] = useState(false);
   const hasStudio = modules.some((module) => module.key === 'studio' || module.key.startsWith('studio_'));
   const { data: production } = useApi<any>(hasStudio ? '/studio/production/mine' : null);
-  const greeting = useMemo(getGreeting, []);
-  const unread = state?.notifications.unread ?? 0;
+  const greeting = getGreeting();
+  const unread = state?.notifications?.unread ?? 0;
   const tasks = production?.tasks ?? [];
   const pending = tasks.filter((task: any) => task.status !== 'published');
   const completed = tasks.filter((task: any) => task.status === 'published');
@@ -90,7 +89,6 @@ export default function AppCentral() {
           </Link>
 
           <div className="flex items-center gap-2">
-            <ThemeToggle />
             <button
               type="button"
               onClick={() => setMenuOpen((open) => !open)}
@@ -106,8 +104,8 @@ export default function AppCentral() {
         {menuOpen && (
           <>
             <button aria-label="Fechar menu" onClick={() => setMenuOpen(false)} className="fixed inset-0 z-20 cursor-default" />
-            <nav className="absolute right-5 top-[4.6rem] z-30 w-[min(88vw,310px)] overflow-hidden rounded-2xl border border-white/[0.12] bg-[#15191F]/95 p-2 shadow-2xl shadow-black/50 backdrop-blur-2xl sm:right-10" aria-label="Menu principal">
-              <p className="px-3 pb-2 pt-2.5 text-[9px] font-semibold uppercase tracking-[0.2em] text-[#A4B4C5]/55">Aplicativos</p>
+            <nav className="absolute right-5 top-[4.6rem] z-30 w-[min(88vw,310px)] overflow-hidden rounded-[18px] border border-[#8D9EFF]/20 bg-[#11151C]/[0.97] p-2 shadow-[0_24px_80px_rgba(0,0,0,.65)] backdrop-blur-2xl sm:right-10" aria-label="Menu principal">
+              <div className="mb-1 flex items-center justify-between px-3 pb-2 pt-2.5"><p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[#A4B4C5]/55">Navegação</p><span className="text-[8px] font-semibold tracking-[0.16em] text-[#8D9EFF]/55">MMV / CONNECT</span></div>
               {modules.map((module) => {
                 const Icon = moduleIcon(module.icon);
                 return <Link key={module.id} to={module.route} onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] text-white/80 transition hover:bg-white/[0.06]">
@@ -183,7 +181,7 @@ export default function AppCentral() {
         </section>
 
         <footer className="flex items-center justify-between gap-3 border-t border-white/[0.06] pt-4 text-[9px] tracking-[0.12em] text-white/25">
-          <span>MMV CONNECT</span>
+          <span className="font-semibold tracking-[0.2em]">MMV<span className="text-[#8D9EFF]">/</span>CONNECT</span>
           <span className="truncate">{user?.full_name}</span>
         </footer>
       </div>
