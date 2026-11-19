@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { useApi } from '../../lib/useApi';
 import { useAuth } from '../../lib/auth';
-import { formatDayLabel, formatTime } from '../../lib/format';
+import { ROLE_LABELS, formatDayLabel, formatTime } from '../../lib/format';
 import { LoadingBlock, cx } from '../../components/ui';
 
 interface DashboardPayload {
@@ -145,7 +145,7 @@ export default function Dashboard() {
 
   const firstName = user?.full_name?.trim().split(/\s+/)[0] ?? 'por aqui';
   const roleNames =
-    user?.roles.map((role) => role.replace(/_/g, ' ')).join(' · ') ??
+    user?.roles.map((role) => ROLE_LABELS[role] ?? role).join(' · ') ??
     'Equipe Studio';
   const unread = state?.notifications.unread ?? 0;
   const isLeadership = level >= 4;
