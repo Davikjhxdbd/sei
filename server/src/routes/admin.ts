@@ -1,0 +1,673 @@
+import { Router } from 'express';
+import {
+  asyncHandler,
+  badRequest,
+  conflict,
+  forbidden,
+  like,
+  notFound,
+  oneOf,
+  paging,
+  required,
+} from '../http';
+import { ROLE_LEVELS } from '../permissions';
+import { hashPassword, requireLevel } from '../auth';
+import { audit } from '../audit';
+import { tx } from '../db';
+import { buildUserUpdateQuery } from '../userUpdate';
+
+const router = Router();
+
+const STATUSES = ['active', 'pending', 'suspended', 'inactive'] as const;
+const ROLES = Object.keys(ROLE_LEVELS);
+
+function normalizeRoles(input: unknown): string[] {
+  if (!Array.isArray(input)) return [];
+  const roles = input
+    .filter((r): r is string => typeof r === 'string')
+    .filter((r) => ROLES.includes(r));
+  return Array.from(new Set(roles));
+}
+
+function normalizeIds(input: unknown): string[] {
+  if (!Array.isArray(input)) return [];
+  if (input.some((value) =>
+    typeof value !== 'string' ||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value),
+  )) {
+    throw badRequest('A lista contém um identificador inválido.');
+  }
+  return Array.from(new Set(input as string[]));
+}
+
+function normalizeEmail(input: unknown): string | null {
+  if (input === null || input === undefined) return null;
+  if (typeof input !== 'string') throw badRequest('E-mail inválido.', { field: 'email' });
+  const email = input.trim().toLowerCase();
+  if (!email) return null;
+  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw badRequest('Informe um endereço de e-mail válido.', { field: 'email' });
+  }
+  return email;
+}
+
+const SELECT_USERS = `
+  select u.id, u.full_name, u.username, u.email, u.status,
+         u.created_at, u.updated_at, u.last_login_at,
+         coalesce((select array_agg(ur.role::text order by ur.role::text)
+                     from user_roles ur where ur.user_id = u.id), '{}') as roles,
+         coalesce((select json_agg(json_build_object('id', s.id, 'name', s.name, 'is_lead', us.is_lead)
+                                   order by s.name)
+                     from user_sectors us join sectors s on s.id = us.sector_id
+                    where us.user_id = u.id), '[]'::json) as sectors
+    from users u`;
+
+// ---------------------------------------------------------------------
+// Usuários (restrito ao administrador do sistema)
+// ---------------------------------------------------------------------
+router.get(
+  '/users',
+  requireLevel(5),
+  asyncHandler(async (req: any, res) => {
+    const { limit, offset } = paging(req.query);
+    const search = like(req.query.q);
+    const status = STATUSES.includes(req.query.status) ? req.query.status : null;
+    const role = ROLES.includes(req.query.role) ? req.query.role : null;
+
+    const { rows } = await req.db.query(
+      `${SELECT_USERS}
+        where ($1::text is null or u.full_name ilike $1 or u.username ilike $1 or u.email ilike $1)
+          and ($2::text is null or u.status::text = $2)
+          and ($3::text is null or exists (select 1 from user_roles r
+                where r.user_id = u.id and r.role::text = $3))
+        order by u.full_name
+        limit $4 offset $5`,
+      [search, status, role, limit, offset],
+    );
+
+    const { rows: totals } = await req.db.query(
+      `select count(*)::int as total from users`,
+    );
+
+    res.json({ items: rows, total: totals[0]?.total ?? 0 });
+  }),
+);
+
+router.post(
+  '/users',
+  requireLevel(5),
+  asyncHandler(async (req: any, res) => {
+    const db = req.db;
+    const fullName = required(req.body?.full_name, 'nome completo', 160);
+    const username = required(req.body?.username, 'nome de usuário', 60).toLowerCase();
+    const email = normalizeEmail(req.body?.email);
+    const password = String(req.body?.password ?? '');
+    const status = STATUSES.includes(req.body?.status) ? req.body.status : 'pending';
+    const roles = normalizeRoles(req.body?.roles);
+    const sectors = normalizeIds(req.body?.sectors);
+    const leadSectors = normalizeIds(req.body?.lead_sectors);
+
+    if (!/^[a-z0-9._-]{3,60}$/.test(username)) {
+      throw badRequest(
+        'O nome de usuário deve ter de 3 a 60 caracteres (letras, números, ponto, hífen ou sublinhado).',
+        { field: 'username' },
+      );
+    }
+    if (password.length < 8) {
+      throw badRequest('A senha inicial deve ter ao menos 8 caracteres.', {
+        field: 'password',
+      });
+    }
+    if (!roles.length) roles.push('member');
+
+    const created = await tx(db, async () => {
+      if (sectors.length) {
+        const { rows: activeSectors } = await db.query(
+          'select id from sectors where id = any($1::uuid[]) and active = true for share',
+          [sectors],
+        );
+        if (activeSectors.length !== sectors.length) {
+          throw badRequest('Todos os setores selecionados devem existir e estar ativos.');
+        }
+      }
+      if (leadSectors.some((id) => !sectors.includes(id))) {
+        throw badRequest('Um setor marcado como liderança precisa estar vinculado ao usuário.');
+      }
+      const existing = await db.query(
+        'select 1 from users where lower(username) = $1',
+        [username],
+      );
+      if (existing.rows.length) {
+        throw conflict('Já existe um usuário com este nome de usuário.');
+      }
+
+      const { rows } = await db.query(
+        `insert into users (full_name, username, email, password_hash, status)
+         values ($1, $2, $3, $4, $5)
+         returning id, full_name, username, email, status, created_at`,
+        [fullName, username, email, await hashPassword(password), status],
+      );
+      const user = rows[0];
+
+      for (const role of roles) {
+        await db.query(
+          'insert into user_roles (user_id, role, granted_by) values ($1, $2::user_role, $3)',
+          [user.id, role, req.user.id],
+        );
+      }
+      for (const sectorId of sectors) {
+        await db.query(
+          `insert into user_sectors (user_id, sector_id, is_lead)
+           values ($1, $2, $3) on conflict do nothing`,
+          [user.id, sectorId, leadSectors.includes(sectorId)],
+        );
+      }
+
+      await audit(db, req.user, {
+        action: 'user.created',
+        entity: 'users',
+        entityId: user.id,
+        after: { ...user, roles, sectors },
+        moduleKey: 'platform',
+      });
+
+      return user;
+    });
+
+    res.status(201).json({ user: created });
+  }),
+);
+
+router.patch(
+  '/users/:id',
+  requireLevel(5),
+  asyncHandler(async (req: any, res) => {
+    const db = req.db;
+    const targetId = req.params.id;
+
+    const patch: Record<string, unknown> = {};
+    if (typeof req.body?.full_name === 'string' && req.body.full_name.trim()) {
+      patch.full_name = req.body.full_name.trim().slice(0, 160);
+    }
+    if (typeof req.body?.email === 'string' || req.body?.email === null) {
+      patch.email = normalizeEmail(req.body.email);
+    }
+    if (req.body?.status !== undefined) {
+      patch.status = oneOf(req.body.status, STATUSES, 'status');
+    }
+
+    const rolesProvided = Array.isArray(req.body?.roles);
+    const roles = rolesProvided ? normalizeRoles(req.body.roles) : null;
+    if (rolesProvided && roles!.length === 0) {
+      throw badRequest('O usuário deve possuir ao menos um cargo.');
+    }
+    if (rolesProvided && targetId === req.user.id) {
+      throw forbidden('Não é permitido alterar os próprios cargos.');
+    }
+
+    const sectorsProvided = Array.isArray(req.body?.sectors);
+    const sectors = sectorsProvided ? normalizeIds(req.body.sectors) : [];
+    const leadSectors = normalizeIds(req.body?.lead_sectors);
+
+    const updated = await tx(db, async () => {
+      const { rows: lockedUser } = await db.query(
+        'select id from users where id = $1 for update',
+        [targetId],
+      );
+      if (!lockedUser.length) throw notFound('Usuário não encontrado.');
+      const { rows: currentRows } = await db.query(`${SELECT_USERS} where u.id = $1`, [targetId]);
+      const current = currentRows[0];
+
+      if (sectorsProvided && sectors.length) {
+        const { rows: activeSectors } = await db.query(
+          'select id from sectors where id = any($1::uuid[]) and active = true for share',
+          [sectors],
+        );
+        if (activeSectors.length !== sectors.length) {
+          throw badRequest('Todos os setores selecionados devem existir e estar ativos.');
+        }
+      }
+      if (sectorsProvided && leadSectors.some((id) => !sectors.includes(id))) {
+        throw badRequest('Um setor marcado como liderança precisa estar vinculado ao usuário.');
+      }
+      const userUpdate = buildUserUpdateQuery(patch, targetId);
+      if (userUpdate) {
+        await db.query(userUpdate.text, userUpdate.values);
+      }
+
+      // A conta perde imediatamente todas as sessões ao deixar de estar ativa.
+      if (patch.status !== undefined && patch.status !== 'active') {
+        await db.query('delete from sessions where user_id = $1', [targetId]);
+      }
+
+      if (rolesProvided) {
+        await db.query('delete from user_roles where user_id = $1', [targetId]);
+        for (const role of roles!) {
+          await db.query(
+            'insert into user_roles (user_id, role, granted_by) values ($1, $2::user_role, $3)',
+            [targetId, role, req.user.id],
+          );
+        }
+      }
+
+      if (sectorsProvided) {
+        await db.query('delete from user_sectors where user_id = $1', [targetId]);
+        for (const sectorId of sectors) {
+          await db.query(
+            `insert into user_sectors (user_id, sector_id, is_lead)
+             values ($1, $2, $3)`,
+            [targetId, sectorId, leadSectors.includes(sectorId)],
+          );
+        }
+      }
+
+      const { rows } = await db.query(`${SELECT_USERS} where u.id = $1`, [
+        targetId,
+      ]);
+
+      await audit(db, req.user, {
+        action: 'user.updated',
+        entity: 'users',
+        entityId: targetId,
+        before: current,
+        after: rows[0],
+        moduleKey: 'platform',
+      });
+
+      return rows[0];
+    });
+
+    res.json({ user: updated });
+  }),
+);
+
+router.post(
+  '/users/:id/password',
+  requireLevel(5),
+  asyncHandler(async (req: any, res) => {
+    const password = String(req.body?.password ?? '');
+    if (password.length < 8) {
+      throw badRequest('A senha deve ter ao menos 8 caracteres.', {
+        field: 'password',
+      });
+    }
+    await tx(req.db, async () => {
+      const { rows } = await req.db.query(
+        'update users set password_hash = $1, updated_at = now() where id = $2 returning id',
+        [await hashPassword(password), req.params.id],
+      );
+      if (!rows.length) throw notFound('Usuário não encontrado.');
+
+      await req.db.query('delete from sessions where user_id = $1', [
+        req.params.id,
+      ]);
+      await audit(req.db, req.user, {
+        action: 'user.password_reset',
+        entity: 'users',
+        entityId: req.params.id,
+        moduleKey: 'platform',
+      });
+    });
+    res.json({ ok: true });
+  }),
+);
+
+// ---------------------------------------------------------------------
+// Setores
+// ---------------------------------------------------------------------
+router.get(
+  '/sectors',
+  requireLevel(4),
+  asyncHandler(async (req: any, res) => {
+    const { rows } = await req.db.query(
+      `select s.id, s.key, s.name, s.description, s.active, s.created_at,
+              (select count(*)::int from user_sectors us where us.sector_id = s.id) as member_count
+         from sectors s order by s.name`,
+    );
+    res.json({ items: rows });
+  }),
+);
+
+router.post(
+  '/sectors',
+  requireLevel(4),
+  asyncHandler(async (req: any, res) => {
+    const name = required(req.body?.name, 'nome', 80);
+    const key =
+      typeof req.body?.key === 'string' && req.body.key.trim()
+        ? req.body.key.trim().toLowerCase().replace(/\s+/g, '_')
+        : name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '_');
+    if (!/^[a-z0-9][a-z0-9_-]{1,59}$/.test(key)) {
+      throw badRequest('A chave do setor deve ter de 2 a 60 caracteres e conter apenas letras, números, hífen ou sublinhado.');
+    }
+
+    const sector = await tx(req.db, async () => {
+      const { rows } = await req.db.query(
+        `insert into sectors (key, name, description)
+         values ($1, $2, $3) returning id, key, name, description, active`,
+        [key, name, req.body?.description?.toString().trim() || null],
+      );
+      await audit(req.db, req.user, {
+        action: 'sector.created',
+        entity: 'sectors',
+        entityId: rows[0].id,
+        after: rows[0],
+        moduleKey: 'platform',
+      });
+      return rows[0];
+    });
+    res.status(201).json({ sector });
+  }),
+);
+
+router.patch(
+  '/sectors/:id',
+  requireLevel(4),
+  asyncHandler(async (req: any, res) => {
+    const sector = await tx(req.db, async () => {
+      const { rows: beforeRows } = await req.db.query(
+        'select * from sectors where id = $1 for update',
+        [req.params.id],
+      );
+      if (!beforeRows.length) throw notFound('Setor não encontrado.');
+
+      const { rows } = await req.db.query(
+        `update sectors set
+           name = coalesce($1, name),
+           description = coalesce($2, description),
+           active = coalesce($3, active)
+         where id = $4
+         returning id, key, name, description, active`,
+        [
+          req.body?.name ? String(req.body.name).trim().slice(0, 80) : null,
+          req.body?.description !== undefined
+            ? String(req.body.description ?? '').trim() || null
+            : null,
+          typeof req.body?.active === 'boolean' ? req.body.active : null,
+          req.params.id,
+        ],
+      );
+
+      await audit(req.db, req.user, {
+        action: 'sector.updated',
+        entity: 'sectors',
+        entityId: req.params.id,
+        before: beforeRows[0],
+        after: rows[0],
+        moduleKey: 'platform',
+      });
+      return rows[0];
+    });
+    res.json({ sector });
+  }),
+);
+
+// ---------------------------------------------------------------------
+// Configurações (listas de opções e parâmetros administráveis)
+// ---------------------------------------------------------------------
+router.get(
+  '/settings',
+  requireLevel(4),
+  asyncHandler(async (req: any, res) => {
+    const { rows } = await req.db.query(
+      `select s.key, s.value, s.label, s.description, s.category, s.updated_at,
+              u.full_name as updated_by_name
+         from settings s
+         left join users u on u.id = s.updated_by
+        order by s.category, s.label`,
+    );
+    res.json({ items: rows });
+  }),
+);
+
+router.put(
+  '/settings/:key',
+  requireLevel(4),
+  asyncHandler(async (req: any, res) => {
+    const value = req.body?.value;
+    if (!Array.isArray(value) && (typeof value !== 'object' || value === null)) {
+      throw badRequest('O valor da configuração deve ser uma lista ou objeto.');
+    }
+
+    const setting = await tx(req.db, async () => {
+      const { rows: beforeRows } = await req.db.query(
+        'select key, value from settings where key = $1 for update',
+        [req.params.key],
+      );
+      if (!beforeRows.length) throw notFound('Configuração não encontrada.');
+
+      const { rows } = await req.db.query(
+        `update settings set value = $1, updated_at = now(), updated_by = $2
+          where key = $3 returning key, value, label, category, updated_at`,
+        [JSON.stringify(value), req.user.id, req.params.key],
+      );
+
+      await audit(req.db, req.user, {
+        action: 'settings.updated',
+        entity: 'settings',
+        entityId: req.params.key,
+        before: beforeRows[0].value,
+        after: value,
+        moduleKey: 'platform',
+      });
+      return rows[0];
+    });
+    res.json({ setting });
+  }),
+);
+
+// ---------------------------------------------------------------------
+// Registro central de módulos
+// ---------------------------------------------------------------------
+router.get(
+  '/modules',
+  requireLevel(5),
+  asyncHandler(async (req: any, res) => {
+    const { rows } = await req.db.query(
+      `select m.*,
+              (select count(*)::int from audit_log a where a.module_key = m.key) as usage_events
+         from modules m order by sort_order, name`,
+    );
+    res.json({ items: rows });
+  }),
+);
+
+router.patch(
+  '/modules/:id',
+  requireLevel(5),
+  asyncHandler(async (req: any, res) => {
+    const allowedRoles = Array.isArray(req.body?.allowed_roles)
+      ? normalizeRoles(req.body.allowed_roles)
+      : null;
+    if (allowedRoles && allowedRoles.length === 0) {
+      throw badRequest('Selecione ao menos um cargo com acesso ao módulo.');
+    }
+
+    const module = await tx(req.db, async () => {
+      const { rows: beforeRows } = await req.db.query(
+        'select * from modules where id = $1 for update',
+        [req.params.id],
+      );
+      if (!beforeRows.length) throw notFound('Módulo não encontrado.');
+      const before = beforeRows[0];
+
+      const { rows } = await req.db.query(
+        `update modules set
+           name = coalesce($1, name),
+           description = coalesce($2, description),
+           icon = coalesce($3, icon),
+           color = coalesce($4, color),
+           active = coalesce($5, active),
+           sort_order = coalesce($6, sort_order),
+           allowed_roles = coalesce($7::user_role[], allowed_roles),
+           updated_at = now()
+         where id = $8
+         returning *`,
+        [
+          req.body?.name ? String(req.body.name).trim().slice(0, 80) : null,
+          req.body?.description !== undefined
+            ? String(req.body.description ?? '').trim() || null
+            : null,
+          req.body?.icon ? String(req.body.icon) : null,
+          req.body?.color ? String(req.body.color) : null,
+          typeof req.body?.active === 'boolean' ? req.body.active : null,
+          Number.isFinite(Number(req.body?.sort_order))
+            ? Number(req.body.sort_order)
+            : null,
+          allowedRoles,
+          req.params.id,
+        ],
+      );
+
+      await audit(req.db, req.user, {
+        action: 'module.updated',
+        entity: 'modules',
+        entityId: req.params.id,
+        before: { active: before.active, allowed_roles: before.allowed_roles },
+        after: { active: rows[0].active, allowed_roles: rows[0].allowed_roles },
+        moduleKey: 'platform',
+      });
+      return rows[0];
+    });
+    res.json({ module });
+  }),
+);
+
+// ---------------------------------------------------------------------
+// Auditoria
+// ---------------------------------------------------------------------
+router.get(
+  '/audit',
+  requireLevel(4),
+  asyncHandler(async (req: any, res) => {
+    const { limit, offset } = paging(req.query);
+    const search = like(req.query.q);
+
+    const { rows } = await req.db.query(
+      `select a.id, a.actor_id, a.actor_name, a.action, a.entity, a.entity_id,
+              a.before, a.after, a.reason, a.module_key, a.created_at
+         from audit_log a
+        where ($1::text is null or a.entity = $1)
+          and ($2::text is null or a.action ilike $2)
+          and ($3::text is null or a.actor_name ilike $3 or a.entity_id ilike $3)
+        order by a.created_at desc
+        limit $4 offset $5`,
+      [req.query.entity ?? null, req.query.action ?? null, search, limit, offset],
+    );
+
+    const { rows: totals } = await req.db.query(
+      `select count(*)::int as total from audit_log`,
+    );
+    res.json({ items: rows, total: totals[0]?.total ?? 0 });
+  }),
+);
+
+
+router.delete(
+  '/users/:id',
+  requireLevel(5),
+  asyncHandler(async (req: any, res) => {
+    const targetId = req.params.id;
+
+    if (targetId === req.user.id) {
+      throw forbidden('Você não pode excluir sua própria conta.');
+    }
+
+    try {
+      const deleted = await tx(req.db, async () => {
+        const { rows: currentRows } = await req.db.query(
+          `select id, full_name, username, email, status
+             from users where id = $1 for update`,
+          [targetId],
+        );
+
+ if (!currentRows.length) throw notFound('Usuário não encontrado.');
+
+const nullableReferences = [
+  ['audit_log', 'actor_id'],
+  ['authorization_requests', 'decided_by'],
+  ['authorization_requests', 'requested_by'],
+  ['calendar_events', 'created_by'],
+  ['calendar_events', 'updated_by'],
+  ['checklist_runs', 'created_by'],
+  ['checklist_task_history', 'user_id'],
+  ['checklist_tasks', 'assignee_id'],
+  ['checklist_tasks', 'completed_by'],
+  ['error_notes', 'user_id'],
+  ['event_reports', 'created_by'],
+  ['event_reports', 'finalized_by'],
+  ['event_reports', 'reviewer_id'],
+  ['events', 'created_by'],
+  ['media_history', 'user_id'],
+  ['media_records', 'created_by'],
+  ['media_records', 'editor_id'],
+  ['media_records', 'publisher_id'],
+  ['media_records', 'status_reported_by'],
+  ['occurrences', 'created_by'],
+  ['occurrences', 'person_id'],
+  ['operational_errors', 'created_by'],
+  ['operational_errors', 'follow_up_user_id'],
+  ['problem_solutions', 'created_by'],
+  ['problem_updates', 'user_id'],
+  ['problems', 'cause_confirmed_by'],
+  ['problems', 'created_by'],
+  ['problems', 'identified_by'],
+  ['problems', 'owner_id'],
+  ['report_history', 'user_id'],
+  ['report_sections', 'author_id'],
+  ['schedule_history', 'changed_by'],
+  ['schedule_history', 'from_user_id'],
+  ['schedule_history', 'to_user_id'],
+  ['schedules', 'created_by'],
+  ['schedules', 'user_id'],
+  ['settings', 'updated_by'],
+  ['user_roles', 'granted_by'],
+] as const;
+
+for (const [table, column] of nullableReferences) {
+  await req.db.query(
+    `UPDATE "${table}" SET "${column}" = NULL WHERE "${column}" = $1`,
+    [targetId],
+  );
+}
+
+await req.db.query(
+  'DELETE FROM notifications WHERE user_id = $1',
+  [targetId],
+);
+
+await req.db.query(
+  'DELETE FROM readiness_confirmations WHERE user_id = $1',
+  [targetId],
+);
+
+const { rows: deletedRows } = await req.db.query(
+  'DELETE FROM users WHERE id = $1 RETURNING id, full_name, username',
+  [targetId],
+);
+
+await audit(req.db, req.user, {
+  action: 'user.deleted',
+  entity: 'users',
+  entityId: targetId,
+  before: currentRows[0],
+  after: null,
+  moduleKey: 'platform',
+});
+
+return deletedRows[0];
+      });
+
+      res.json({ user: deleted });
+    } catch (error: any) {
+      if (error?.code === '23503') {
+        throw conflict(
+          'Este usuário possui registros vinculados. Não é possível excluí-lo sem comprometer o histórico.'
+        );
+      }
+      throw error;
+    }
+  }),
+);
+
+export default router;
