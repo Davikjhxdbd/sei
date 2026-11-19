@@ -32,7 +32,7 @@ function ConnectMark({ className = 'h-7 w-7' }: { className?: string }) {
 
 const pad = (value: number) => String(value).padStart(2, '0');
 const dateKey = (date: Date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-const dueDateKey = (value: string) => /^\\d{4}-\\d{2}-\\d{2}$/.test(value) ? value : dateKey(new Date(value));
+const dueDateKey = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : dateKey(new Date(value));
 const atLocalMidnight = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
 function getWeekStart(date: Date) {
