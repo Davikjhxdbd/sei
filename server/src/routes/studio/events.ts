@@ -19,6 +19,14 @@ const router = Router();
 
 const EVENT_STATUS = ['scheduled', 'completed', 'cancelled'] as const;
 
+function validatePresetTime(value: unknown, field: string, optional = false) {
+  if (optional && (value === undefined || value === null || value === '')) return null;
+  if (typeof value !== 'string' || !/^(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d)?$/.test(value)) {
+    throw badRequest(`Informe um horário válido para ${field} (HH:MM).`);
+  }
+  return value;
+}
+
 function ensure(user: any, action: Action) {
   assertAction(user.level, action);
 }
@@ -293,8 +301,8 @@ router.post(
     if (!Number.isInteger(weekday) || weekday < 0 || weekday > 6) {
       throw badRequest('Informe o dia da semana (0 = domingo).');
     }
-    const startTime = required(req.body?.start_time, 'horário inicial', 8);
-    const endTime = optionalText(req.body?.end_time, 8);
+    const startTime = validatePresetTime(required(req.body?.start_time, 'horário inicial', 8), 'início')!;
+    const endTime = validatePresetTime(optionalText(req.body?.end_time, 8), 'término', true);
 
     const created = await tx(req.db, async () => {
       const { rows } = await req.db.query(
@@ -321,6 +329,13 @@ router.patch(
   '/presets/:id',
   asyncHandler(async (req: any, res) => {
     ensure(req.user, 'presets.manage');
+    const weekdayValue = req.body?.weekday === undefined ? null : Number(req.body.weekday);
+    if (weekdayValue !== null && (!Number.isInteger(weekdayValue) || weekdayValue < 0 || weekdayValue > 6)) {
+      throw badRequest('Informe o dia da semana entre 0 (domingo) e 6 (sábado).');
+    }
+    const startTime = validatePresetTime(req.body?.start_time, 'início', true);
+    const endTime = validatePresetTime(req.body?.end_time, 'término', true);
+
     const updated = await tx(req.db, async () => {
       const { rows: beforeRows } = await req.db.query(
         'select * from event_presets where id = $1 for update',
@@ -342,9 +357,9 @@ router.patch(
         [
           req.body?.name ? String(req.body.name).trim().slice(0, 120) : null,
           req.body?.type ? String(req.body.type).trim().slice(0, 60) : null,
-          Number.isInteger(Number(req.body?.weekday)) ? Number(req.body.weekday) : null,
-          req.body?.start_time ? String(req.body.start_time) : null,
-          req.body?.end_time ? String(req.body.end_time) : null,
+          weekdayValue,
+          startTime,
+          endTime,
           req.body?.notes !== undefined ? optionalText(req.body.notes) : null,
           typeof req.body?.active === 'boolean' ? req.body.active : null,
           req.params.id,
