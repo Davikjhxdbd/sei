@@ -31,15 +31,24 @@ function normalizeRoles(input: unknown): string[] {
 
 function normalizeIds(input: unknown): string[] {
   if (!Array.isArray(input)) return [];
-  return Array.from(
-    new Set(
-      input.filter(
-        (v): v is string =>
-          typeof v === 'string' &&
-          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v),
-      ),
-    ),
-  );
+  if (input.some((value) =>
+    typeof value !== 'string' ||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value),
+  )) {
+    throw badRequest('A lista contém um identificador inválido.');
+  }
+  return Array.from(new Set(input as string[]));
+}
+
+function normalizeEmail(input: unknown): string | null {
+  if (input === null || input === undefined) return null;
+  if (typeof input !== 'string') throw badRequest('E-mail inválido.', { field: 'email' });
+  const email = input.trim().toLowerCase();
+  if (!email) return null;
+  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw badRequest('Informe um endereço de e-mail válido.', { field: 'email' });
+  }
+  return email;
 }
 
 const SELECT_USERS = `
@@ -91,10 +100,7 @@ router.post(
     const db = req.db;
     const fullName = required(req.body?.full_name, 'nome completo', 160);
     const username = required(req.body?.username, 'nome de usuário', 60).toLowerCase();
-    const email =
-      typeof req.body?.email === 'string' && req.body.email.trim()
-        ? req.body.email.trim().toLowerCase()
-        : null;
+    const email = normalizeEmail(req.body?.email);
     const password = String(req.body?.password ?? '');
     const status = STATUSES.includes(req.body?.status) ? req.body.status : 'pending';
     const roles = normalizeRoles(req.body?.roles);
@@ -184,10 +190,7 @@ router.patch(
       patch.full_name = req.body.full_name.trim().slice(0, 160);
     }
     if (typeof req.body?.email === 'string' || req.body?.email === null) {
-      patch.email =
-        req.body.email === null || req.body.email === ''
-          ? null
-          : String(req.body.email).trim().toLowerCase();
+      patch.email = normalizeEmail(req.body.email);
     }
     if (req.body?.status !== undefined) {
       patch.status = oneOf(req.body.status, STATUSES, 'status');
@@ -334,6 +337,9 @@ router.post(
       typeof req.body?.key === 'string' && req.body.key.trim()
         ? req.body.key.trim().toLowerCase().replace(/\s+/g, '_')
         : name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '_');
+    if (!/^[a-z0-9][a-z0-9_-]{1,59}$/.test(key)) {
+      throw badRequest('A chave do setor deve ter de 2 a 60 caracteres e conter apenas letras, números, hífen ou sublinhado.');
+    }
 
     const sector = await tx(req.db, async () => {
       const { rows } = await req.db.query(
