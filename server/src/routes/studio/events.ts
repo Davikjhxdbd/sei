@@ -13,6 +13,7 @@ import {
 } from '../../http';
 import { assertAction, type Action } from '../../permissions';
 import { audit } from '../../audit';
+import { tx } from '../../db';
 
 const router = Router();
 
@@ -68,22 +69,25 @@ router.post(
     const endsAt = req.body?.ends_at ? isoDate(req.body.ends_at, 'término') : null;
     const notes = optionalText(req.body?.notes);
 
-    const { rows } = await req.db.query(
-      `insert into events (name, type, starts_at, ends_at, notes, created_by)
-       values ($1, $2, $3, $4, $5, $6)
-       returning id, name, type, starts_at, ends_at, notes, status`,
-      [name, type, startsAt, endsAt, notes, req.user.id],
-    );
+    const created = await tx(req.db, async () => {
+      const { rows } = await req.db.query(
+        `insert into events (name, type, starts_at, ends_at, notes, created_by)
+         values ($1, $2, $3, $4, $5, $6)
+         returning id, name, type, starts_at, ends_at, notes, status`,
+        [name, type, startsAt, endsAt, notes, req.user.id],
+      );
 
-    await audit(req.db, req.user, {
-      action: 'event.created',
-      entity: 'events',
-      entityId: rows[0].id,
-      after: rows[0],
-      moduleKey: 'studio',
+      await audit(req.db, req.user, {
+        action: 'event.created',
+        entity: 'events',
+        entityId: rows[0].id,
+        after: rows[0],
+        moduleKey: 'studio',
+      });
+      return rows[0];
     });
 
-    res.status(201).json({ event: rows[0] });
+    res.status(201).json({ event: created });
   }),
 );
 
@@ -154,47 +158,50 @@ router.patch(
   '/events/:id',
   asyncHandler(async (req: any, res) => {
     ensure(req.user, 'events.edit');
-    const { rows: beforeRows } = await req.db.query(
-      'select * from events where id = $1',
-      [req.params.id],
-    );
-    if (!beforeRows.length) throw notFound('Evento não encontrado.');
-    const before = beforeRows[0];
+    const updated = await tx(req.db, async () => {
+      const { rows: beforeRows } = await req.db.query(
+        'select * from events where id = $1 for update',
+        [req.params.id],
+      );
+      if (!beforeRows.length) throw notFound('Evento não encontrado.');
+      const before = beforeRows[0];
 
-    if (before.status === 'cancelled') {
-      throw badRequest('Eventos cancelados não podem ser editados.');
-    }
+      if (before.status === 'cancelled') {
+        throw badRequest('Eventos cancelados não podem ser editados.');
+      }
 
-    const { rows } = await req.db.query(
-      `update events set
-         name = coalesce($1, name),
-         type = coalesce($2, type),
-         starts_at = coalesce($3::timestamptz, starts_at),
-         ends_at = $4::timestamptz,
-         notes = coalesce($5, notes),
-         updated_at = now()
-       where id = $6
-       returning *`,
-      [
-        req.body?.name ? String(req.body.name).trim().slice(0, 160) : null,
-        req.body?.type ? String(req.body.type).trim().slice(0, 60) : null,
-        req.body?.starts_at ? isoDate(req.body.starts_at, 'início') : null,
-        req.body?.ends_at ? isoDate(req.body.ends_at, 'término') : before.ends_at,
-        req.body?.notes !== undefined ? optionalText(req.body.notes) : null,
-        req.params.id,
-      ],
-    );
+      const { rows } = await req.db.query(
+        `update events set
+           name = coalesce($1, name),
+           type = coalesce($2, type),
+           starts_at = coalesce($3::timestamptz, starts_at),
+           ends_at = $4::timestamptz,
+           notes = coalesce($5, notes),
+           updated_at = now()
+         where id = $6
+         returning *`,
+        [
+          req.body?.name ? String(req.body.name).trim().slice(0, 160) : null,
+          req.body?.type ? String(req.body.type).trim().slice(0, 60) : null,
+          req.body?.starts_at ? isoDate(req.body.starts_at, 'início') : null,
+          req.body?.ends_at ? isoDate(req.body.ends_at, 'término') : before.ends_at,
+          req.body?.notes !== undefined ? optionalText(req.body.notes) : null,
+          req.params.id,
+        ],
+      );
 
-    await audit(req.db, req.user, {
-      action: 'event.updated',
-      entity: 'events',
-      entityId: req.params.id,
-      before,
-      after: rows[0],
-      moduleKey: 'studio',
+      await audit(req.db, req.user, {
+        action: 'event.updated',
+        entity: 'events',
+        entityId: req.params.id,
+        before,
+        after: rows[0],
+        moduleKey: 'studio',
+      });
+      return rows[0];
     });
 
-    res.json({ event: rows[0] });
+    res.json({ event: updated });
   }),
 );
 
@@ -203,28 +210,31 @@ router.post(
   asyncHandler(async (req: any, res) => {
     ensure(req.user, 'events.manage');
     const status = oneOf(req.body?.status, EVENT_STATUS, 'situação');
-    const { rows: beforeRows } = await req.db.query(
-      'select id, status from events where id = $1',
-      [req.params.id],
-    );
-    if (!beforeRows.length) throw notFound('Evento não encontrado.');
+    const updated = await tx(req.db, async () => {
+      const { rows: beforeRows } = await req.db.query(
+        'select id, status from events where id = $1 for update',
+        [req.params.id],
+      );
+      if (!beforeRows.length) throw notFound('Evento não encontrado.');
 
-    const { rows } = await req.db.query(
-      `update events set status = $1, updated_at = now() where id = $2 returning *`,
-      [status, req.params.id],
-    );
+      const { rows } = await req.db.query(
+        `update events set status = $1, updated_at = now() where id = $2 returning *`,
+        [status, req.params.id],
+      );
 
-    await audit(req.db, req.user, {
-      action: 'event.status_changed',
-      entity: 'events',
-      entityId: req.params.id,
-      before: { status: beforeRows[0].status },
-      after: { status },
-      reason: optionalText(req.body?.reason, 500),
-      moduleKey: 'studio',
+      await audit(req.db, req.user, {
+        action: 'event.status_changed',
+        entity: 'events',
+        entityId: req.params.id,
+        before: { status: beforeRows[0].status },
+        after: { status },
+        reason: optionalText(req.body?.reason, 500),
+        moduleKey: 'studio',
+      });
+      return rows[0];
     });
 
-    res.json({ event: rows[0] });
+    res.json({ event: updated });
   }),
 );
 
@@ -232,17 +242,19 @@ router.delete(
   '/events/:id',
   asyncHandler(async (req: any, res) => {
     ensure(req.user, 'events.delete');
-    const { rows } = await req.db.query(
-      'delete from events where id = $1 returning id, name',
-      [req.params.id],
-    );
-    if (!rows.length) throw notFound('Evento não encontrado.');
-    await audit(req.db, req.user, {
-      action: 'event.deleted',
-      entity: 'events',
-      entityId: rows[0].id,
-      before: { name: rows[0].name },
-      moduleKey: 'studio',
+    await tx(req.db, async () => {
+      const { rows } = await req.db.query(
+        'delete from events where id = $1 returning id, name',
+        [req.params.id],
+      );
+      if (!rows.length) throw notFound('Evento não encontrado.');
+      await audit(req.db, req.user, {
+        action: 'event.deleted',
+        entity: 'events',
+        entityId: rows[0].id,
+        before: { name: rows[0].name },
+        moduleKey: 'studio',
+      });
     });
     res.json({ ok: true });
   }),
@@ -275,21 +287,24 @@ router.post(
     const startTime = required(req.body?.start_time, 'horário inicial', 8);
     const endTime = optionalText(req.body?.end_time, 8);
 
-    const { rows } = await req.db.query(
-      `insert into event_presets (name, type, weekday, start_time, end_time, notes)
-       values ($1, $2, $3, $4, $5, $6)
-       returning id, name, type, weekday, start_time, end_time, notes, active`,
-      [name, type, weekday, startTime, endTime, optionalText(req.body?.notes)],
-    );
+    const created = await tx(req.db, async () => {
+      const { rows } = await req.db.query(
+        `insert into event_presets (name, type, weekday, start_time, end_time, notes)
+         values ($1, $2, $3, $4, $5, $6)
+         returning id, name, type, weekday, start_time, end_time, notes, active`,
+        [name, type, weekday, startTime, endTime, optionalText(req.body?.notes)],
+      );
 
-    await audit(req.db, req.user, {
-      action: 'preset.created',
-      entity: 'event_presets',
-      entityId: rows[0].id,
-      after: rows[0],
-      moduleKey: 'studio',
+      await audit(req.db, req.user, {
+        action: 'preset.created',
+        entity: 'event_presets',
+        entityId: rows[0].id,
+        after: rows[0],
+        moduleKey: 'studio',
+      });
+      return rows[0];
     });
-    res.status(201).json({ preset: rows[0] });
+    res.status(201).json({ preset: created });
   }),
 );
 
@@ -297,44 +312,47 @@ router.patch(
   '/presets/:id',
   asyncHandler(async (req: any, res) => {
     ensure(req.user, 'presets.manage');
-    const { rows: beforeRows } = await req.db.query(
-      'select * from event_presets where id = $1',
-      [req.params.id],
-    );
-    if (!beforeRows.length) throw notFound('Preset não encontrado.');
+    const updated = await tx(req.db, async () => {
+      const { rows: beforeRows } = await req.db.query(
+        'select * from event_presets where id = $1 for update',
+        [req.params.id],
+      );
+      if (!beforeRows.length) throw notFound('Preset não encontrado.');
 
-    const { rows } = await req.db.query(
-      `update event_presets set
-         name = coalesce($1, name),
-         type = coalesce($2, type),
-         weekday = coalesce($3, weekday),
-         start_time = coalesce($4::time, start_time),
-         end_time = coalesce($5::time, end_time),
-         notes = coalesce($6, notes),
-         active = coalesce($7, active)
-       where id = $8
-       returning id, name, type, weekday, start_time, end_time, notes, active`,
-      [
-        req.body?.name ? String(req.body.name).trim().slice(0, 120) : null,
-        req.body?.type ? String(req.body.type).trim().slice(0, 60) : null,
-        Number.isInteger(Number(req.body?.weekday)) ? Number(req.body.weekday) : null,
-        req.body?.start_time ? String(req.body.start_time) : null,
-        req.body?.end_time ? String(req.body.end_time) : null,
-        req.body?.notes !== undefined ? optionalText(req.body.notes) : null,
-        typeof req.body?.active === 'boolean' ? req.body.active : null,
-        req.params.id,
-      ],
-    );
+      const { rows } = await req.db.query(
+        `update event_presets set
+           name = coalesce($1, name),
+           type = coalesce($2, type),
+           weekday = coalesce($3, weekday),
+           start_time = coalesce($4::time, start_time),
+           end_time = coalesce($5::time, end_time),
+           notes = coalesce($6, notes),
+           active = coalesce($7, active)
+         where id = $8
+         returning id, name, type, weekday, start_time, end_time, notes, active`,
+        [
+          req.body?.name ? String(req.body.name).trim().slice(0, 120) : null,
+          req.body?.type ? String(req.body.type).trim().slice(0, 60) : null,
+          Number.isInteger(Number(req.body?.weekday)) ? Number(req.body.weekday) : null,
+          req.body?.start_time ? String(req.body.start_time) : null,
+          req.body?.end_time ? String(req.body.end_time) : null,
+          req.body?.notes !== undefined ? optionalText(req.body.notes) : null,
+          typeof req.body?.active === 'boolean' ? req.body.active : null,
+          req.params.id,
+        ],
+      );
 
-    await audit(req.db, req.user, {
-      action: 'preset.updated',
-      entity: 'event_presets',
-      entityId: req.params.id,
-      before: beforeRows[0],
-      after: rows[0],
-      moduleKey: 'studio',
+      await audit(req.db, req.user, {
+        action: 'preset.updated',
+        entity: 'event_presets',
+        entityId: req.params.id,
+        before: beforeRows[0],
+        after: rows[0],
+        moduleKey: 'studio',
+      });
+      return rows[0];
     });
-    res.json({ preset: rows[0] });
+    res.json({ preset: updated });
   }),
 );
 
