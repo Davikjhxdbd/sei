@@ -211,3 +211,6 @@
   .connect-command-hero,.connect-core__orbit--two,.connect-command-overlay { animation:none!important; }
   .connect-command-trigger,.connect-header-command,.connect-command-result { transition:none!important; }
 }
+
+.connect-command-result.is-active { background:rgba(196,166,106,.13);outline:1px solid rgba(216,189,134,.2); }
+.connect-command-result.is-active .connect-command-result__icon { border-color:rgba(216,189,134,.38);background:rgba(196,166,106,.12); }
