@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowUpRight, Bell, CalendarDays, Camera, CheckCircle2, Clapperboard,
-  Film, HelpCircle, LogOut, Menu, UserRound, X,
+  Film, HelpCircle, LogOut, Menu, RefreshCw, UserRound, X,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useApi } from '../lib/useApi';
@@ -41,7 +41,7 @@ export default function AppCentral() {
   const { user, modules, logout, state } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const hasStudio = modules.some((module) => module.key === 'studio' || module.key.startsWith('studio_'));
-  const { data: production } = useApi<any>(hasStudio ? '/studio/production/mine' : null);
+  const { data: production, loading: productionLoading, error: productionError, reload: reloadProduction } = useApi<any>(hasStudio ? '/studio/production/mine' : null);
   const greeting = getGreeting();
   const unread = state?.notifications?.unread ?? 0;
   const tasks = production?.tasks ?? [];
@@ -158,17 +158,18 @@ export default function AppCentral() {
           </div>
           </div>
 
-          <div className="relative mt-10 max-w-3xl overflow-hidden rounded-[20px] border border-[#A4B4C5]/[0.15] bg-[#11151C]/90 shadow-[0_24px_70px_rgba(0,0,0,0.32)] backdrop-blur-2xl">
+          <div aria-live="polite" className="relative mt-10 max-w-3xl overflow-hidden rounded-[20px] border border-[#C4A66A]/[0.18] bg-[#11151C]/90 shadow-[0_24px_70px_rgba(0,0,0,0.32)] backdrop-blur-2xl">
             <div aria-hidden="true" className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[#C4A66A]/65 to-transparent" />
             <div aria-hidden="true" className="pointer-events-none absolute right-0 top-0 h-full w-1 bg-gradient-to-b from-[#C4A66A]/70 via-[#C4A66A]/15 to-transparent" />
             <div className="relative flex flex-wrap items-center justify-between gap-4 px-5 py-5 sm:px-7">
               <div>
                 <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rotate-45 bg-[#C4A66A] shadow-[0_0_10px_rgba(196,166,106,0.9)]" /><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#A4B4C5]/75">PAINEL DE ATIVIDADE</p></div>
                 <p className="mt-2 text-[13px] text-white/80">
-                  {hasStudio ? <>Você tem <strong className="font-semibold text-white">{pending.length} {pending.length === 1 ? 'tarefa' : 'tarefas'}</strong> pendentes para acompanhar.</> : 'Seu espaço de trabalho está pronto para hoje.'}
+                  {!hasStudio ? 'Seu espaço de trabalho está pronto para hoje.' : productionLoading ? 'Atualizando suas atividades…' : productionError ? 'Não foi possível carregar suas atividades.' : <>Você tem <strong className="font-semibold text-white">{pending.length} {pending.length === 1 ? 'tarefa' : 'tarefas'}</strong> pendentes para acompanhar.</>}
                 </p>
+                {hasStudio && productionError && <button type="button" onClick={reloadProduction} className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#D8BD86] transition hover:text-[#F0E3C4]"><RefreshCw className="h-3 w-3" /> Tentar novamente</button>}
               </div>
-              {hasStudio && <div className="flex items-center gap-2 rounded-full border border-white/[0.09] bg-black/10 px-3 py-2 text-[10px] text-white/55">
+              {hasStudio && !productionLoading && !productionError && <div className="flex items-center gap-2 rounded-full border border-white/[0.09] bg-black/10 px-3 py-2 text-[10px] text-white/55">
                 <CheckCircle2 className="h-3.5 w-3.5 text-[#A4B4C5]" strokeWidth={1.8} />
                 {completed.length} {completed.length === 1 ? 'entrega concluída' : 'entregas concluídas'}
               </div>}
