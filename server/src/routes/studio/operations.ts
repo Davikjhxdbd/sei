@@ -91,14 +91,14 @@ router.post(
 
       if (sectorId) {
         const { rows: sectorRows } = await req.db.query(
-          'select id from sectors where id = $1 and active = true',
+          'select id from sectors where id = $1 and active = true for share',
           [sectorId],
         );
         if (!sectorRows.length) throw badRequest('O setor selecionado não existe ou está inativo.');
       }
       if (assignedUserId) {
         const { rows: userRows } = await req.db.query(
-          "select id from users where id = $1 and status = 'active'",
+          "select id from users where id = $1 and status = 'active' for share",
           [assignedUserId],
         );
         if (!userRows.length) throw badRequest('A pessoa selecionada não existe ou não está ativa.');
