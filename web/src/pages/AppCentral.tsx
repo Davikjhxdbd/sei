@@ -120,8 +120,8 @@ export default function AppCentral() {
   const tasks = production?.tasks ?? [];
   const pendingToday = tasks.filter((task: any) => {
     if (task.status === 'published' || task.status === 'completed') return false;
-    const due = task.due_at || task.deadline || task.delivery_at;
-    return due ? dateKey(new Date(due)) === todayKey : true;
+    const due = task.due_date;
+    return due ? dateKey(new Date(due)) === todayKey : false;
   });
   const events = calendarData?.items ?? [];
   const sectorLabel = user?.sectors?.[0]?.name || 'SEU AMBIENTE';
