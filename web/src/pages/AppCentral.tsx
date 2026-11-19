@@ -159,13 +159,13 @@ export default function AppCentral() {
   const activeWeekTasks = weekTaskItems.length - completedWeekTasks.length;
   const weekProgress = weekTaskItems.length ? Math.round((completedWeekTasks.length / weekTaskItems.length) * 100) : 0;
   const quickModules = modules.slice(0, 4);
-  const commandItems = [
+  const commandItems = useMemo(() => [
     ...modules.map((module) => ({ id: module.id, name: module.name, route: module.route, icon: moduleIcon(module.icon), group: 'MÓDULOS' })),
     { id: 'calendar', name: 'Agenda', route: '/calendar', icon: CalendarDays, group: 'ESPAÇOS' },
     { id: 'notifications', name: 'Notificações', route: '/notifications', icon: Bell, group: 'ESPAÇOS' },
     { id: 'profile', name: 'Meu perfil', route: '/profile', icon: UserRound, group: 'ESPAÇOS' },
     { id: 'help', name: 'Ajuda', route: '/help', icon: HelpCircle, group: 'ESPAÇOS' },
-  ].filter((item) => item.name.toLocaleLowerCase('pt-BR').includes(commandQuery.trim().toLocaleLowerCase('pt-BR')));
+  ].filter((item) => item.name.toLocaleLowerCase('pt-BR').includes(commandQuery.trim().toLocaleLowerCase('pt-BR'))), [modules, commandQuery]);
   useEffect(() => {
     if (!commandOpen) return;
     setCommandIndex(0);
