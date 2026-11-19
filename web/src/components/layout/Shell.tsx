@@ -129,7 +129,7 @@ function ModuleSwitcher({
                 Visão geral da plataforma
               </span>
             </span>
-            {!module && <Check className="h-4 w-4 text-studio" />}
+            {!module && <Check className="h-4 w-4 text-brass" />}
           </button>
 
           <div className="mx-3 my-1 border-t border-line" />
@@ -168,7 +168,7 @@ function ModuleSwitcher({
                     {item.description}
                   </span>
                 </span>
-                {active && <Check className="h-4 w-4 shrink-0 text-studio" />}
+                {active && <Check className="h-4 w-4 shrink-0 text-brass" />}
               </button>
             );
           })}
@@ -274,7 +274,7 @@ export function Shell({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const location = useLocation();
   const groups = navGroups(nav, level);
-  const unread = state?.notifications.unread ?? 0;
+  const unread = state?.notifications?.unread ?? 0;
   const productName =
     (module?.settings?.product_name as string | undefined) ?? undefined;
 
@@ -383,7 +383,7 @@ export function Shell({
                           'flex items-center rounded-lg py-2 text-[13px] transition-colors',
                           sidebarCollapsed ? 'justify-center px-2' : 'gap-2.5 px-2.5',
                           isActive
-                            ? 'bg-strong font-medium text-white'
+                            ? 'relative bg-brass/[0.10] font-medium text-ink shadow-[inset_2px_0_0_rgb(196_166_106)]'
                             : 'text-ink/75 hover:bg-ink/[0.05] hover:text-ink',
                         )
                       }
@@ -427,7 +427,7 @@ export function Shell({
                       cx(
                         'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-medium',
                         isActive
-                          ? 'border-strong bg-strong text-white'
+                          ? 'border-brass/45 bg-brass/[0.10] text-brass-deep shadow-sm'
                           : 'border-line bg-surface text-muted',
                       )
                     }
