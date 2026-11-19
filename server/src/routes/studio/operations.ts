@@ -246,6 +246,7 @@ router.post(
   '/schedules/:id/publish',
   asyncHandler(async (req: any, res) => {
     ensure(req.user, 'schedules.manage');
+    const updated = await tx(req.db, async () => {
     const { rows: beforeRows } = await req.db.query(
       'select * from schedules where id = $1 for update',
       [req.params.id],
@@ -255,7 +256,6 @@ router.post(
       throw badRequest('Defina a pessoa designada antes de publicar.');
     }
 
-    const updated = await tx(req.db, async () => {
       const { rows: userRows } = await req.db.query(
         "select id from users where id = $1 and status = 'active'",
         [beforeRows[0].user_id],
@@ -300,13 +300,13 @@ router.post(
   '/schedules/:id/end',
   asyncHandler(async (req: any, res) => {
     ensure(req.user, 'schedules.manage');
+    const updated = await tx(req.db, async () => {
     const { rows: beforeRows } = await req.db.query(
       'select id, status from schedules where id = $1 for update',
       [req.params.id],
     );
     if (!beforeRows.length) throw notFound('Designação não encontrada.');
 
-    const updated = await tx(req.db, async () => {
       const { rows } = await req.db.query(
         `update schedules set status = 'ended', updated_at = now()
           where id = $1 returning *`,
