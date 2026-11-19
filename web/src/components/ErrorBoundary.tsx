@@ -32,7 +32,7 @@ export class ErrorBoundary extends Component<Props, State> {
               MV
             </span>
             <p className="mt-7 text-[10px] font-semibold uppercase tracking-[0.35em] text-brass">
-              MMV CREATIVE
+              MMV / CONNECT
             </p>
             <h1 className="mt-4 text-2xl font-semibold">
               Não foi possível carregar esta tela
