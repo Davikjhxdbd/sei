@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CalendarClock, Pencil, Plus } from 'lucide-react';
 import { useApi } from '../../lib/useApi';
 import { useAuth } from '../../lib/auth';
@@ -40,7 +40,6 @@ export default function Presets() {
   const options = useApi<Record<string, string[]>>('/catalog/options');
 
   const [editing, setEditing] = useState<PresetRow | 'new' | null>(null);
-  const [initialized, setInitialized] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [type, setType] = useState('Culto');
   const [weekday, setWeekday] = useState(0);
@@ -50,9 +49,7 @@ export default function Presets() {
   const [active, setActive] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const key = editing === 'new' ? 'new' : (editing?.id ?? null);
-  if (key !== initialized) {
-    setInitialized(key);
+  useEffect(() => {
     if (editing && editing !== 'new') {
       setName(editing.name);
       setType(editing.type);
@@ -61,7 +58,7 @@ export default function Presets() {
       setEndTime(timeValue(editing.end_time));
       setNotes(editing.notes ?? '');
       setActive(editing.active);
-    } else {
+    } else if (editing === 'new') {
       setName('');
       setType('Culto');
       setWeekday(0);
@@ -70,7 +67,7 @@ export default function Presets() {
       setNotes('');
       setActive(true);
     }
-  }
+  }, [editing]);
 
   async function save() {
     setSaving(true);
