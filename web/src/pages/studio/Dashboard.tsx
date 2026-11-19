@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowUpRight,
@@ -88,7 +89,7 @@ function GlassLink({
 }: {
   to: string;
   icon: typeof CalendarDays;
-  children: React.ReactNode;
+  children: ReactNode;
   subtle?: boolean;
 }) {
   return (
@@ -144,7 +145,7 @@ export default function Dashboard() {
 
   const firstName = user?.full_name?.trim().split(/\s+/)[0] ?? 'por aqui';
   const roleNames =
-    user?.roles.map((role) => role.replaceAll('_', ' ')).join(' · ') ??
+    user?.roles.map((role) => role.replace(/_/g, ' ')).join(' · ') ??
     'Equipe Studio';
   const unread = state?.notifications.unread ?? 0;
   const isLeadership = level >= 4;
