@@ -554,7 +554,7 @@ router.patch(
     ensure(req.user, 'media.edit');
     const result = await tx(req.db, async () => {
       const { rows: beforeRows } = await req.db.query(
-        'select * from media_records where id = $1',
+        'select * from media_records where id = $1 for update',
         [req.params.id],
       );
       if (!beforeRows.length) throw notFound('Registro de mídia não encontrado.');
@@ -625,16 +625,16 @@ router.post(
     const status = oneOf(req.body?.status, MEDIA_STATUS, 'situação');
     const comment = optionalText(req.body?.comment, 1000);
 
-    const { rows: beforeRows } = await req.db.query(
-      'select id, status from media_records where id = $1',
-      [req.params.id],
-    );
-    if (!beforeRows.length) throw notFound('Registro de mídia não encontrado.');
-    if (beforeRows[0].status === status) {
-      throw badRequest('O registro já está nesta situação.');
-    }
-
     const updated = await tx(req.db, async () => {
+      const { rows: beforeRows } = await req.db.query(
+        'select id, status from media_records where id = $1 for update',
+        [req.params.id],
+      );
+      if (!beforeRows.length) throw notFound('Registro de mídia não encontrado.');
+      if (beforeRows[0].status === status) {
+        throw badRequest('O registro já está nesta situação.');
+      }
+
       const { rows } = await req.db.query(
         `update media_records set
            status = $1::media_status,
