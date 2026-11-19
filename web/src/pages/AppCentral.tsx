@@ -386,21 +386,21 @@ export default function AppCentral() {
                 <span className="rounded-lg border border-[#C4A66A]/25 bg-[#C4A66A]/10 px-3 py-1.5 text-xs font-bold text-[#E5C98F]">{weekProgress}%</span>
               </div>
               {productionLoading ? (
-                <p className="mt-6 text-xs text-white/50">Carregando seu progresso…</p>
+                <div className="mt-6 flex items-center gap-4"><span className="connect-progress-ring connect-progress-ring--loading"/><p className="text-xs text-white/50">Carregando seu progresso…</p></div>
               ) : productionError ? (
                 <p className="mt-6 text-xs text-white/50">Não foi possível carregar seu progresso.</p>
               ) : (
-                <>
-                  <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/10">
-                    <div className="h-full rounded-full bg-gradient-to-r from-[#9B7A43] to-[#E5C98F] transition-all" style={{ width: `${weekProgress}%` }} />
+                <div className="connect-progress-layout">
+                  <div className="connect-progress-ring" style={{ background: `conic-gradient(#E5C98F ${weekProgress * 3.6}deg, rgba(255,255,255,.08) 0deg)` }}>
+                    <div className="connect-progress-ring__inner"><strong>{weekProgress}<small>%</small></strong><span>CONCLUÍDO</span></div>
                   </div>
-                  <div className="mt-4 grid grid-cols-3 gap-2">
-                    <div><p className="text-2xl font-extrabold tabular-nums text-white">{weekTaskItems.length}</p><p className="text-[9px] font-bold uppercase tracking-wider text-white/40">No total</p></div>
-                    <div><p className="text-2xl font-extrabold tabular-nums text-[#E5C98F]">{completedWeekTasks.length}</p><p className="text-[9px] font-bold uppercase tracking-wider text-white/40">Concluídas</p></div>
-                    <div><p className="text-2xl font-extrabold tabular-nums text-white/80">{activeWeekTasks}</p><p className="text-[9px] font-bold uppercase tracking-wider text-white/40">Em andamento</p></div>
+                  <div className="connect-progress-stats">
+                    <div><strong>{weekTaskItems.length.toString().padStart(2,'0')}</strong><span>NO TOTAL</span></div>
+                    <div><strong className="is-complete">{completedWeekTasks.length.toString().padStart(2,'0')}</strong><span>CONCLUÍDAS</span></div>
+                    <div><strong>{activeWeekTasks.toString().padStart(2,'0')}</strong><span>EM ABERTO</span></div>
                   </div>
-                  {weekTaskItems.length === 0 && <p className="mt-4 text-[11px] text-white/45">Quando receber atividades com prazo nesta semana, seu progresso aparecerá aqui.</p>}
-                </>
+                  {weekTaskItems.length === 0 && <p className="connect-progress-note">As atividades com prazo nesta semana aparecerão aqui quando forem atribuídas.</p>}
+                </div>
               )}
             </section>
 
