@@ -11,12 +11,12 @@ import { moduleIcon } from '../modules/registry';
 function ConnectMark({ className = 'h-7 w-7' }: { className?: string }) {
   return (
     <svg viewBox="0 0 64 64" className={className} fill="none" aria-hidden="true">
-      <path d="M12 47V18L32 37L52 18V47" stroke="#DCE1FF" strokeWidth="3.2" strokeLinecap="square" strokeLinejoin="round" />
-      <path d="M32 37V10" stroke="#8D9EFF" strokeWidth="3.2" strokeLinecap="square" />
-      <path d="M12 18H6M52 18H58" stroke="#8D9EFF" strokeOpacity=".65" strokeWidth="1.5" />
+      <path d="M12 47V18L32 37L52 18V47" stroke="#F0E3C4" strokeWidth="3.2" strokeLinecap="square" strokeLinejoin="round" />
+      <path d="M32 37V10" stroke="#C4A66A" strokeWidth="3.2" strokeLinecap="square" />
+      <path d="M12 18H6M52 18H58" stroke="#C4A66A" strokeOpacity=".65" strokeWidth="1.5" />
       <circle cx="32" cy="9" r="3.2" fill="#F4F5F6" />
-      <circle cx="12" cy="18" r="2.3" fill="#8D9EFF" />
-      <circle cx="52" cy="18" r="2.3" fill="#8D9EFF" />
+      <circle cx="12" cy="18" r="2.3" fill="#C4A66A" />
+      <circle cx="52" cy="18" r="2.3" fill="#C4A66A" />
     </svg>
   );
 }
@@ -81,20 +81,20 @@ export default function AppCentral() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#0B0D10] text-[#F4F5F6] selection:bg-[#8D9EFF]/30">
+    <main className="relative min-h-screen overflow-hidden bg-[#0B0D10] text-[#F4F5F6] selection:bg-[#C4A66A]/30">
       <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute inset-0 opacity-[0.12]" style={{ backgroundImage: 'linear-gradient(rgba(164,180,197,.10) 1px, transparent 1px), linear-gradient(90deg, rgba(164,180,197,.10) 1px, transparent 1px)', backgroundSize: '72px 72px', maskImage: 'linear-gradient(to bottom, black, transparent 78%)' }} />
-        <div className="absolute -right-56 -top-64 h-[34rem] w-[34rem] rounded-full bg-[#8D9EFF]/[0.055] blur-[150px]" />
+        <div className="absolute inset-0 opacity-[0.12]" style={{ backgroundImage: 'linear-gradient(rgba(196,166,106,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(196,166,106,.045) 1px, transparent 1px)', backgroundSize: '72px 72px', maskImage: 'linear-gradient(to bottom, black, transparent 78%)' }} />
+        <div className="absolute -right-56 -top-64 h-[34rem] w-[34rem] rounded-full bg-[#C4A66A]/[0.055] blur-[150px]" />
         <div className="absolute -left-48 bottom-[-18rem] h-[30rem] w-[30rem] rounded-full bg-[#A4B4C5]/[0.035] blur-[150px]" />
       </div>
 
       <div className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-6 sm:px-10 sm:py-8">
         <header className="flex items-center justify-between">
           <Link to="/" className="group flex items-center gap-3" aria-label="MMV CONNECT — início">
-            <span className="relative grid h-10 w-10 place-items-center overflow-hidden rounded-[12px] border border-[#8D9EFF]/35 bg-[#8D9EFF]/[0.08] shadow-[0_8px_28px_rgba(0,0,0,.24)]">
+            <span className="relative grid h-10 w-10 place-items-center overflow-hidden rounded-[12px] border border-[#C4A66A]/35 bg-[#C4A66A]/[0.08] shadow-[0_8px_28px_rgba(0,0,0,.24)]">
               <ConnectMark />
             </span>
-            <span className="flex flex-col leading-none"><span className="text-[12px] font-semibold tracking-[0.19em] text-white">MMV<span className="text-[#8D9EFF]">/</span>CONNECT</span><span className="mt-1.5 text-[8px] font-medium tracking-[0.24em] text-white/35">PLATAFORMA INTEGRADA</span></span>
+            <span className="flex flex-col leading-none"><span className="text-[12px] font-semibold tracking-[0.19em] text-white">MMV<span className="text-[#C4A66A]">/</span>CONNECT</span><span className="mt-1.5 text-[8px] font-medium tracking-[0.24em] text-white/35">PLATAFORMA INTEGRADA</span></span>
           </Link>
 
           <div className="flex items-center gap-2">
@@ -113,8 +113,8 @@ export default function AppCentral() {
         {menuOpen && (
           <>
             <button aria-label="Fechar menu" onClick={() => setMenuOpen(false)} className="fixed inset-0 z-20 cursor-default" />
-            <nav className="absolute right-5 top-[4.6rem] z-30 w-[min(88vw,310px)] overflow-hidden rounded-[18px] border border-[#8D9EFF]/20 bg-[#11151C]/[0.97] p-2 shadow-[0_24px_80px_rgba(0,0,0,.65)] backdrop-blur-2xl sm:right-10" aria-label="Menu principal">
-              <div className="mb-1 flex items-center justify-between px-3 pb-2 pt-2.5"><p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[#A4B4C5]/55">Navegação</p><span className="text-[8px] font-semibold tracking-[0.16em] text-[#8D9EFF]/55">MMV / CONNECT</span></div>
+            <nav className="absolute right-5 top-[4.6rem] z-30 w-[min(88vw,310px)] overflow-hidden rounded-[18px] border border-[#C4A66A]/20 bg-[#11151C]/[0.97] p-2 shadow-[0_24px_80px_rgba(0,0,0,.65)] backdrop-blur-2xl sm:right-10" aria-label="Menu principal">
+              <div className="mb-1 flex items-center justify-between px-3 pb-2 pt-2.5"><p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[#A4B4C5]/55">Navegação</p><span className="text-[8px] font-semibold tracking-[0.16em] text-[#C4A66A]/55">MMV / CONNECT</span></div>
               {modules.map((module) => {
                 const Icon = moduleIcon(module.icon);
                 return <Link key={module.id} to={module.route} onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] text-white/80 transition hover:bg-white/[0.06]">
@@ -123,7 +123,7 @@ export default function AppCentral() {
               })}
               <div className="my-2 border-t border-white/[0.08]" />
               <Link to="/calendar" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] text-white/70 hover:bg-white/[0.06]"><CalendarDays className="h-4 w-4" />Agenda</Link>
-              <Link to="/notifications" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] text-white/70 hover:bg-white/[0.06]"><Bell className="h-4 w-4" />Notificações {unread > 0 && <span className="ml-auto rounded-full bg-[#8D9EFF]/15 px-2 py-0.5 text-[10px] text-[#C6CEFF]">{unread}</span>}</Link>
+              <Link to="/notifications" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] text-white/70 hover:bg-white/[0.06]"><Bell className="h-4 w-4" />Notificações {unread > 0 && <span className="ml-auto rounded-full bg-[#C4A66A]/15 px-2 py-0.5 text-[10px] text-[#D8BD86]">{unread}</span>}</Link>
               <Link to="/profile" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] text-white/70 hover:bg-white/[0.06]"><UserRound className="h-4 w-4" />Meu perfil</Link>
               <Link to="/help" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] text-white/70 hover:bg-white/[0.06]"><HelpCircle className="h-4 w-4" />Ajuda</Link>
               <button onClick={handleLogout} className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] text-white/45 transition hover:bg-white/[0.06] hover:text-white"><LogOut className="h-4 w-4" />Sair</button>
@@ -134,36 +134,36 @@ export default function AppCentral() {
         <section className="mx-auto my-auto w-full max-w-5xl py-14 sm:py-20">
           <div className="relative">
             <div aria-hidden="true" className="pointer-events-none absolute -right-2 -top-20 hidden h-[390px] w-[390px] items-center justify-center opacity-70 lg:flex">
-              <div className="absolute h-[280px] w-[280px] rounded-full border border-[#8D9EFF]/[0.13]" />
+              <div className="absolute h-[280px] w-[280px] rounded-full border border-[#C4A66A]/[0.13]" />
               <div className="absolute h-[210px] w-[210px] rounded-full border border-dashed border-[#A4B4C5]/[0.17]" />
-              <div className="absolute h-[132px] w-[132px] rounded-[34px] border border-[#8D9EFF]/[0.28] bg-[#8D9EFF]/[0.045] rotate-45 shadow-[0_0_80px_rgba(141,158,255,0.08)]" />
-              <div className="relative grid h-32 w-32 place-items-center rounded-[30px] border border-[#8D9EFF]/20 bg-[#0B0D10]/70 shadow-[0_0_90px_rgba(141,158,255,.08)]">
+              <div className="absolute h-[132px] w-[132px] rounded-[34px] border border-[#C4A66A]/[0.28] bg-[#C4A66A]/[0.045] rotate-45 shadow-[0_0_80px_rgba(196,166,106,0.08)]" />
+              <div className="relative grid h-32 w-32 place-items-center rounded-[30px] border border-[#C4A66A]/20 bg-[#0B0D10]/70 shadow-[0_0_90px_rgba(196,166,106,.08)]">
                 <ConnectMark className="h-[5.5rem] w-[5.5rem]" />
                 <span className="absolute -bottom-8 text-[8px] font-semibold tracking-[0.28em] text-[#A4B4C5]/45">CONNECTED BY DESIGN</span>
               </div>
-              <span className="absolute right-7 top-16 h-2 w-2 rounded-full bg-[#8D9EFF] shadow-[0_0_14px_#8D9EFF]" />
+              <span className="absolute right-7 top-16 h-2 w-2 rounded-full bg-[#C4A66A] shadow-[0_0_14px_#C4A66A]" />
               <span className="absolute bottom-14 left-12 h-1.5 w-1.5 rounded-full bg-[#A4B4C5]" />
             </div>
           <div className="mb-6 flex items-center gap-3">
-            <span className="grid h-6 w-6 place-items-center rounded-md border border-[#8D9EFF]/25 bg-[#8D9EFF]/[0.08] text-[9px] font-semibold text-[#BFC8FF]">01</span>
-            <span className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#A4B4C5]/70">SEU AMBIENTE <span className="px-1.5 text-[#8D9EFF]/70">/</span> {sectorLabel}</span>
-            <span className="h-px w-12 bg-gradient-to-r from-[#8D9EFF]/45 to-transparent" />
+            <span className="grid h-6 w-6 place-items-center rounded-md border border-[#C4A66A]/25 bg-[#C4A66A]/[0.08] text-[9px] font-semibold text-[#D8BD86]">01</span>
+            <span className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#A4B4C5]/70">SEU AMBIENTE <span className="px-1.5 text-[#C4A66A]/70">/</span> {sectorLabel}</span>
+            <span className="h-px w-12 bg-gradient-to-r from-[#C4A66A]/45 to-transparent" />
           </div>
 
           <div className="max-w-3xl">
             <p className="text-[15px] font-medium tracking-wide text-[#A4B4C5]/75">{greeting},</p>
-            <h1 className="font-display mt-2 text-[clamp(3rem,7vw,5.6rem)] font-medium leading-[0.9] tracking-[-0.06em] text-[#F4F5F6]">{firstName(user?.full_name)}<span className="text-[#8D9EFF]">.</span></h1>
+            <h1 className="font-display mt-2 text-[clamp(3rem,7vw,5.6rem)] font-medium leading-[0.9] tracking-[-0.06em] text-[#F4F5F6]">{firstName(user?.full_name)}<span className="text-[#C4A66A]">.</span></h1>
             <p className="mt-5 max-w-md text-[13px] leading-6 text-white/55 sm:text-sm">Seu trabalho conectado. Suas prioridades em movimento.</p>
-            <div className="mt-7 flex items-center gap-3"><span className="h-5 w-[2px] rounded-full bg-[#8D9EFF]" /><span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[#A4B4C5]/55">UM SÓ LUGAR. TUDO CONECTADO.</span></div>
+            <div className="mt-7 flex items-center gap-3"><span className="h-5 w-[2px] rounded-full bg-[#C4A66A]" /><span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[#A4B4C5]/55">UM SÓ LUGAR. TUDO CONECTADO.</span></div>
           </div>
           </div>
 
           <div className="relative mt-10 max-w-3xl overflow-hidden rounded-[20px] border border-[#A4B4C5]/[0.15] bg-[#11151C]/90 shadow-[0_24px_70px_rgba(0,0,0,0.32)] backdrop-blur-2xl">
-            <div aria-hidden="true" className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[#8D9EFF]/65 to-transparent" />
-            <div aria-hidden="true" className="pointer-events-none absolute right-0 top-0 h-full w-1 bg-gradient-to-b from-[#8D9EFF]/70 via-[#8D9EFF]/15 to-transparent" />
+            <div aria-hidden="true" className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[#C4A66A]/65 to-transparent" />
+            <div aria-hidden="true" className="pointer-events-none absolute right-0 top-0 h-full w-1 bg-gradient-to-b from-[#C4A66A]/70 via-[#C4A66A]/15 to-transparent" />
             <div className="relative flex flex-wrap items-center justify-between gap-4 px-5 py-5 sm:px-7">
               <div>
-                <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rotate-45 bg-[#8D9EFF] shadow-[0_0_10px_rgba(141,158,255,0.9)]" /><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#A4B4C5]/75">PAINEL DE ATIVIDADE</p></div>
+                <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rotate-45 bg-[#C4A66A] shadow-[0_0_10px_rgba(196,166,106,0.9)]" /><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#A4B4C5]/75">PAINEL DE ATIVIDADE</p></div>
                 <p className="mt-2 text-[13px] text-white/80">
                   {hasStudio ? <>Você tem <strong className="font-semibold text-white">{pending.length} {pending.length === 1 ? 'tarefa' : 'tarefas'}</strong> pendentes para acompanhar.</> : 'Seu espaço de trabalho está pronto para hoje.'}
                 </p>
@@ -181,10 +181,10 @@ export default function AppCentral() {
               <div className="relative grid gap-2 p-3 sm:grid-cols-3 sm:px-4 sm:pb-4">
                 {shortcuts.map((item) => {
                   const Icon = item.icon;
-                  return <Link key={item.to} to={item.to} className="group relative flex min-w-0 items-center gap-3 overflow-hidden rounded-[12px] border border-[#A4B4C5]/[0.10] bg-[#1A202A]/55 px-3 py-3.5 transition duration-300 hover:-translate-y-0.5 hover:border-[#8D9EFF]/25 hover:bg-[#8D9EFF]/[0.055] hover:shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
-                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] border border-[#8D9EFF]/[0.22] bg-[#8D9EFF]/[0.075] text-[#B8C3FF] shadow-inner shadow-white/[0.035] transition duration-300 group-hover:border-[#8D9EFF]/35 group-hover:text-[#E0E4FF]"><Icon className="h-[17px] w-[17px]" strokeWidth={1.7} /></span>
+                  return <Link key={item.to} to={item.to} className="group relative flex min-w-0 items-center gap-3 overflow-hidden rounded-[12px] border border-[#A4B4C5]/[0.10] bg-[#1A202A]/55 px-3 py-3.5 transition duration-300 hover:-translate-y-0.5 hover:border-[#C4A66A]/25 hover:bg-[#C4A66A]/[0.055] hover:shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] border border-[#C4A66A]/[0.22] bg-[#C4A66A]/[0.075] text-[#D8BD86] shadow-inner shadow-white/[0.035] transition duration-300 group-hover:border-[#C4A66A]/35 group-hover:text-[#F0E3C4]"><Icon className="h-[17px] w-[17px]" strokeWidth={1.7} /></span>
                     <span className="min-w-0 flex-1"><span className="block truncate text-[12px] font-medium text-white/85">{item.label}</span><span className="mt-1 block truncate text-[10px] text-white/35">{item.description}</span></span>
-                    <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-white/25 transition duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[#C6CEFF]" />
+                    <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-white/25 transition duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[#D8BD86]" />
                   </Link>;
                 })}
               </div>
@@ -193,7 +193,7 @@ export default function AppCentral() {
         </section>
 
         <footer className="flex items-center justify-between gap-3 border-t border-white/[0.06] pt-4 text-[9px] tracking-[0.12em] text-white/25">
-          <span className="font-semibold tracking-[0.2em]">MMV<span className="text-[#8D9EFF]">/</span>CONNECT</span>
+          <span className="font-semibold tracking-[0.2em]">MMV<span className="text-[#C4A66A]">/</span>CONNECT</span>
           <span className="truncate">{user?.full_name}</span>
         </footer>
       </div>
