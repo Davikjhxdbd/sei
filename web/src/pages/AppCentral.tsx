@@ -52,7 +52,7 @@ function getGreeting() {
 }
 
 function firstName(name?: string) {
-  return name?.trim().split(/\\s+/)[0] || 'por aqui';
+  return name?.trim().split(/\s+/)[0] || 'por aqui';
 }
 
 function sectorText(sectors: { name: string; key?: string }[]) {
