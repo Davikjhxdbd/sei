@@ -8,6 +8,19 @@ import { useAuth } from '../lib/auth';
 import { useApi } from '../lib/useApi';
 import { moduleIcon } from '../modules/registry';
 
+function ConnectMark({ className = 'h-7 w-7' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 64 64" className={className} fill="none" aria-hidden="true">
+      <path d="M12 47V18L32 37L52 18V47" stroke="#DCE1FF" strokeWidth="3.2" strokeLinecap="square" strokeLinejoin="round" />
+      <path d="M32 37V10" stroke="#8D9EFF" strokeWidth="3.2" strokeLinecap="square" />
+      <path d="M12 18H6M52 18H58" stroke="#8D9EFF" strokeOpacity=".65" strokeWidth="1.5" />
+      <circle cx="32" cy="9" r="3.2" fill="#F4F5F6" />
+      <circle cx="12" cy="18" r="2.3" fill="#8D9EFF" />
+      <circle cx="52" cy="18" r="2.3" fill="#8D9EFF" />
+    </svg>
+  );
+}
+
 function getGreeting() {
   const hour = new Date().getHours();
   if (hour < 12) return 'Bom dia';
@@ -79,11 +92,7 @@ export default function AppCentral() {
         <header className="flex items-center justify-between">
           <Link to="/" className="group flex items-center gap-3" aria-label="MMV CONNECT — início">
             <span className="relative grid h-10 w-10 place-items-center overflow-hidden rounded-[12px] border border-[#8D9EFF]/35 bg-[#8D9EFF]/[0.08] shadow-[0_8px_28px_rgba(0,0,0,.24)]">
-              <svg viewBox="0 0 40 40" className="h-7 w-7" fill="none" aria-hidden="true">
-                <path d="M9 12.5C9 10.6 10.6 9 12.5 9H27.5C29.4 9 31 10.6 31 12.5V27.5C31 29.4 29.4 31 27.5 31H12.5C10.6 31 9 29.4 9 27.5V12.5Z" stroke="#AEBBFF" strokeWidth="1.35" />
-                <path d="M14 25V15L20 21L26 15V25" stroke="#F4F5F6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                <circle cx="20" cy="8" r="2" fill="#8D9EFF" /><circle cx="32" cy="20" r="2" fill="#8D9EFF" />
-              </svg>
+              <ConnectMark />
             </span>
             <span className="flex flex-col leading-none"><span className="text-[12px] font-semibold tracking-[0.19em] text-white">MMV<span className="text-[#8D9EFF]">/</span>CONNECT</span><span className="mt-1.5 text-[8px] font-medium tracking-[0.24em] text-white/35">PLATAFORMA INTEGRADA</span></span>
           </Link>
@@ -128,7 +137,10 @@ export default function AppCentral() {
               <div className="absolute h-[280px] w-[280px] rounded-full border border-[#8D9EFF]/[0.13]" />
               <div className="absolute h-[210px] w-[210px] rounded-full border border-dashed border-[#A4B4C5]/[0.17]" />
               <div className="absolute h-[132px] w-[132px] rounded-[34px] border border-[#8D9EFF]/[0.28] bg-[#8D9EFF]/[0.045] rotate-45 shadow-[0_0_80px_rgba(141,158,255,0.08)]" />
-              <svg viewBox="0 0 160 160" className="relative h-32 w-32" fill="none"><path d="M34 80H126M80 34V126M48 48L112 112M112 48L48 112" stroke="#A4B4C5" strokeOpacity=".18" strokeWidth="1.2"/><path d="M49 80C49 63 63 49 80 49C97 49 111 63 111 80C111 97 97 111 80 111C63 111 49 97 49 80Z" stroke="#AEBBFF" strokeWidth="1.5"/><path d="M80 49V80H111" stroke="#8D9EFF" strokeWidth="2"/><circle cx="80" cy="49" r="4" fill="#F4F5F6"/><circle cx="111" cy="80" r="4" fill="#8D9EFF"/><circle cx="80" cy="111" r="3" fill="#A4B4C5"/></svg>
+              <div className="relative grid h-32 w-32 place-items-center rounded-[30px] border border-[#8D9EFF]/20 bg-[#0B0D10]/70 shadow-[0_0_90px_rgba(141,158,255,.08)]">
+                <ConnectMark className="h-[5.5rem] w-[5.5rem]" />
+                <span className="absolute -bottom-8 text-[8px] font-semibold tracking-[0.28em] text-[#A4B4C5]/45">CONNECTED BY DESIGN</span>
+              </div>
               <span className="absolute right-7 top-16 h-2 w-2 rounded-full bg-[#8D9EFF] shadow-[0_0_14px_#8D9EFF]" />
               <span className="absolute bottom-14 left-12 h-1.5 w-1.5 rounded-full bg-[#A4B4C5]" />
             </div>
