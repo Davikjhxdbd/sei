@@ -199,6 +199,18 @@ export default function AppCentral() {
           <div className="connect-hero relative overflow-hidden rounded-[26px] border border-[#C4A66A]/35 bg-[linear-gradient(120deg,rgba(37,31,21,.82),rgba(19,20,22,.76)_55%,rgba(12,13,15,.84))] p-6 shadow-[0_22px_70px_rgba(0,0,0,.38),inset_0_1px_0_rgba(255,255,255,.09)] backdrop-blur-2xl sm:p-9">
             <div aria-hidden="true" className="connect-hero-orb pointer-events-none absolute -right-20 -top-28 h-80 w-80 rounded-full border border-[#C4A66A]/15" />
             <div aria-hidden="true" className="connect-hero-orb connect-hero-orb-inner pointer-events-none absolute -right-4 -top-12 h-60 w-60 rounded-full border border-[#C4A66A]/10" />
+            <div aria-hidden="true" className="connect-hero-visual pointer-events-none absolute right-[7%] top-1/2 hidden h-[250px] w-[250px] -translate-y-1/2 lg:block xl:right-[10%]">
+              <div className="connect-hero-orb absolute inset-0 rounded-full border border-[#D8BD86]/20 bg-[radial-gradient(circle_at_38%_32%,rgba(240,227,196,.14),rgba(196,166,106,.035)_34%,transparent_68%)] shadow-[inset_0_0_55px_rgba(196,166,106,.08),0_0_75px_rgba(196,166,106,.07)]" />
+              <div className="connect-hero-orb connect-hero-orb-inner absolute inset-[22px] rounded-full border border-[#D8BD86]/15" />
+              <div className="absolute inset-[48px] rounded-full border border-dashed border-[#D8BD86]/20" />
+              <div className="absolute inset-[72px] rounded-full bg-[radial-gradient(circle_at_35%_30%,rgba(255,255,255,.18),rgba(196,166,106,.12)_25%,rgba(18,16,12,.2)_68%)] shadow-[0_0_45px_rgba(196,166,106,.12),inset_0_0_28px_rgba(255,255,255,.08)] backdrop-blur-xl" />
+              <div className="absolute left-1/2 top-1/2 h-[2px] w-[74%] -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-transparent via-[#E5C98F]/55 to-transparent" />
+              <div className="absolute left-1/2 top-1/2 h-[74%] w-[2px] -translate-x-1/2 -translate-y-1/2 bg-gradient-to-b from-transparent via-[#E5C98F]/45 to-transparent" />
+              <span className="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#F0E3C4]/70 bg-[#E5C98F] shadow-[0_0_22px_rgba(229,201,143,.8)]" />
+              <span className="absolute -right-1 top-[22%] h-1.5 w-1.5 rounded-full bg-[#F0E3C4] shadow-[0_0_14px_rgba(240,227,196,.9)]" />
+              <span className="absolute bottom-[17%] left-[12%] h-1 w-1 rounded-full bg-[#C4A66A] shadow-[0_0_12px_rgba(196,166,106,.9)]" />
+              <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[8px] font-bold tracking-[.32em] text-[#D8BD86]/45">CONECTANDO PROPÓSITOS</span>
+            </div>
             <div aria-hidden="true" className="pointer-events-none absolute right-16 top-0 h-full w-px rotate-[24deg] bg-gradient-to-b from-transparent via-[#C4A66A]/20 to-transparent" />
             <div className="relative max-w-[820px]">
               <div className="mb-4 flex flex-wrap items-center gap-3">
