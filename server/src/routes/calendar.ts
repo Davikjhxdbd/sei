@@ -35,8 +35,8 @@ function eventData(body: any) {
   const startsAt = isoDate(body?.starts_at, 'início');
   const endsAt = body?.ends_at ? isoDate(body.ends_at, 'término') : null;
 
-  if (endsAt && new Date(endsAt) < new Date(startsAt)) {
-    throw badRequest('O término não pode ser anterior ao início.');
+  if (endsAt && new Date(endsAt) <= new Date(startsAt)) {
+    throw badRequest('O término precisa ser posterior ao início.');
   }
 
   return {
