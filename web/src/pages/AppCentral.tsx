@@ -20,6 +20,10 @@ function firstName(name?: string) {
   return name?.trim().split(/\s+/)[0] || 'por aqui';
 }
 
+function sectorText(sectors: { name: string; key?: string }[]) {
+  return sectors.map((sector) => `${sector.name} ${sector.key || ''}`).join(' ').toLocaleLowerCase('pt-BR');
+}
+
 export default function AppCentral() {
   const navigate = useNavigate();
   const { user, modules, logout, state } = useAuth();
