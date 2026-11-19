@@ -183,7 +183,7 @@ export default function AppCentral() {
           </nav>
         </>}
 
-        <section className="mx-auto flex w-full max-w-[1180px] flex-1 flex-col justify-center gap-6 py-7 sm:gap-7 sm:py-9">
+        <section className="mx-auto flex w-full max-w-[1180px] flex-1 flex-col justify-start gap-5 py-5 sm:gap-6 sm:py-6">
           <div className="relative overflow-hidden rounded-[26px] border border-[#C4A66A]/35 bg-[linear-gradient(120deg,rgba(37,31,21,.96),rgba(19,20,22,.93)_55%,rgba(12,13,15,.96))] p-6 shadow-[0_22px_70px_rgba(0,0,0,.38),inset_0_1px_0_rgba(255,255,255,.09)] backdrop-blur-2xl sm:p-9">
             <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-28 h-80 w-80 rounded-full border border-[#C4A66A]/15" />
             <div aria-hidden="true" className="pointer-events-none absolute -right-4 -top-12 h-60 w-60 rounded-full border border-[#C4A66A]/10" />
