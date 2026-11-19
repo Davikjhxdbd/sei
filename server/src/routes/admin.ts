@@ -217,7 +217,7 @@ router.patch(
 
       if (sectorsProvided && sectors.length) {
         const { rows: activeSectors } = await db.query(
-          'select id from sectors where id = any($1::uuid[]) and active = true',
+          'select id from sectors where id = any($1::uuid[]) and active = true for share',
           [sectors],
         );
         if (activeSectors.length !== sectors.length) {
