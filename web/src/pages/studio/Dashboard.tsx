@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowUpRight,
@@ -6,6 +6,7 @@ import {
   CalendarDays,
   CheckCircle2,
   ChevronRight,
+  ChevronDown,
   ClipboardCheck,
   Clock3,
   Film,
@@ -162,6 +163,8 @@ export default function Dashboard() {
     month: 'long',
   }).format(now);
 
+  const [eventsOpen, setEventsOpen] = useState(true);
+  const [tasksOpen, setTasksOpen] = useState(true);
   const nextEvents = data.upcoming.slice(0, 3);
   const myTasks = data.myTasks.slice(0, 3);
 
@@ -248,8 +251,18 @@ export default function Dashboard() {
             >
               Agenda <ChevronRight className="h-3.5 w-3.5" />
             </Link>
+            <button
+              type="button"
+              aria-label={eventsOpen ? 'Recolher atividades' : 'Expandir atividades'}
+              aria-expanded={eventsOpen}
+              onClick={() => setEventsOpen((open) => !open)}
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-xl text-white/45 transition hover:bg-white/[.08] hover:text-white"
+            >
+              <ChevronDown className={cx('h-4 w-4 transition-transform duration-300', eventsOpen ? '' : '-rotate-90')} />
+            </button>
           </div>
 
+          <div className={cx('transition-all duration-300', eventsOpen ? 'block' : 'hidden')}>
           {nextEvents.length === 0 ? (
             <div className="px-5 py-7 text-center">
               <CalendarDays className="mx-auto h-5 w-5 text-white/25" />
@@ -290,6 +303,7 @@ export default function Dashboard() {
               ))}
             </ul>
           )}
+          </div>
         </GlassPanel>
 
         <GlassPanel>
@@ -309,8 +323,18 @@ export default function Dashboard() {
             >
               Abrir <ChevronRight className="h-3.5 w-3.5" />
             </Link>
+            <button
+              type="button"
+              aria-label={tasksOpen ? 'Recolher tarefas' : 'Expandir tarefas'}
+              aria-expanded={tasksOpen}
+              onClick={() => setTasksOpen((open) => !open)}
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-xl text-white/45 transition hover:bg-white/[.08] hover:text-white"
+            >
+              <ChevronDown className={cx('h-4 w-4 transition-transform duration-300', tasksOpen ? '' : '-rotate-90')} />
+            </button>
           </div>
 
+          <div className={cx('transition-all duration-300', tasksOpen ? 'block' : 'hidden')}>
           {myTasks.length === 0 ? (
             <div className="px-5 py-7 text-center">
               <CheckCircle2 className="mx-auto h-5 w-5 text-[#D8C29B]/70" />
@@ -347,6 +371,7 @@ export default function Dashboard() {
               ))}
             </ul>
           )}
+          </div>
         </GlassPanel>
       </div>
 
