@@ -354,38 +354,41 @@ router.patch(
   '/sectors/:id',
   requireLevel(4),
   asyncHandler(async (req: any, res) => {
-    const { rows: beforeRows } = await req.db.query(
-      'select * from sectors where id = $1',
-      [req.params.id],
-    );
-    if (!beforeRows.length) throw notFound('Setor não encontrado.');
+    const sector = await tx(req.db, async () => {
+      const { rows: beforeRows } = await req.db.query(
+        'select * from sectors where id = $1 for update',
+        [req.params.id],
+      );
+      if (!beforeRows.length) throw notFound('Setor não encontrado.');
 
-    const { rows } = await req.db.query(
-      `update sectors set
-         name = coalesce($1, name),
-         description = coalesce($2, description),
-         active = coalesce($3, active)
-       where id = $4
-       returning id, key, name, description, active`,
-      [
-        req.body?.name ? String(req.body.name).trim().slice(0, 80) : null,
-        req.body?.description !== undefined
-          ? String(req.body.description ?? '').trim() || null
-          : null,
-        typeof req.body?.active === 'boolean' ? req.body.active : null,
-        req.params.id,
-      ],
-    );
+      const { rows } = await req.db.query(
+        `update sectors set
+           name = coalesce($1, name),
+           description = coalesce($2, description),
+           active = coalesce($3, active)
+         where id = $4
+         returning id, key, name, description, active`,
+        [
+          req.body?.name ? String(req.body.name).trim().slice(0, 80) : null,
+          req.body?.description !== undefined
+            ? String(req.body.description ?? '').trim() || null
+            : null,
+          typeof req.body?.active === 'boolean' ? req.body.active : null,
+          req.params.id,
+        ],
+      );
 
-    await audit(req.db, req.user, {
-      action: 'sector.updated',
-      entity: 'sectors',
-      entityId: req.params.id,
-      before: beforeRows[0],
-      after: rows[0],
-      moduleKey: 'platform',
+      await audit(req.db, req.user, {
+        action: 'sector.updated',
+        entity: 'sectors',
+        entityId: req.params.id,
+        before: beforeRows[0],
+        after: rows[0],
+        moduleKey: 'platform',
+      });
+      return rows[0];
     });
-    res.json({ sector: rows[0] });
+    res.json({ sector });
   }),
 );
 
