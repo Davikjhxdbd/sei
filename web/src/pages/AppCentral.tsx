@@ -410,9 +410,9 @@ export default function AppCentral() {
               <div className="mt-4 grid grid-cols-2 gap-2">
                 {quickModules.map((module) => {
                   const Icon = moduleIcon(module.icon);
-                  return <Link key={module.id} to={module.route} className="flex min-w-0 items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.035] px-3 py-3 text-xs font-semibold text-white/80 transition hover:border-[#C4A66A]/40 hover:bg-[#C4A66A]/[0.08]"><Icon className="h-4 w-4 shrink-0 text-[#D8BD86]" /><span className="truncate">{module.name}</span><ChevronRight className="ml-auto h-3.5 w-3.5 shrink-0 text-white/30" /></Link>;
+                  return <Link key={module.id} to={module.route} className="connect-shortcut"><span className="connect-shortcut__icon"><Icon className="h-4 w-4" /></span><span className="connect-shortcut__name">{module.name}</span><span className="connect-shortcut__index">{String(quickModules.indexOf(module) + 1).padStart(2, "0")}</span><ArrowUpRight className="connect-shortcut__arrow" size={14}/></Link>;
                 })}
-                <Link to="/calendar" className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.035] px-3 py-3 text-xs font-semibold text-white/80 transition hover:border-[#C4A66A]/40 hover:bg-[#C4A66A]/[0.08]"><CalendarDays className="h-4 w-4 text-[#D8BD86]" /><span>Agenda</span><ChevronRight className="ml-auto h-3.5 w-3.5 text-white/30" /></Link>
+                <Link to="/calendar" className="connect-shortcut"><span className="connect-shortcut__icon"><CalendarDays className="h-4 w-4"/></span><span className="connect-shortcut__name">Agenda</span><span className="connect-shortcut__index">05</span><ArrowUpRight className="connect-shortcut__arrow" size={14}/></Link>
               </div>
             </section>
           </div>
