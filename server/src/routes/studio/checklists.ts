@@ -338,12 +338,14 @@ router.patch(
   '/checklist-tasks/:id',
   asyncHandler(async (req: any, res) => {
     const db = req.db;
-    const { rows: taskRows } = await db.query(
+    const updated = await tx(db, async () => {
+      const { rows: taskRows } = await db.query(
       `select t.*, e.name as event_name, r.event_id
          from checklist_tasks t
          join checklist_runs r on r.id = t.run_id
          join events e on e.id = r.event_id
-        where t.id = $1`,
+        where t.id = $1
+        for update of t`,
       [req.params.id],
     );
     if (!taskRows.length) throw notFound('Tarefa não encontrada.');
@@ -394,7 +396,6 @@ router.patch(
     const notes =
       req.body?.notes !== undefined ? optionalText(req.body.notes, 2000) : task.notes;
 
-    const updated = await tx(db, async () => {
       const { rows } = await db.query(
         `update checklist_tasks set
            status = coalesce($1::task_status, status),
