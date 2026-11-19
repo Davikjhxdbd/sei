@@ -118,7 +118,7 @@ export default function CalendarPage() {
   }
 
   useEffect(() => {
-    if (requestedDate && /^\\d{4}-\\d{2}-\\d{2}$/.test(requestedDate)) {
+    if (requestedDate && /^\d{4}-\d{2}-\d{2}$/.test(requestedDate)) {
       const selected = new Date(`${requestedDate}T12:00:00`);
       if (!Number.isNaN(selected.getTime())) {
         setMonth(new Date(selected.getFullYear(), selected.getMonth(), 1));
