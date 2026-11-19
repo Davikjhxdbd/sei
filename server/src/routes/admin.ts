@@ -117,7 +117,7 @@ router.post(
     const created = await tx(db, async () => {
       if (sectors.length) {
         const { rows: activeSectors } = await db.query(
-          'select id from sectors where id = any($1::uuid[]) and active = true',
+          'select id from sectors where id = any($1::uuid[]) and active = true for share',
           [sectors],
         );
         if (activeSectors.length !== sectors.length) {
@@ -179,13 +179,6 @@ router.patch(
     const db = req.db;
     const targetId = req.params.id;
 
-    const { rows: currentRows } = await db.query(
-      `${SELECT_USERS} where u.id = $1`,
-      [targetId],
-    );
-    const current = currentRows[0];
-    if (!current) throw notFound('Usuário não encontrado.');
-
     const patch: Record<string, unknown> = {};
     if (typeof req.body?.full_name === 'string' && req.body.full_name.trim()) {
       patch.full_name = req.body.full_name.trim().slice(0, 160);
@@ -214,6 +207,14 @@ router.patch(
     const leadSectors = normalizeIds(req.body?.lead_sectors);
 
     const updated = await tx(db, async () => {
+      const { rows: lockedUser } = await db.query(
+        'select id from users where id = $1 for update',
+        [targetId],
+      );
+      if (!lockedUser.length) throw notFound('Usuário não encontrado.');
+      const { rows: currentRows } = await db.query(`${SELECT_USERS} where u.id = $1`, [targetId]);
+      const current = currentRows[0];
+
       if (sectorsProvided && sectors.length) {
         const { rows: activeSectors } = await db.query(
           'select id from sectors where id = any($1::uuid[]) and active = true',
