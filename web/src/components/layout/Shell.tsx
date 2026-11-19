@@ -197,7 +197,7 @@ function ProfileMenu({ open, setOpen }: { open: boolean; setOpen: (v: boolean) =
         onClick={() => setOpen(!open)}
         aria-expanded={open}
         aria-label="Menu do perfil"
-        className="flex items-center gap-2 rounded-full p-0.5 transition-opacity hover:opacity-90"
+        className="flex items-center gap-2 rounded-full p-0.5 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-soft focus-visible:ring-offset-2 focus-visible:ring-offset-strong"
       >
         <Avatar name={user.full_name} size="sm" className="bg-brass" />
       </button>
@@ -279,21 +279,12 @@ export function Shell({
     (module?.settings?.product_name as string | undefined) ?? undefined;
 
   return (
-    <div
-      className="relative isolate min-h-screen bg-canvas font-sans"
-      onMouseMove={(event) => {
-        const root = event.currentTarget;
-        root.style.setProperty('--cursor-x', `${event.clientX}px`);
-        root.style.setProperty('--cursor-y', `${event.clientY}px`);
-      }}
-    >
+    <div className="relative isolate min-h-screen bg-canvas font-sans">
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-0"
         style={{
-          background: 'radial-gradient(520px circle at var(--cursor-x, 50vw) var(--cursor-y, 50vh), rgba(196,166,106,0.105), transparent 72%)',
-          transition: 'background 180ms ease-out',
-          willChange: 'background',
+          background: 'radial-gradient(760px circle at 82% 0%, rgba(196,166,106,0.075), transparent 68%)',
         }}
       />
       <div className="relative z-10">
@@ -305,7 +296,7 @@ export function Shell({
               onClick={() => setSidebarCollapsed((value) => !value)}
               aria-label={sidebarCollapsed ? 'Expandir menu lateral' : 'Recolher menu lateral'}
               title={sidebarCollapsed ? 'Expandir menu' : 'Recolher menu'}
-              className="hidden h-9 w-9 shrink-0 place-items-center rounded-lg text-white/65 transition-colors hover:bg-white/10 hover:text-white lg:grid"
+              className="hidden h-9 w-9 shrink-0 place-items-center rounded-lg text-white/65 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-soft focus-visible:ring-offset-2 focus-visible:ring-offset-strong lg:grid"
             >
               {sidebarCollapsed
                 ? <PanelLeftOpen className="h-[18px] w-[18px]" />
@@ -331,7 +322,7 @@ export function Shell({
                 ? `Notificações, ${unread} não lidas`
                 : 'Notificações'
             }
-            className="relative grid h-9 w-9 place-items-center rounded-lg text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+            className="relative grid h-9 w-9 place-items-center rounded-lg text-white/70 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-soft focus-visible:ring-offset-2 focus-visible:ring-offset-strong"
           >
             <Bell className="h-[18px] w-[18px]" />
             {unread > 0 && (
@@ -380,7 +371,7 @@ export function Shell({
                       title={sidebarCollapsed ? item.label : undefined}
                       className={({ isActive }) =>
                         cx(
-                          'flex items-center rounded-lg py-2 text-[13px] transition-colors',
+                          'flex items-center rounded-lg py-2 text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-soft focus-visible:ring-inset',
                           sidebarCollapsed ? 'justify-center px-2' : 'gap-2.5 px-2.5',
                           isActive
                             ? 'relative bg-brass/[0.10] font-medium text-ink shadow-[inset_2px_0_0_rgb(196_166_106)]'
@@ -425,7 +416,7 @@ export function Shell({
                     end={item.end}
                     className={({ isActive }) =>
                       cx(
-                        'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-medium',
+                        'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-soft focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
                         isActive
                           ? 'border-brass/45 bg-brass/[0.10] text-brass-deep shadow-sm'
                           : 'border-line bg-surface text-muted',
