@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  ArrowUpRight, Bell, CalendarDays, CheckCircle2, ChevronRight,
+  ArrowUpRight, Bell, CalendarDays, ChevronRight,
   HelpCircle, LogOut, Menu, RefreshCw,
   UserRound, X,
 } from 'lucide-react';
@@ -32,6 +32,7 @@ function ConnectMark({ className = 'h-7 w-7' }: { className?: string }) {
 
 const pad = (value: number) => String(value).padStart(2, '0');
 const dateKey = (date: Date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+const dueDateKey = (value: string) => /^\\d{4}-\\d{2}-\\d{2}$/.test(value) ? value : dateKey(new Date(value));
 const atLocalMidnight = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
 function getWeekStart(date: Date) {
@@ -121,7 +122,7 @@ export default function AppCentral() {
   const pendingToday = tasks.filter((task: any) => {
     if (task.status === 'published' || task.status === 'completed') return false;
     const due = task.due_date;
-    return due ? dateKey(new Date(due)) === todayKey : false;
+    return due ? dueDateKey(due) === todayKey : false;
   });
   const events = calendarData?.items ?? [];
   const sectorLabel = user?.sectors?.[0]?.name || 'SEU AMBIENTE';
@@ -269,14 +270,11 @@ export default function AppCentral() {
                 productionError ? <div className="relative mt-6"><p className="text-xs text-white/60">Não foi possível atualizar suas entregas.</p><button onClick={reloadProduction} className="mt-3 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[#E5C98F]"><RefreshCw className="h-3 w-3" /> Tentar novamente</button></div> :
                 <div className="relative mt-5 flex items-end gap-3">
                   <span className="font-display text-[5.5rem] font-bold leading-[.8] tracking-[-.06em] text-[#E5C98F] drop-shadow-[0_4px_18px_rgba(196,166,106,.16)]">{pendingToday.length}</span>
-                  <p className="max-w-[170px] pb-1 text-[12px] font-semibold leading-snug text-white/75">atividades para entregar hoje.</p>
+                  <p className="max-w-[170px] pb-1 text-[12px] font-semibold leading-snug text-white/75">atividades pendentes para entregar hoje.</p>
                 </div>
               ) : (
                 <p className="relative mt-7 text-sm font-semibold leading-relaxed text-white/70">Suas entregas aparecerão aqui conforme forem atribuídas a você.</p>
               )}
-              <div className="relative mt-7 flex items-center gap-2 border-t border-[#C4A66A]/20 pt-3 text-[9px] font-bold uppercase tracking-[0.16em] text-white/35">
-                <CheckCircle2 className="h-3.5 w-3.5 text-[#C4A66A]" /> ACOMPANHAMENTO INDIVIDUAL
-              </div>
             </section>
           </div>
         </section>
