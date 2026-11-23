@@ -22,7 +22,7 @@ export function cx(...parts: Array<string | false | null | undefined>) {
 }
 
 const TONES: Record<string, string> = {
-  neutral: 'bg-ink/[0.06] text-ink/70 ring-ink/10',
+  neutral: 'bg-brass/[0.08] text-brass-deep ring-brass/20',
   info: 'bg-studio-soft text-studio ring-studio/20',
   success: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
   warning: 'bg-amber-50 text-amber-700 ring-amber-200',
@@ -85,7 +85,7 @@ const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
     'bg-surface text-ink border border-brass/25 hover:border-brass/55 hover:bg-brass/[0.06]',
   ghost: 'bg-transparent text-muted border border-transparent hover:border-brass/20 hover:text-ink hover:bg-brass/[0.07]',
   danger: 'bg-red-600 text-white border border-red-600 hover:bg-red-700',
-  brass: 'bg-brass text-white border border-brass hover:bg-[#9d7639]',
+  brass: 'bg-brass text-[#17140E] border border-brass hover:bg-[#D8BD86] hover:border-[#D8BD86]',
 };
 
 const BUTTON_SIZES: Record<ButtonSize, string> = {
@@ -252,7 +252,7 @@ export function CardHeader({
     <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line px-5 py-4">
       <div className="flex items-start gap-3">
         {Icon && (
-          <span className="mt-0.5 grid h-8 w-8 place-items-center rounded-lg bg-ink/[0.05] text-ink/70">
+          <span className="mt-0.5 grid h-8 w-8 place-items-center rounded-xl border border-brass/20 bg-brass/[0.08] text-brass-deep">
             <Icon className="h-4 w-4" />
           </span>
         )}
@@ -438,7 +438,7 @@ export function Modal({
         aria-modal="true"
         aria-label={title}
         className={cx(
-          'mmv-fade-in relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl border border-line bg-surface shadow-lift sm:rounded-2xl',
+          'mmv-fade-in relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl border border-brass/20 bg-surface shadow-lift sm:rounded-2xl',
           width,
         )}
       >
@@ -493,7 +493,7 @@ export function EmptyState({
       )}
     >
       {Icon && (
-        <span className="mb-3 grid h-11 w-11 place-items-center rounded-full bg-ink/[0.05] text-muted">
+        <span className="mb-3 grid h-11 w-11 place-items-center rounded-2xl border border-brass/20 bg-brass/[0.08] text-brass-deep">
           <Icon className="h-5 w-5" />
         </span>
       )}
@@ -527,7 +527,7 @@ export function FilterPills<T extends string>({
             type="button"
             onClick={() => onChange(item.value)}
             className={cx(
-              'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12.5px] font-medium transition-colors',
+              'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[12.5px] font-medium transition-[color,background-color,border-color,box-shadow]',
               active
                 ? 'border-brass bg-brass text-[#17140E] shadow-[0_3px_12px_rgba(196,166,106,.16)]'
                 : 'border-line bg-surface text-muted hover:border-brass/45 hover:bg-brass/[0.04] hover:text-ink',
