@@ -296,7 +296,7 @@ export default function AppCentral() {
               <div><span className="connect-telemetry__label">AMBIENTE</span><strong>{sectorLabel}</strong></div>
             </div>
           </section>
-          <div className="connect-content-grid grid gap-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,.85fr)]">
+          <div className="connect-content-grid grid gap-5 lg:grid-cols-1">
             <section className="connect-glass-card overflow-hidden rounded-[23px] border border-[#C4A66A]/25 bg-[linear-gradient(145deg,rgba(34,31,25,.68),rgba(17,19,22,.78)_55%,rgba(12,13,15,.84))] shadow-[0_18px_55px_rgba(0,0,0,.32),inset_0_1px_0_rgba(255,255,255,.075)] backdrop-blur-2xl">
               <div className="flex items-center justify-between gap-3 border-b border-[#C4A66A]/15 px-5 py-4 sm:px-6">
                 <div>
@@ -355,7 +355,7 @@ export default function AppCentral() {
             <section className="connect-glass-card rounded-[23px] border border-[#C4A66A]/25 bg-[linear-gradient(145deg,rgba(28,27,23,.66),rgba(14,16,18,.84))] p-5 shadow-[0_16px_45px_rgba(0,0,0,.28)] sm:p-6">
               <p className="text-[9px] font-extrabold uppercase tracking-[0.22em] text-[#C4A66A]">SEU ESPAÇO</p>
               <h2 className="mt-1 text-xl font-extrabold text-white">ACESSOS RÁPIDOS</h2>
-              <div className="mt-4 grid grid-cols-2 gap-2">
+              <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-4">
                 {quickModules.map((module) => {
                   const Icon = moduleIcon(module.icon);
                   return <Link key={module.id} to={module.route} className="connect-shortcut"><span className="connect-shortcut__icon"><Icon className="h-4 w-4" /></span><span className="connect-shortcut__name">{module.name}</span><span className="connect-shortcut__index">{String(quickModules.indexOf(module) + 1).padStart(2, "0")}</span><ArrowUpRight className="connect-shortcut__arrow" size={14}/></Link>;
@@ -371,9 +371,9 @@ export default function AppCentral() {
             <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-20 h-56 w-56 rounded-full border border-[#D8BD86]/10" />
             <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="max-w-2xl">
-                <p className="text-[9px] font-extrabold uppercase tracking-[0.22em] text-[#D8BD86]">INTELIGÊNCIA CONNECT</p>
+                <p className="text-[9px] font-extrabold uppercase tracking-[0.22em] text-[#D8BD86]">INTELIGÊNCIA MMV</p>
                 <h2 className="mt-1 text-xl font-extrabold text-white">SEU ASSISTENTE PESSOAL</h2>
-                <p className="mt-2 text-xs leading-relaxed text-white/55">Um espaço para ajudar você a organizar prioridades, compreender suas atividades e encontrar informações dentro do CONNECT.</p>
+                <p className="mt-2 text-xs leading-relaxed text-white/55">Um espaço para ajudar você a organizar prioridades, compreender suas atividades e encontrar informações dentro do MMV CREATIVE.</p>
               </div>
               <span className="w-fit shrink-0 rounded-lg border border-[#C4A66A]/30 bg-[#C4A66A]/10 px-3 py-2 text-[9px] font-extrabold uppercase tracking-[0.15em] text-[#E5C98F]">EM PREPARAÇÃO</span>
             </div>
@@ -381,7 +381,7 @@ export default function AppCentral() {
         </section>
 
         <footer className="flex items-center justify-between gap-3 border-t border-[#C4A66A]/15 pt-4 text-[9px] font-semibold tracking-[0.15em] text-white/30">
-          <span>MMV<span className="text-[#C4A66A]">/</span>CONNECT</span>
+          <span>MMV<span className="text-[#C4A66A]">/</span>CREATIVE</span>
           <span className="truncate uppercase">{user?.full_name}</span>
         </footer>
       </div>
