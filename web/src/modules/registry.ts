@@ -16,8 +16,10 @@ import {
   Users,
   Users2,
   Building2,
+  MessageSquare,
   Bug,
   Layers,
+  MessageSquare,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -36,6 +38,9 @@ export interface NavGroup {
 
 /** Navegação interna registrada por cada módulo (independente entre módulos). */
 export const MODULE_NAV: Record<string, NavGroup[]> = {
+  communication: [{ title: 'Comunicação institucional', items: [
+    { label: 'Comunicados', to: '/m/communication', icon: MessageSquare, end: true },
+  ]}],
   departments: [{ title: 'Departamentos', items: [
     { label: 'Visão geral', to: '/m/departments', icon: Building2, end: true },
   ]}],
