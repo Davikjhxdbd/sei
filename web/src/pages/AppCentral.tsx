@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowUpRight, Bell, CalendarDays, ChevronRight,
-  ArrowRight, Command, HelpCircle, LogOut, Menu, RefreshCw,
+  ArrowRight, Command, HelpCircle, LogOut, Menu,
   Search, UserRound, X,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
@@ -120,8 +120,6 @@ export default function AppCentral() {
     window.addEventListener('keydown', handleShortcut);
     return () => window.removeEventListener('keydown', handleShortcut);
   }, []);
-  const hasStudio = modules.some((module) => module.key === 'studio' || module.key.startsWith('studio_'));
-  const { data: production, loading: productionLoading, error: productionError, reload: reloadProduction } = useApi<any>(hasStudio ? '/studio/production/mine' : null);
 
   const weekStart = useMemo(() => getWeekStart(new Date()), []);
   const weekEnd = useMemo(() => {
@@ -145,22 +143,8 @@ export default function AppCentral() {
   const personalizedMessage = getPersonalMessage(sector);
   const verse = dailyScripture();
   const unread = state?.notifications?.unread ?? 0;
-  const tasks = production?.tasks ?? [];
-  const pendingToday = tasks.filter((task: any) => {
-    if (task.status === 'published' || task.status === 'completed') return false;
-    const due = task.due_date;
-    return due ? dueDateKey(due) === todayKey : false;
-  });
   const events = calendarData?.items ?? [];
   const sectorLabel = user?.sectors?.[0]?.name || 'SEU AMBIENTE';
-  const weekTaskItems = tasks.filter((task: any) => {
-    if (!task.due_date) return false;
-    const due = dueDateKey(task.due_date);
-    return due >= dateKey(weekStart) && due < dateKey(weekEnd);
-  });
-  const completedWeekTasks = weekTaskItems.filter((task: any) => task.status === 'published' || task.status === 'completed');
-  const activeWeekTasks = weekTaskItems.length - completedWeekTasks.length;
-  const weekProgress = weekTaskItems.length ? Math.round((completedWeekTasks.length / weekTaskItems.length) * 100) : 0;
   const quickModules = modules.slice(0, 4);
   const commandItems = useMemo(() => [
     ...modules.map((module) => ({ id: module.id, name: module.name, route: module.route, icon: moduleIcon(module.icon), group: 'MÓDULOS' })),
@@ -358,54 +342,7 @@ export default function AppCentral() {
               </div>
             </section>
 
-            <section className="connect-glass-card connect-feature-card relative flex min-h-[220px] flex-col justify-between overflow-hidden rounded-[23px] border border-[#C4A66A]/35 bg-[linear-gradient(145deg,rgba(55,43,25,.65),rgba(25,22,18,.78)_48%,rgba(14,15,16,.86))] p-5 shadow-[0_18px_55px_rgba(0,0,0,.34),inset_0_1px_0_rgba(255,255,255,.10)] backdrop-blur-2xl sm:p-6">
-              <div aria-hidden="true" className="pointer-events-none absolute -right-14 -top-16 h-48 w-48 rounded-full border border-[#D8BD86]/15" />
-              <div aria-hidden="true" className="pointer-events-none absolute -right-2 -top-5 h-32 w-32 rounded-full border border-[#D8BD86]/10" />
-              <div className="relative">
-                <p className="text-[9px] font-extrabold uppercase tracking-[0.22em] text-[#D8BD86]">RESUMO DE HOJE</p>
-                <h2 className="mt-2 text-lg font-extrabold leading-tight text-white">SUAS ENTREGAS</h2>
-              </div>
-              {hasStudio ? (
-                productionLoading ? <p className="relative mt-7 text-xs text-white/55">Atualizando suas atividades…</p> :
-                productionError ? <div className="relative mt-6"><p className="text-xs text-white/60">Não foi possível atualizar suas entregas.</p><button onClick={reloadProduction} className="mt-3 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[#E5C98F]"><RefreshCw className="h-3 w-3" /> Tentar novamente</button></div> :
-                <div className="relative mt-5 flex items-end gap-3">
-                  <span className="font-display text-[5.5rem] font-bold leading-[.8] tracking-[-.06em] text-[#E5C98F] drop-shadow-[0_4px_18px_rgba(196,166,106,.16)]">{pendingToday.length}</span>
-                  <p className="max-w-[170px] pb-1 text-[12px] font-semibold leading-snug text-white/75">atividades pendentes para entregar hoje.</p>
-                </div>
-              ) : (
-                <p className="relative mt-7 text-sm font-semibold leading-relaxed text-white/70">Suas entregas aparecerão aqui conforme forem atribuídas a você.</p>
-              )}
-            </section>
-          </div>
-          <div className="connect-content-grid grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,.85fr)]">
-            <section className="connect-glass-card rounded-[23px] border border-[#C4A66A]/25 bg-[linear-gradient(145deg,rgba(34,31,25,.64),rgba(15,17,19,.82))] p-5 shadow-[0_16px_45px_rgba(0,0,0,.28)] sm:p-6">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[9px] font-extrabold uppercase tracking-[0.22em] text-[#C4A66A]">ACOMPANHAMENTO</p>
-                  <h2 className="mt-1 text-xl font-extrabold text-white">SEU RITMO NA SEMANA</h2>
-                  <p className="mt-1 text-xs text-white/45">Atividades com prazo nesta semana.</p>
-                </div>
-                <span className="rounded-lg border border-[#C4A66A]/25 bg-[#C4A66A]/10 px-3 py-1.5 text-xs font-bold text-[#E5C98F]">{weekProgress}%</span>
-              </div>
-              {productionLoading ? (
-                <div className="mt-6 flex items-center gap-4"><span className="connect-progress-ring connect-progress-ring--loading"/><p className="text-xs text-white/50">Carregando seu progresso…</p></div>
-              ) : productionError ? (
-                <p className="mt-6 text-xs text-white/50">Não foi possível carregar seu progresso.</p>
-              ) : (
-                <div className="connect-progress-layout">
-                  <div className="connect-progress-ring" style={{ background: `conic-gradient(#E5C98F ${weekProgress * 3.6}deg, rgba(255,255,255,.08) 0deg)` }}>
-                    <div className="connect-progress-ring__inner"><strong>{weekProgress}<small>%</small></strong><span>CONCLUÍDO</span></div>
-                  </div>
-                  <div className="connect-progress-stats">
-                    <div><strong>{weekTaskItems.length.toString().padStart(2,'0')}</strong><span>NO TOTAL</span></div>
-                    <div><strong className="is-complete">{completedWeekTasks.length.toString().padStart(2,'0')}</strong><span>CONCLUÍDAS</span></div>
-                    <div><strong>{activeWeekTasks.toString().padStart(2,'0')}</strong><span>EM ABERTO</span></div>
-                  </div>
-                  {weekTaskItems.length === 0 && <p className="connect-progress-note">As atividades com prazo nesta semana aparecerão aqui quando forem atribuídas.</p>}
-                </div>
-              )}
-            </section>
-
+          <div className="connect-content-grid grid gap-5 lg:grid-cols-1">
             <section className="connect-glass-card rounded-[23px] border border-[#C4A66A]/25 bg-[linear-gradient(145deg,rgba(28,27,23,.66),rgba(14,16,18,.84))] p-5 shadow-[0_16px_45px_rgba(0,0,0,.28)] sm:p-6">
               <p className="text-[9px] font-extrabold uppercase tracking-[0.22em] text-[#C4A66A]">SEU ESPAÇO</p>
               <h2 className="mt-1 text-xl font-extrabold text-white">ACESSOS RÁPIDOS</h2>
