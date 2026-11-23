@@ -279,7 +279,7 @@ export function Shell({
     (module?.settings?.product_name as string | undefined) ?? undefined;
 
   return (
-    <div className="relative isolate min-h-screen bg-canvas font-sans">
+    <div className="mmv-app-shell relative isolate min-h-screen bg-canvas font-sans">
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-0"
@@ -288,7 +288,7 @@ export function Shell({
         }}
       />
       <div className="relative z-10">
-      <header className="sticky top-0 z-40 border-b border-white/[0.07] bg-strong shadow-lg shadow-black/10">
+      <header className="mmv-app-topbar sticky top-0 z-40 border-b border-white/[0.07] bg-strong shadow-lg shadow-black/10">
         <div className="mx-auto flex h-14 max-w-[1500px] items-center gap-3 px-3 sm:px-5">
           {groups.length > 0 && (
             <button
@@ -344,7 +344,7 @@ export function Shell({
 
       <div className="mx-auto flex w-full max-w-[1500px]">
         {groups.length > 0 && (
-          <aside className={cx("mmv-scroll sticky top-14 hidden h-[calc(100vh-3.5rem)] shrink-0 overflow-y-auto border-r border-line bg-surface/70 py-5 transition-[width] duration-200 lg:block", sidebarCollapsed ? "w-[76px] px-2" : "w-[248px] px-3")}>
+          <aside className={cx("mmv-app-sidebar mmv-scroll sticky top-14 hidden h-[calc(100vh-3.5rem)] shrink-0 overflow-y-auto border-r border-line bg-surface/70 py-5 transition-[width] duration-200 lg:block", sidebarCollapsed ? "w-[76px] px-2" : "w-[248px] px-3")}>
             {!sidebarCollapsed && (
               <div className="mb-4 px-2">
                 <p className="mmv-label">{sidebarEyebrow ?? 'Aplicativo'}</p>
@@ -407,7 +407,7 @@ export function Shell({
 
         <div className="min-w-0 flex-1">
           {groups.length > 0 && (
-            <div className="mmv-scroll sticky top-14 z-30 flex gap-1.5 overflow-x-auto border-b border-line bg-surface px-3 py-2 lg:hidden">
+            <div className="mmv-app-mobile-nav mmv-scroll sticky top-14 z-30 flex gap-1.5 overflow-x-auto border-b border-line bg-surface px-3 py-2 lg:hidden">
               {groups.flatMap((group) =>
                 group.items.map((item) => (
                   <NavLink
@@ -433,7 +433,7 @@ export function Shell({
 
           <main
             key={location.pathname}
-            className="mmv-fade-in mx-auto w-full px-4 py-5 sm:px-6 sm:py-7"
+            className="mmv-app-main mmv-fade-in mx-auto w-full px-4 py-6 sm:px-7 sm:py-8 lg:px-9"
           >
             {children}
           </main>
