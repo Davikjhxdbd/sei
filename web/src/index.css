@@ -354,3 +354,95 @@ html, body, #root {
   .connect-hero { backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
   .connect-glass-card { backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
 }
+
+
+/* MMV CREATIVE — acabamento unificado dos módulos */
+.mmv-app-shell {
+  background:
+    radial-gradient(ellipse at 82% 0%, rgba(196,166,106,.065), transparent 36%),
+    rgb(var(--mmv-canvas));
+}
+.mmv-app-topbar {
+  background: linear-gradient(105deg, #111111 0%, #191817 58%, #121212 100%);
+  box-shadow: 0 12px 34px rgba(0,0,0,.18), inset 0 -1px 0 rgba(196,166,106,.08);
+}
+.mmv-app-sidebar {
+  background: linear-gradient(180deg, rgb(var(--mmv-surface) / .94), rgb(var(--mmv-canvas) / .97));
+}
+.mmv-app-sidebar nav a {
+  min-height: 38px;
+  border-radius: 10px;
+}
+.mmv-app-sidebar nav a[aria-current="page"] {
+  background: linear-gradient(100deg, rgba(196,166,106,.14), rgba(196,166,106,.045));
+  box-shadow: inset 2px 0 0 #C4A66A, 0 5px 18px rgba(0,0,0,.10);
+}
+.mmv-app-mobile-nav {
+  background: rgba(29,29,29,.94);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  scrollbar-width: none;
+}
+.mmv-app-mobile-nav::-webkit-scrollbar { display: none; }
+.mmv-app-main { max-width: 1440px; }
+.mmv-page-header {
+  padding-top: 2px;
+}
+.mmv-page-header h1 {
+  font-size: clamp(1.65rem, 3vw, 2.15rem);
+  font-weight: 650;
+  letter-spacing: -.045em;
+}
+.mmv-page-header .mmv-label {
+  letter-spacing: .19em;
+  font-size: 9px;
+}
+.mmv-page-header p:not(.mmv-label) {
+  max-width: 680px;
+  font-size: 13px;
+  line-height: 1.75;
+}
+.mmv-surface {
+  border-radius: 17px;
+  border-color: rgba(196,166,106,.13);
+  background: linear-gradient(145deg, rgb(var(--mmv-surface)), rgb(var(--mmv-surface) / .82));
+  box-shadow: 0 12px 34px rgba(0,0,0,.13), inset 0 1px 0 rgba(255,255,255,.025);
+  transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+}
+.mmv-surface:has(> .flex.items-center.gap-3) {
+  border-color: rgba(196,166,106,.12);
+}
+.mmv-app-shell input,
+.mmv-app-shell textarea,
+.mmv-app-shell select {
+  border-radius: 11px;
+}
+.mmv-app-shell button,
+.mmv-app-shell a {
+  -webkit-tap-highlight-color: transparent;
+}
+.mmv-app-shell button:focus-visible,
+.mmv-app-shell a:focus-visible {
+  outline-offset: 3px;
+}
+.mmv-app-shell .mmv-surface h2 {
+  letter-spacing: -.02em;
+}
+.mmv-app-shell footer {
+  background: linear-gradient(90deg, transparent, rgba(196,166,106,.025), transparent);
+}
+@media (hover: hover) and (pointer: fine) {
+  .mmv-app-shell .mmv-surface:hover {
+    border-color: rgba(196,166,106,.23);
+    box-shadow: 0 16px 42px rgba(0,0,0,.19), inset 0 1px 0 rgba(255,255,255,.035);
+  }
+}
+@media (max-width: 640px) {
+  .mmv-app-main { padding-top: 20px; padding-bottom: 24px; }
+  .mmv-page-header { gap: 13px; padding-bottom: 17px; margin-bottom: 22px; }
+  .mmv-page-header h1 { font-size: 1.65rem; }
+  .mmv-surface { border-radius: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mmv-surface { transition: none; }
+}
