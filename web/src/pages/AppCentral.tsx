@@ -263,7 +263,7 @@ export default function AppCentral() {
           <section className="connect-command-hero" aria-labelledby="connect-greeting">
             <div className="connect-command-hero__topline">
               <span className="connect-eyebrow"><span className="connect-live-dot" /> MMV CONNECT <span className="connect-topline-divider">/</span> CENTRAL DE OPERAÇÕES</span>
-              <span className="connect-session-code">SESSION {dateKey(clock).replaceAll('-','').slice(2)} · LOCAL</span>
+              <span className="connect-session-code">SESSION {dateKey(clock).replace(/-/g, '').slice(2)} · LOCAL</span>
             </div>
             <div className="connect-command-hero__body">
               <div className="connect-command-hero__copy">
