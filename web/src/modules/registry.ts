@@ -141,6 +141,7 @@ const MODULE_ICONS: Record<string, LucideIcon> = {
   LayoutGrid,
   Users,
   Building2,
+  MessageSquare,
 };
 
 export function moduleIcon(name?: string | null): LucideIcon {
