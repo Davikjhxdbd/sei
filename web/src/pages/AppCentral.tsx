@@ -323,7 +323,7 @@ export default function AppCentral() {
                     <button key={key} onClick={() => setSelectedAgendaDay(key)} aria-pressed={isSelected} className={`connect-agenda-day ${isSelected ? 'is-selected' : ''} ${isToday ? 'is-today' : ''}`}>
                       <span className="connect-agenda-day__weekday">{new Intl.DateTimeFormat('pt-BR', { weekday: 'short' }).format(date).replace('.', '')}</span>
                       <strong>{date.getDate()}</strong>
-                      <span className="connect-agenda-day__activity">{dayEvents.length ? <><i />{dayEvents.length > 1 && <small>{dayEvents.length}</small></> : <i className="is-empty"/>}</span>
+                      <span className="connect-agenda-day__activity">{dayEvents.length > 0 ? <i /> : <i className="is-empty" />}{dayEvents.length > 1 && <small>{dayEvents.length}</small>}</span>
                       {isToday && <span className="connect-agenda-day__today">HOJE</span>}
                     </button>
                   );
