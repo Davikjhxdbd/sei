@@ -80,10 +80,10 @@ type ButtonSize = 'sm' | 'md' | 'lg';
 
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
   primary:
-    'bg-strong text-white border border-strong hover:bg-strong-soft hover:border-strong-soft',
+    'bg-brass text-[#17140E] border border-brass shadow-[0_5px_16px_rgba(196,166,106,.16)] hover:bg-[#D8BD86] hover:border-[#D8BD86] hover:shadow-[0_7px_22px_rgba(196,166,106,.22)]',
   secondary:
-    'bg-surface text-ink border border-line hover:border-ink/35 hover:bg-ink/[0.02]',
-  ghost: 'bg-transparent text-muted border border-transparent hover:text-ink hover:bg-ink/[0.05]',
+    'bg-surface text-ink border border-brass/25 hover:border-brass/55 hover:bg-brass/[0.06]',
+  ghost: 'bg-transparent text-muted border border-transparent hover:border-brass/20 hover:text-ink hover:bg-brass/[0.07]',
   danger: 'bg-red-600 text-white border border-red-600 hover:bg-red-700',
   brass: 'bg-brass text-white border border-brass hover:bg-[#9d7639]',
 };
@@ -115,7 +115,7 @@ export function Button({
       disabled={disabled || loading}
       className={cx(
         'inline-flex items-center justify-center font-medium transition-colors',
-        'disabled:cursor-not-allowed disabled:opacity-50',
+        'disabled:cursor-not-allowed disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brass/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
         BUTTON_VARIANTS[variant],
         BUTTON_SIZES[size],
         className,
@@ -168,7 +168,7 @@ export function Field({
 }
 
 const CONTROL =
-  'w-full rounded-lg border border-line bg-surface px-3 text-sm text-ink placeholder:text-muted/60 transition-colors outline-none focus:border-studio focus:ring-2 focus:ring-studio/15 disabled:bg-canvas disabled:text-muted';
+  'w-full rounded-xl border border-line bg-surface px-3 text-sm text-ink placeholder:text-muted/60 transition-[border-color,box-shadow] outline-none focus:border-brass focus:ring-2 focus:ring-brass/20 disabled:bg-canvas disabled:text-muted';
 
 export function Input({ className, ...rest }: InputHTMLAttributes<HTMLInputElement>) {
   return <input {...rest} className={cx(CONTROL, 'h-10', className)} />;
@@ -282,9 +282,9 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <header className="mb-5 flex flex-wrap items-end justify-between gap-4">
+    <header className="relative mb-6 flex flex-wrap items-end justify-between gap-4 border-b border-line pb-4 before:absolute before:bottom-[-1px] before:left-0 before:h-px before:w-16 before:bg-brass">
       <div className="min-w-0">
-        {eyebrow && <p className="mmv-label mb-1.5">{eyebrow}</p>}
+        {eyebrow && <p className="mmv-label mb-1.5 text-brass-deep">{eyebrow}</p>}
         <h1 className="truncate text-[22px] font-semibold leading-tight tracking-[-0.01em] text-ink sm:text-[26px]">
           {title}
         </h1>
@@ -315,7 +315,7 @@ export function StatCard({
   onClick?: () => void;
 }) {
   const tile: Record<string, string> = {
-    neutral: 'bg-ink/[0.05] text-ink/70',
+    neutral: 'bg-brass/[0.08] text-brass-deep',
     info: 'bg-studio-soft text-studio',
     warning: 'bg-amber-50 text-amber-700',
     danger: 'bg-red-50 text-red-600',
@@ -326,8 +326,8 @@ export function StatCard({
     <Component
       onClick={onClick}
       className={cx(
-        'mmv-surface flex items-start gap-3 p-4 text-left transition-shadow',
-        onClick && 'hover:shadow-lift',
+        'mmv-surface flex items-start gap-3 rounded-2xl border-brass/15 p-4 text-left transition-[border-color,box-shadow,transform]',
+        onClick && 'hover:-translate-y-0.5 hover:border-brass/45 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass/35',
       )}
     >
       {Icon && (
@@ -529,8 +529,8 @@ export function FilterPills<T extends string>({
             className={cx(
               'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12.5px] font-medium transition-colors',
               active
-                ? 'border-strong bg-strong text-white'
-                : 'border-line bg-surface text-muted hover:border-ink/30 hover:text-ink',
+                ? 'border-brass bg-brass text-[#17140E] shadow-[0_3px_12px_rgba(196,166,106,.16)]'
+                : 'border-line bg-surface text-muted hover:border-brass/45 hover:bg-brass/[0.04] hover:text-ink',
             )}
           >
             {item.label}
