@@ -10,6 +10,7 @@ import Login from './pages/Login';
 import ResetPassword from './pages/ResetPassword';
 import AppCentral from './pages/AppCentral';
 import People from './pages/People';
+import Departments from './pages/Departments';
 import DesignLab from './pages/DesignLab';
 import CalendarPage from './pages/Calendar';
 import Notifications from './pages/Notifications';
@@ -155,6 +156,9 @@ export default function App() {
 
         <Route path="/m/people" element={<ModuleLayout moduleKey="people" />}>
           <Route index element={<People />} />
+        </Route>
+        <Route path="/m/departments" element={<ModuleLayout moduleKey="departments" />}>
+          <Route index element={<Departments />} />
         </Route>
 
         <Route path="/m/studio" element={<ModuleLayout moduleKey="studio" />}>

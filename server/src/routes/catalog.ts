@@ -51,8 +51,10 @@ router.get(
   '/sectors',
   asyncHandler(async (req: any, res) => {
     const { rows } = await req.db.query(
-      `select id, key, name, description, active
-         from sectors where active = true order by name`,
+      `select s.id, s.key, s.name, s.description, s.active,
+              (select count(*)::int from user_sectors us join users u on u.id = us.user_id
+                where us.sector_id = s.id and u.status = 'active') as member_count
+         from sectors s where s.active = true order by s.name`,
     );
     res.json({ items: rows });
   }),

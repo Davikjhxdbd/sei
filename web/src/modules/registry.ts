@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   Users,
   Users2,
+  Building2,
   Bug,
   Layers,
   type LucideIcon,
@@ -35,6 +36,9 @@ export interface NavGroup {
 
 /** Navegação interna registrada por cada módulo (independente entre módulos). */
 export const MODULE_NAV: Record<string, NavGroup[]> = {
+  departments: [{ title: 'Departamentos', items: [
+    { label: 'Visão geral', to: '/m/departments', icon: Building2, end: true },
+  ]}],
   people: [{ title: 'Pessoas', items: [
     { label: 'Diretório', to: '/m/people', icon: Users, end: true },
   ]}],
@@ -132,6 +136,7 @@ const MODULE_ICONS: Record<string, LucideIcon> = {
   ListChecks,
   LayoutGrid,
   Users,
+  Building2,
 };
 
 export function moduleIcon(name?: string | null): LucideIcon {
