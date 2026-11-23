@@ -19,6 +19,7 @@ import {
   Bug,
   Layers,
   MessageSquare,
+  Home,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -121,8 +122,9 @@ export const MODULE_NAV: Record<string, NavGroup[]> = {
 
 export const ADMIN_NAV: NavGroup[] = [
   {
-    title: 'Plataforma',
+    title: 'Gestão institucional',
     items: [
+      { label: 'Visão geral', to: '/admin', icon: Home, end: true, minLevel: 4 },
       { label: 'Usuários', to: '/admin/users', icon: Users, minLevel: 5 },
       { label: 'Módulos', to: '/admin/modules', icon: Boxes, minLevel: 5 },
       { label: 'Setores', to: '/admin/sectors', icon: ShieldCheck, minLevel: 4 },

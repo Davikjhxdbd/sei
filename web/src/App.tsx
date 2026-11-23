@@ -24,6 +24,7 @@ import ModulesPage from './pages/admin/Modules';
 import SectorsPage from './pages/admin/Sectors';
 import SettingsPage from './pages/admin/Settings';
 import AuditPage from './pages/admin/Audit';
+import Management from './pages/admin/Management';
 
 import Dashboard from './pages/studio/Dashboard';
 import Production from './pages/studio/Production';
@@ -187,7 +188,7 @@ export default function App() {
         </Route>
 
         <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<Navigate to="/admin/audit" replace />} />
+          <Route index element={<Management />} />
           <Route
             path="users"
             element={
