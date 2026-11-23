@@ -37,7 +37,7 @@ footer{display:flex;justify-content:space-between;color:#707b88;font-size:11px;l
 </head>
 <body>
 <main>
-<header><div><div class="eyebrow">MMV CREATIVE</div><h1>ESCALAS & RESPONSABILIDADES</h1></div><div class="date">SEGUNDA-FEIRA<br><strong>23 DE NOVEMBRO DE 2026</strong></div></header>
+<header><div><div class="eyebrow">MMV CREATIVE</div><h1>ESCALAS & RESPONSABILIDADES</h1></div><div class="date" id="current-date"></div></header>
 <div class="columns">
 <section class="panel">
 <div class="panel-head"><h2>Escala do culto</h2><span class="kicker">EQUIPE LIVE</span></div>
@@ -52,25 +52,38 @@ footer{display:flex;justify-content:space-between;color:#707b88;font-size:11px;l
 </section>
 <section class="panel">
 <div class="panel-head"><h2>Limpeza diária — LIVE</h2><span class="kicker">RODÍZIO</span></div>
-<div class="rotation">
-<div class="day"><div><div class="who">Davi</div><div class="when">Segunda-feira • 23/11</div></div><span class="num">01</span></div>
-<div class="day"><div><div class="who">João Neto</div><div class="when">Terça-feira • 24/11</div></div><span class="num">02</span></div>
-<div class="day"><div><div class="who">Maria Fernanda</div><div class="when">Quarta-feira • 25/11</div></div><span class="num">03</span></div>
-<div class="day"><div><div class="who">Evelyn</div><div class="when">Quinta-feira • 26/11</div></div><span class="num">04</span></div>
-<div class="day"><div><div class="who">João Pedro</div><div class="when">Sexta-feira • 27/11</div></div><span class="num">05</span></div>
-<div class="day"><div><div class="who">Davi</div><div class="when">Sábado • 28/11</div></div><span class="num">06</span></div>
-<div class="day"><div><div class="who">Maria Fernanda</div><div class="when">Domingo • 29/11</div></div><span class="num">07</span></div>
-<div class="day"><div><div class="who">Evelyn</div><div class="when">Segunda-feira • 30/11</div></div><span class="num">08</span></div>
-<div class="day"><div><div class="who">João Pedro</div><div class="when">Terça-feira • 01/12</div></div><span class="num">09</span></div>
-<div class="day"><div><div class="who">Davi</div><div class="when">Quarta-feira • 02/12</div></div><span class="num">10</span></div>
-<div class="day"><div><div class="who">João Neto</div><div class="when">Quinta-feira • 03/12</div></div><span class="num">11</span></div>
-<div class="day"><div><div class="who">Maria Fernanda</div><div class="when">Sexta-feira • 04/12</div></div><span class="num">12</span></div>
-<div class="day"><div><div class="who">Evelyn</div><div class="when">Sábado • 05/12</div></div><span class="num">13</span></div>
-<div class="day"><div><div class="who">João Pedro</div><div class="when">Domingo • 06/12</div></div><span class="num">14</span></div>
-</div>
+<div class="rotation" id="cleaning-rotation"></div>
 <div class="rules"><strong>ORIENTAÇÕES</strong><br>• A limpeza deve ser realizada diariamente.<br>• O responsável deve deixar a sala da LIVE limpa e organizada.<br>• Após o último nome, o rodízio recomeça.<br>• A responsabilidade é individual e não deve ser transferida sem combinar com a equipe.</div>
 </section>
 </div>
 <footer><span>Organização • Equipe de mídia</span><span>Quadro informativo • Visualização pública</span></footer>
 </main>
+
+<script>
+(() => {
+  const names = ["Davi", "João Neto", "Maria Fernanda", "Evelyn", "João Pedro"];
+  const anchor = new Date(2026, 10, 23);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const days = ["DOMINGO", "SEGUNDA-FEIRA", "TERÇA-FEIRA", "QUARTA-FEIRA", "QUINTA-FEIRA", "SEXTA-FEIRA", "SÁBADO"];
+  const dateLabel = today.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
+  document.getElementById("current-date").innerHTML = dateLabel.toUpperCase().replace(" DE ", " DE ").replace(/^([^,]+), /, "$1<br><strong>") + "</strong>";
+  const dayOffset = Math.max(0, Math.floor((today - anchor) / 86400000));
+  let pointer = 0;
+  const assignments = [];
+  for (let offset = 0; offset < dayOffset + 14; offset++) {
+    const date = new Date(anchor);
+    date.setDate(anchor.getDate() + offset);
+    if (date.getDay() === 0 && names[pointer] === "João Neto") pointer = (pointer + 1) % names.length;
+    assignments.push({ date, name: names[pointer] });
+    pointer = (pointer + 1) % names.length;
+  }
+  const visible = assignments.slice(dayOffset, dayOffset + 14);
+  document.getElementById("cleaning-rotation").innerHTML = visible.map((item, index) => {
+    const weekday = days[item.date.getDay()];
+    const date = item.date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+    return '<div class="day"><div><div class="who">' + item.name + '</div><div class="when">' + weekday + ' • ' + date + '</div></div><span class="num">' + String(index + 1).padStart(2, "0") + '</span></div>';
+  }).join("");
+})();
+</script>
 </body></html>
