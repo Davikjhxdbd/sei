@@ -309,3 +309,84 @@
   .connect-progress-stats strong { font-size:17px; }
   .connect-progress-stats span { font-size:6px;letter-spacing:.06em; }
 }
+
+
+/* MMV CREATIVE — refinamento visual */
+.connect-dashboard {
+  background:
+    radial-gradient(ellipse at 78% 8%, rgba(196,166,106,.085), transparent 34%),
+    radial-gradient(ellipse at 8% 78%, rgba(140,107,55,.045), transparent 32%),
+    #090a0c;
+}
+.connect-dashboard .connect-atmosphere { opacity: .28; }
+.connect-dashboard .connect-grid { opacity: .045 !important; }
+.connect-dashboard .connect-command-hero {
+  border-radius: 28px;
+  border-color: rgba(216,189,134,.17);
+  background:
+    radial-gradient(ellipse at 88% 44%, rgba(196,166,106,.105), transparent 34%),
+    linear-gradient(125deg, rgba(27,29,30,.98), rgba(13,15,17,.97) 64%, rgba(20,18,15,.97));
+  box-shadow: 0 30px 90px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.075);
+}
+.connect-command-hero::before {
+  opacity: .25;
+  background:
+    linear-gradient(90deg, transparent 0 67%, rgba(216,189,134,.055) 67.08%, transparent 67.16%),
+    radial-gradient(ellipse at 80% 45%, rgba(196,166,106,.13), transparent 38%);
+}
+.connect-command-hero__body { min-height: 320px; padding: 34px 0 28px; }
+.connect-date-line { margin-bottom: 30px; letter-spacing: .15em; }
+.connect-main-greeting { font-size: clamp(64px, 8vw, 116px); letter-spacing: -.085em; }
+.connect-core-panel { min-height: 300px; }
+.connect-core { width: min(25vw, 286px); }
+.connect-telemetry {
+  padding-top: 21px;
+  border-top-color: rgba(216,189,134,.13);
+}
+.connect-telemetry > div { padding-inline: 22px; }
+.connect-dashboard .connect-glass-card {
+  border-radius: 20px;
+  border-color: rgba(216,189,134,.14);
+  background: linear-gradient(145deg, rgba(27,29,30,.92), rgba(13,15,17,.97));
+  box-shadow: 0 18px 48px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.045);
+}
+.connect-dashboard .connect-glass-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(216,189,134,.28);
+}
+.connect-agenda-rail { gap: 9px; padding: 22px 22px 16px; }
+.connect-agenda-day {
+  min-height: 102px;
+  border-radius: 14px;
+  background: linear-gradient(155deg, rgba(255,255,255,.035), rgba(0,0,0,.16));
+}
+.connect-agenda-day strong { font-size: 26px; }
+.connect-agenda-details { margin-inline: 22px; }
+.connect-shortcut {
+  min-height: 104px;
+  padding: 15px;
+  border-radius: 15px;
+  background: linear-gradient(145deg, rgba(255,255,255,.052), rgba(255,255,255,.012));
+}
+.connect-shortcut__icon {
+  width: 35px;
+  height: 35px;
+  border-radius: 10px;
+}
+.connect-shortcut__name { font-size: 11px; }
+.connect-assistant-card { border-radius: 20px !important; }
+.connect-dashboard footer { padding-top: 18px; }
+@media (max-width: 760px) {
+  .connect-command-hero { border-radius: 22px; }
+  .connect-command-hero__body { padding: 26px 0 20px; }
+  .connect-core-panel { min-height: 205px; }
+  .connect-core { width: 190px; }
+  .connect-telemetry > div { padding-inline: 12px; }
+  .connect-agenda-rail { gap: 5px; padding: 15px 12px 13px; }
+  .connect-agenda-day { min-height: 84px; border-radius: 10px; }
+  .connect-agenda-details { margin-inline: 12px; }
+  .connect-shortcut { min-height: 90px; padding: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .connect-dashboard .connect-glass-card:hover { transform: none; }
+}
