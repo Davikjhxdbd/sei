@@ -26,21 +26,6 @@ import SettingsPage from './pages/admin/Settings';
 import AuditPage from './pages/admin/Audit';
 import Management from './pages/admin/Management';
 
-import Dashboard from './pages/studio/Dashboard';
-import Production from './pages/studio/Production';
-import Events from './pages/studio/Events';
-import EventDetail from './pages/studio/EventDetail';
-import Presets from './pages/studio/Presets';
-import Checklists from './pages/studio/Checklists';
-import ChecklistRun from './pages/studio/ChecklistRun';
-import Reports from './pages/studio/Reports';
-import ReportDetail from './pages/studio/ReportDetail';
-import Errors from './pages/studio/Errors';
-import Occurrences from './pages/studio/Occurrences';
-import Problems from './pages/studio/Problems';
-import ProblemDetail from './pages/studio/ProblemDetail';
-import Schedules from './pages/studio/Schedules';
-import Department from './pages/studio/Department';
 
 function FullScreenLoader() {
   return (
@@ -163,26 +148,6 @@ export default function App() {
         </Route>
         <Route path="/m/communication" element={<ModuleLayout moduleKey="communication" />}>
           <Route index element={<Communication />} />
-        </Route>
-
-        <Route path="/m/studio" element={<ModuleLayout moduleKey="studio" />}>
-          <Route index element={<Dashboard />} />
-          <Route path="departments/:slug" element={<Department />} />
-          <Route path="production" element={<Production />} />
-          <Route path="production/:slug" element={<Production />} />
-          <Route path="my-space" element={<Production />} />
-          <Route path="events" element={<Events />} />
-          <Route path="events/:id" element={<EventDetail />} />
-          <Route path="presets" element={<Presets />} />
-          <Route path="checklists" element={<Checklists />} />
-          <Route path="checklists/runs/:id" element={<ChecklistRun />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="reports/:id" element={<ReportDetail />} />
-          <Route path="errors" element={<Errors />} />
-          <Route path="occurrences" element={<Gate level={3}><Occurrences /></Gate>} />
-          <Route path="problems" element={<Problems />} />
-          <Route path="problems/:id" element={<ProblemDetail />} />
-          <Route path="schedules" element={<Schedules />} />
         </Route>
 
         <Route path="/admin" element={<AdminLayout />}>
