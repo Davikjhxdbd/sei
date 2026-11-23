@@ -5,7 +5,6 @@ import {
   CalendarDays,
   Clapperboard,
   FileText,
-  Film,
   Gauge,
   Gavel,
   LayoutGrid,
@@ -74,14 +73,10 @@ export const MODULE_NAV: Record<string, NavGroup[]> = {
       ],
     },
     {
-      title: 'Acervo',
-      items: [{ label: 'Mídia', to: '/m/studio/media', icon: Film }],
-    },
-    {
       title: 'Administração',
       items: [
         { label: 'Presets de eventos', to: '/m/studio/presets', icon: CalendarDays, minLevel: 1 },
-        { label: 'Configurações', to: '/m/studio/settings', icon: Settings2, minLevel: 4 },
+        { label: 'Configurações', to: '/admin/settings', icon: Settings2, minLevel: 4 },
         { label: 'Usuários', to: '/admin/users', icon: Users, minLevel: 5 },
         { label: 'Auditoria', to: '/admin/audit', icon: ScrollText, minLevel: 4 },
       ],
@@ -112,9 +107,6 @@ export const MODULE_NAV: Record<string, NavGroup[]> = {
   studio_schedules: [{ title: 'Equipe', items: [
     { label: 'Escalas', to: '/m/studio/schedules', icon: Users2, end: true },
   ]}],
-  studio_media: [{ title: 'Acervo', items: [
-    { label: 'Mídia', to: '/m/studio/media', icon: Film, end: true },
-  ]}],
   studio_presets: [{ title: 'Administração', items: [
     { label: 'Presets de eventos', to: '/m/studio/presets', icon: CalendarDays, end: true, minLevel: 1 },
   ]}],
@@ -138,7 +130,6 @@ const MODULE_ICONS: Record<string, LucideIcon> = {
   AudioLines,
   Clapperboard,
   Boxes: BoxesIcon,
-  Film,
   ListChecks,
   LayoutGrid,
   Users,
