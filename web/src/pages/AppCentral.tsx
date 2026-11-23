@@ -121,7 +121,7 @@ export default function AppCentral() {
     return () => window.removeEventListener('keydown', handleShortcut);
   }, []);
 
-  const weekStart = useMemo(() => getWeekStart(new Date()), []);
+  const weekStart = useMemo(() => getWeekStart(clock), [dateKey(clock)]);
   const weekEnd = useMemo(() => {
     const end = new Date(weekStart);
     end.setDate(end.getDate() + 7);
@@ -138,6 +138,12 @@ export default function AppCentral() {
     date.setDate(date.getDate() + index);
     return date;
   }), [weekStart]);
+  useEffect(() => {
+    if (!weekDays.some((date) => dateKey(date) === selectedAgendaDay)) {
+      setSelectedAgendaDay(dateKey(clock));
+    }
+  }, [weekDays, selectedAgendaDay, clock]);
+
   const todayKey = dateKey(new Date());
   const sector = sectorText(user?.sectors ?? []);
   const personalizedMessage = getPersonalMessage(sector);
@@ -243,14 +249,14 @@ export default function AppCentral() {
                 return <Link key={item.id} to={item.route} onClick={() => setCommandOpen(false)} className={`connect-command-result ${commandItems[commandIndex]?.id === item.id ? "is-active" : ""}`}><span className="connect-command-result__icon"><Icon size={16}/></span><span>{item.name}<small>{item.group}</small></span><ArrowRight size={15}/></Link>;
               }) : <p className="connect-command-empty">Nenhum resultado. Tente outro termo.</p>}
             </div>
-            <div className="connect-command-modal__footer"><span>MMV / CONNECT</span><span>ESC FECHAR · ↑ ↓ NAVEGAR · ENTER ABRIR</span></div>
+            <div className="connect-command-modal__footer"><span>MMV / CREATIVE</span><span>ESC FECHAR · ↑ ↓ NAVEGAR · ENTER ABRIR</span></div>
           </section>
         </div>}
 
         <section className="mx-auto flex w-full max-w-[1180px] flex-1 flex-col justify-start gap-5 py-5 sm:gap-6 sm:py-6">
           <section className="connect-command-hero" aria-labelledby="connect-greeting">
             <div className="connect-command-hero__topline">
-              <span className="connect-eyebrow"><span className="connect-live-dot" /> MMV CONNECT <span className="connect-topline-divider">/</span> CENTRAL DE OPERAÇÕES</span>
+              <span className="connect-eyebrow"><span className="connect-live-dot" /> MMV CREATIVE <span className="connect-topline-divider">/</span> CENTRAL DE OPERAÇÕES</span>
               <span className="connect-session-code">SESSION {dateKey(clock).replace(/-/g, '').slice(2)} · LOCAL</span>
             </div>
             <div className="connect-command-hero__body">
