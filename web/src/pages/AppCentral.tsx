@@ -148,6 +148,7 @@ export default function AppCentral() {
   const quickModules = modules.slice(0, 4);
   const commandItems = useMemo(() => [
     ...modules.map((module) => ({ id: module.id, name: module.name, route: module.route, icon: moduleIcon(module.icon), group: 'MÓDULOS' })),
+    { id: 'personal', name: 'Meu espaço', route: '/pessoal', icon: UserRound, group: 'PESSOAL' },
     { id: 'calendar', name: 'Agenda', route: '/calendar', icon: CalendarDays, group: 'ESPAÇOS' },
     { id: 'notifications', name: 'Notificações', route: '/notifications', icon: Bell, group: 'ESPAÇOS' },
     { id: 'profile', name: 'Meu perfil', route: '/profile', icon: UserRound, group: 'ESPAÇOS' },
@@ -355,6 +356,7 @@ export default function AppCentral() {
                 })}
                 <Link to="/calendar" className="connect-shortcut"><span className="connect-shortcut__icon"><CalendarDays className="h-4 w-4"/></span><span className="connect-shortcut__name">Agenda</span><span className="connect-shortcut__index">05</span><ArrowUpRight className="connect-shortcut__arrow" size={14}/></Link>
                 <Link to="/escalas" className="connect-shortcut"><span className="connect-shortcut__icon"><ClipboardList className="h-4 w-4"/></span><span className="connect-shortcut__name">Escalas</span><span className="connect-shortcut__index">06</span><ArrowUpRight className="connect-shortcut__arrow" size={14}/></Link>
+                <Link to="/pessoal" className="connect-shortcut"><span className="connect-shortcut__icon"><UserRound className="h-4 w-4"/></span><span className="connect-shortcut__name">Meu espaço</span><span className="connect-shortcut__index">07</span><ArrowUpRight className="connect-shortcut__arrow" size={14}/></Link>
               </div>
             </section>
           </div>
