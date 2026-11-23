@@ -15,6 +15,7 @@ import Communication from './pages/Communication';
 import DesignLab from './pages/DesignLab';
 import CalendarPage from './pages/Calendar';
 import EscalasPage from './pages/Escalas';
+import PersonalArea from './pages/PersonalArea';
 import Notifications from './pages/Notifications';
 import Profile from './pages/Profile';
 import Help from './pages/Help';
@@ -141,6 +142,7 @@ export default function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/escalas" element={<EscalasPage />} />
+        <Route path="/pessoal" element={<PersonalArea />} />
 
         <Route path="/m/people" element={<ModuleLayout moduleKey="people" />}>
           <Route index element={<People />} />
