@@ -16,7 +16,6 @@ import {
   Users,
   Users2,
   Building2,
-  MessageSquare,
   Bug,
   Layers,
   MessageSquare,
