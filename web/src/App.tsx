@@ -9,6 +9,7 @@ import { ShieldAlert } from 'lucide-react';
 import Login from './pages/Login';
 import ResetPassword from './pages/ResetPassword';
 import AppCentral from './pages/AppCentral';
+import People from './pages/People';
 import DesignLab from './pages/DesignLab';
 import CalendarPage from './pages/Calendar';
 import Notifications from './pages/Notifications';
@@ -151,6 +152,10 @@ export default function App() {
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/calendar" element={<CalendarPage />} />
+
+        <Route path="/m/people" element={<ModuleLayout moduleKey="people" />}>
+          <Route index element={<People />} />
+        </Route>
 
         <Route path="/m/studio" element={<ModuleLayout moduleKey="studio" />}>
           <Route index element={<Dashboard />} />

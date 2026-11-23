@@ -35,6 +35,9 @@ export interface NavGroup {
 
 /** Navegação interna registrada por cada módulo (independente entre módulos). */
 export const MODULE_NAV: Record<string, NavGroup[]> = {
+  people: [{ title: 'Pessoas', items: [
+    { label: 'Diretório', to: '/m/people', icon: Users, end: true },
+  ]}],
   studio: [
     {
       title: 'Produção audiovisual',
