@@ -1,4 +1,5 @@
 import '../connect-hybrid.css';
+import { PWAControls } from '../components/PWAControls';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -208,16 +209,17 @@ export default function AppCentral() {
 
       <div className="relative mx-auto flex min-h-screen w-full max-w-[1440px] flex-col px-4 py-5 sm:px-7 sm:py-7 lg:px-10">
         <header className="flex items-center justify-between border-b border-[#C4A66A]/20 pb-5">
-          <Link to="/" className="group flex items-center gap-3" aria-label="MMV CONNECT — início">
+          <Link to="/" className="group flex items-center gap-3" aria-label="MMV CREATIVE — início">
             <span className="connect-brand-mark grid h-11 w-11 place-items-center overflow-hidden rounded-[13px] border border-[#C4A66A]/45 bg-gradient-to-br from-[#C4A66A]/20 to-[#17130D]/70 shadow-[0_8px_30px_rgba(196,166,106,.13)]">
               <ConnectMark />
             </span>
             <span className="flex flex-col leading-none">
-              <span className="text-[13px] font-extrabold tracking-[0.16em] text-white">MMV<span className="text-[#C4A66A]">/</span>CONNECT</span>
+              <span className="text-[13px] font-extrabold tracking-[0.16em] text-white">MMV<span className="text-[#C4A66A]"> </span>CREATIVE</span>
               <span className="mt-1.5 text-[8px] font-semibold tracking-[0.25em] text-[#D8BD86]/55">PLATAFORMA INTEGRADA</span>
             </span>
           </Link>
           <div className="flex items-center gap-3">
+            <PWAControls />
             <button type="button" onClick={() => { setCommandOpen(true); setCommandQuery(''); setCommandIndex(0); }} className="connect-header-command" aria-label="Abrir central de comandos"><Command size={16}/><span>COMANDOS</span><kbd>⌘ K</kbd></button>
             <span className="hidden text-right sm:block">
               <span className="block text-[11px] font-bold uppercase tracking-[0.12em] text-white/85">{firstName(user?.full_name)}</span>
@@ -232,7 +234,7 @@ export default function AppCentral() {
         {menuOpen && <>
           <button aria-label="Fechar menu" onClick={() => setMenuOpen(false)} className="fixed inset-0 z-20 cursor-default" />
           <nav className="absolute right-4 top-[5.1rem] z-30 w-[min(88vw,320px)] overflow-hidden rounded-2xl border border-[#C4A66A]/30 bg-[#111316]/95 p-2 shadow-[0_24px_80px_rgba(0,0,0,.75)] backdrop-blur-2xl sm:right-7 lg:right-10" aria-label="Menu principal">
-            <div className="mb-1 flex items-center justify-between px-3 pb-2 pt-2.5"><p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#D8BD86]/65">NAVEGAÇÃO</p><span className="text-[8px] font-bold tracking-[0.16em] text-[#C4A66A]/55">MMV / CONNECT</span></div>
+            <div className="mb-1 flex items-center justify-between px-3 pb-2 pt-2.5"><p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#D8BD86]/65">NAVEGAÇÃO</p><span className="text-[8px] font-bold tracking-[0.16em] text-[#C4A66A]/55">MMV CREATIVE</span></div>
             {modules.map((module) => {
               const Icon = moduleIcon(module.icon);
               return <Link key={module.id} to={module.route} onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold text-white/80 transition hover:bg-[#C4A66A]/10"><Icon className="h-4 w-4 text-[#D8BD86]" />{module.name}</Link>;
@@ -279,7 +281,7 @@ export default function AppCentral() {
                   <ArrowRight className="connect-command-trigger__arrow" size={15}/>
                 </button>
               </div>
-              <div className="connect-core-panel" aria-label="Núcleo visual do MMV CONNECT">
+              <div className="connect-core-panel" aria-label="Núcleo visual do MMV CREATIVE">
                 <div className="connect-core-panel__coordinates">CORE / 001<br/>MMV SYSTEM</div>
                 <div className="connect-core">
                   <div className="connect-core__orbit connect-core__orbit--one"/>

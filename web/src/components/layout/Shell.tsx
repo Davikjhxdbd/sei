@@ -44,7 +44,7 @@ function useOutside(open: boolean, onClose: () => void) {
 
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
-    <Link to="/" className="flex items-center gap-2.5" aria-label="MMV CONNECT — central">
+    <Link to="/" className="flex items-center gap-2.5" aria-label="MMV CREATIVE — central">
       <span className="grid h-8 w-8 place-items-center rounded-lg border border-brass/45 bg-[#171612]">
         <svg viewBox="0 0 64 64" className="h-7 w-7" fill="none" aria-hidden="true">
           <path d="M12 47V18L32 37L52 18V47" stroke="#F0E3C4" strokeWidth="3.2" strokeLinecap="square" strokeLinejoin="round" />
@@ -57,7 +57,7 @@ function Brand({ compact = false }: { compact?: boolean }) {
       {!compact && (
         <span className="hidden flex-col leading-none sm:flex">
           <span className="text-[12.5px] font-semibold uppercase tracking-wider2 text-white">
-            MMV / CONNECT
+            MMV CREATIVE
           </span>
           <span className="mt-1 text-[10px] uppercase tracking-wider2 text-white/40">
             Plataforma integrada
