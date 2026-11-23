@@ -65,6 +65,75 @@ function escapeHtml(value: string) {
 }
 
 router.post(
+  '/register',
+  asyncHandler(async (req, res) => {
+    const fullName = String(req.body?.full_name ?? '').trim();
+    const username = String(req.body?.username ?? '').trim().toLowerCase();
+    const email = String(req.body?.email ?? '').trim().toLowerCase();
+    const password = String(req.body?.password ?? '');
+
+    if (fullName.length < 3 || fullName.length > 160) {
+      throw badRequest('Informe seu nome completo.');
+    }
+    if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username)) {
+      throw badRequest('O usuário deve ter de 3 a 32 caracteres: letras, números, ponto, hífen ou underline.');
+    }
+    if (!/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(email) || email.length > 254) {
+      throw badRequest('Informe um e-mail válido.');
+    }
+    if (password.length < 8 || password.length > 128) {
+      throw badRequest('A senha deve ter entre 8 e 128 caracteres.');
+    }
+
+    const signupBucket = rateLimitBucket('account-registration', req.ip ?? '');
+    const signupAttempts = await consumeRateLimit(req.db, signupBucket, 60 * 60_000);
+    if (signupAttempts > 5) {
+      throw forbidden('Muitas tentativas de cadastro. Aguarde uma hora e tente novamente.', 'too_many_attempts');
+    }
+
+    try {
+      const result = await tx(req.db, async () => {
+        // Serializa cadastros: somente o primeiro usuário pode receber sysadmin.
+        await req.db.query('select pg_advisory_xact_lock(78120419)');
+        const { rows: existing } = await req.db.query('select count(*)::int as total from users');
+        const firstAdmin = existing[0].total === 0;
+        const passwordHash = await hashPassword(password);
+
+        // O gatilho de cargos exige contexto de administrador; esta exceção
+        // fica restrita à transação de cadastro e não é reutilizada na sessão.
+        await req.db.query(
+          "select set_config('mmv.actor_id', '', true), set_config('mmv.actor_level', '5', true)",
+        );
+        const { rows } = await req.db.query(
+          `insert into users (full_name, username, email, password_hash, status)
+           values ($1, $2, $3, $4, $5)
+           returning id`,
+          [fullName, username, email, passwordHash, firstAdmin ? 'active' : 'pending'],
+        );
+        await req.db.query(
+          'insert into user_roles (user_id, role) values ($1, $2)',
+          [rows[0].id, firstAdmin ? 'sysadmin' : 'member'],
+        );
+        return firstAdmin;
+      });
+
+      res.status(201).json({
+        ok: true,
+        first_admin: result,
+        message: result
+          ? 'Sua conta de administrador principal foi criada. Agora entre com seu usuário e senha.'
+          : 'Sua solicitação foi recebida. A conta ficará pendente até a aprovação da administração.',
+      });
+    } catch (error: any) {
+      if (error?.code === '23505') {
+        throw badRequest('Este nome de usuário ou e-mail já está cadastrado.');
+      }
+      throw error;
+    }
+  }),
+);
+
+router.post(
   '/forgot-password',
   asyncHandler(async (req, res) => {
     const email = String(req.body?.email ?? '').trim().toLowerCase();
