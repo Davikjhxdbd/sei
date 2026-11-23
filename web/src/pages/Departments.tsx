@@ -29,7 +29,7 @@ export default function Departments() {
         title="Departamentos"
         description="Conheça as equipes, suas áreas de atuação e a composição institucional."
       />
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <div className="mmv-directory-toolbar mb-5 flex flex-wrap items-center justify-between gap-3">
         <SearchInput value={query} onChange={setQuery} placeholder="Buscar departamento…" className="w-full sm:max-w-sm" />
         <Badge tone="accent">{departments.length} {departments.length === 1 ? 'departamento' : 'departamentos'}</Badge>
       </div>
@@ -39,16 +39,16 @@ export default function Departments() {
           <button type="button" onClick={() => void reload()} className="mt-3 text-sm font-semibold text-brass-deep">Tentar novamente</button>
         </Card>
       ) : departments.length ? (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="mmv-department-grid grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {departments.map((department) => (
-            <Card key={department.id} className="p-5">
+            <Card key={department.id} className="mmv-department-card p-5">
               <div className="flex items-start justify-between gap-3">
-                <span className="grid h-10 w-10 place-items-center rounded-xl border border-brass/20 bg-brass/[0.08] text-brass-deep"><Building2 className="h-5 w-5" /></span>
+                <span className="mmv-department-icon grid h-10 w-10 place-items-center rounded-xl border border-brass/20 bg-brass/[0.08] text-brass-deep"><Building2 className="h-5 w-5" /></span>
                 <Badge tone="success">Ativo</Badge>
               </div>
               <h2 className="mt-4 text-base font-semibold text-ink">{department.name}</h2>
               <p className="mt-1 min-h-10 text-[12.5px] leading-relaxed text-muted">{department.description || 'Departamento institucional.'}</p>
-              <div className="mt-4 flex items-center gap-2 border-t border-line pt-3 text-[12px] text-muted">
+              <div className="mmv-department-members mt-4 flex items-center gap-2 border-t border-line pt-3 text-[12px] text-muted">
                 <Users2 className="h-4 w-4" /> {department.member_count} {department.member_count === 1 ? 'integrante ativo' : 'integrantes ativos'}
               </div>
             </Card>
