@@ -36,9 +36,9 @@ function formatDate(date: Date, options: Intl.DateTimeFormatOptions) {
 export default function PersonalArea() {
   const today = new Date();
   const currentPerson = assignmentFor(today);
-  const rotation = useMemo(() => Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + index);
-    return { date, person: assignmentFor(date) };
+  const rotation = useMemo(() => Array.from({ length: 14 }, (_, index) => {
+    const date = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + index);
+    return { date, person: assignmentFor(date), isToday: localDateKey(date) === localDateKey(today) };
   }), []);
 
   return (
@@ -73,14 +73,13 @@ export default function PersonalArea() {
           <div className="flex flex-col gap-2 border-b border-line p-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="mmv-label">Rotina compartilhada</p>
-              <h2 className="mt-1 text-lg font-semibold text-ink">Escala diária de limpeza</h2>
-              <p className="mt-1 text-sm text-muted">Revezamento diário entre os cinco participantes.</p>
+              <h2 className="mt-1 text-lg font-semibold text-ink">ESCALA DE LIMPEZA DIÁRIA — LIVE</h2>
+              <p className="mt-1 text-sm text-muted">Um responsável por dia. Início: 23 de novembro de 2026.</p>
             </div>
-            <span className="inline-flex w-fit items-center gap-2 rounded-full bg-canvas px-3 py-1.5 text-xs font-medium text-muted"><CalendarDays size={13} /> Ciclo iniciado em 23/11/2026</span>
+            <span className="inline-flex w-fit items-center gap-2 rounded-full bg-canvas px-3 py-1.5 text-xs font-medium text-muted"><CalendarDays size={13} /> 23/11/2026 a 06/12/2026</span>
           </div>
           <div className="divide-y divide-line">
-            {rotation.map(({ date, person }, index) => {
-              const isToday = index === 0;
+            {rotation.map(({ date, person, isToday }) => {
               return (
                 <div key={localDateKey(date)} className={`flex items-center justify-between gap-4 px-5 py-4 ${isToday ? 'bg-canvas/70' : ''}`}>
                   <div className="flex min-w-0 items-center gap-3">
@@ -98,11 +97,13 @@ export default function PersonalArea() {
             })}
           </div>
           <div className="border-t border-line bg-canvas/50 p-5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted">Ordem do revezamento</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {cleaners.map((name, index) => <span key={name} className="rounded-lg border border-line bg-surface px-3 py-2 text-xs font-medium text-ink"><span className="mr-2 text-brass">{String(index + 1).padStart(2, '0')}</span>{name}</span>)}
-            </div>
-            <p className="mt-3 text-xs leading-relaxed text-muted">A sequência se repete automaticamente a cada cinco dias.</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">Regras da escala</p>
+            <ul className="mt-3 space-y-2 text-sm leading-relaxed text-muted">
+              <li>• A limpeza deve ser realizada diariamente.</li>
+              <li>• O responsável do dia deve deixar a sala da LIVE limpa e organizada.</li>
+              <li>• Após o último nome, o rodízio recomeça.</li>
+              <li>• A responsabilidade é individual e não deve ser transferida sem combinar com a equipe.</li>
+            </ul>
           </div>
         </section>
 
