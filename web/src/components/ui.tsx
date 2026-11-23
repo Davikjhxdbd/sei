@@ -282,7 +282,7 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <header className="relative mb-6 flex flex-wrap items-end justify-between gap-4 border-b border-line pb-4 before:absolute before:bottom-[-1px] before:left-0 before:h-px before:w-16 before:bg-brass">
+    <header className="mmv-page-header relative mb-7 flex flex-wrap items-end justify-between gap-4 border-b border-line pb-5 before:absolute before:bottom-[-1px] before:left-0 before:h-px before:w-16 before:bg-brass">
       <div className="min-w-0">
         {eyebrow && <p className="mmv-label mb-1.5 text-brass-deep">{eyebrow}</p>}
         <h1 className="truncate text-[22px] font-semibold leading-tight tracking-[-0.01em] text-ink sm:text-[26px]">
