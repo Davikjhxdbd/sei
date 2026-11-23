@@ -60,7 +60,6 @@ const MODULE_ICONS: Record<string, LucideIcon> = {
   AudioLines,
   Clapperboard,
   Boxes: BoxesIcon,
-  ListChecks,
   LayoutGrid,
   Users,
   Building2,
