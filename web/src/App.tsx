@@ -40,7 +40,6 @@ import Occurrences from './pages/studio/Occurrences';
 import Problems from './pages/studio/Problems';
 import ProblemDetail from './pages/studio/ProblemDetail';
 import Schedules from './pages/studio/Schedules';
-import Media from './pages/studio/Media';
 import Department from './pages/studio/Department';
 
 function FullScreenLoader() {
@@ -184,7 +183,6 @@ export default function App() {
           <Route path="problems" element={<Problems />} />
           <Route path="problems/:id" element={<ProblemDetail />} />
           <Route path="schedules" element={<Schedules />} />
-          <Route path="media" element={<Media />} />
         </Route>
 
         <Route path="/admin" element={<AdminLayout />}>
