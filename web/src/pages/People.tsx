@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Users, Search, Building2 } from 'lucide-react';
-import { Shell } from '../components/layout/Shell';
+import { Users, Building2 } from 'lucide-react';
 import { Avatar, Badge, Card, LoadingBlock, PageHeader, SearchInput } from '../components/ui';
 import { useApi } from '../lib/useApi';
 
@@ -23,7 +22,7 @@ export default function People() {
   }, [data, query]);
 
   return (
-    <Shell>
+    <>
       <PageHeader
         eyebrow="MMV CREATIVE · PESSOAS"
         title="Pessoas"
@@ -62,6 +61,6 @@ export default function People() {
           <p className="mt-1 text-xs text-muted">{query ? 'Tente outro nome ou departamento.' : 'Os integrantes ativos aparecerão aqui.'}</p>
         </Card>
       )}
-    </Shell>
+    </>
   );
 }
