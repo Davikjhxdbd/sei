@@ -70,7 +70,6 @@ export default function Login() {
         loop
         playsInline
         preload="metadata"
-        poster="/site/login-hero.png"
         className="pointer-events-none absolute inset-0 h-full w-full object-cover"
         aria-hidden="true"
       >
