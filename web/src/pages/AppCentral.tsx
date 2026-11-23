@@ -341,6 +341,7 @@ export default function AppCentral() {
                 )}
               </div>
             </section>
+          </div>
 
           <div className="connect-content-grid grid gap-5 lg:grid-cols-1">
             <section className="connect-glass-card rounded-[23px] border border-[#C4A66A]/25 bg-[linear-gradient(145deg,rgba(28,27,23,.66),rgba(14,16,18,.84))] p-5 shadow-[0_16px_45px_rgba(0,0,0,.28)] sm:p-6">
