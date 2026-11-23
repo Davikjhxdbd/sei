@@ -440,7 +440,7 @@ export function Shell({
 
           {user && (
             <footer className="border-t border-line px-4 py-4 text-[11px] text-muted sm:px-6">
-              MMV / CONNECT · {user.full_name} ·{' '}
+              MMV / CREATIVE · {user.full_name} ·{' '}
               {user.roles.map((role) => ROLE_LABELS[role] ?? role).join(' · ')}
             </footer>
           )}
