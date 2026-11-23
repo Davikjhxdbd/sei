@@ -28,7 +28,7 @@ export default function People() {
         title="Pessoas"
         description="Diretório institucional dos integrantes ativos e suas equipes."
       />
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <div className="mmv-directory-toolbar mb-5 flex flex-wrap items-center justify-between gap-3">
         <SearchInput value={query} onChange={setQuery} placeholder="Buscar pessoa ou departamento…" className="w-full sm:max-w-sm" />
         <Badge tone="accent">{people.length} {people.length === 1 ? 'integrante' : 'integrantes'}</Badge>
       </div>
@@ -38,9 +38,9 @@ export default function People() {
           <button type="button" onClick={() => void reload()} className="mt-3 text-sm font-semibold text-brass-deep">Tentar novamente</button>
         </Card>
       ) : people.length ? (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="mmv-people-grid grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {people.map((person) => (
-            <Card key={person.id} className="flex min-w-0 items-center gap-3 p-4">
+            <Card key={person.id} className="mmv-person-card flex min-w-0 items-center gap-3 p-4">
               <Avatar name={person.full_name} size="lg" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-ink">{person.full_name}</p>
