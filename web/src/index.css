@@ -607,3 +607,48 @@ html, body, #root {
 @media (prefers-reduced-motion: reduce) {
   .mmv-surface { transition: none; }
 }
+
+
+/* Calendário — superfícies e modal com profundidade Liquid Glass */
+.mmv-glass-modal {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 92% 0%, rgba(196,166,106,.105), transparent 38%),
+    linear-gradient(145deg, rgba(42,42,42,.96), rgba(23,23,23,.97));
+  border-color: rgba(255,255,255,.14);
+  box-shadow: 0 30px 90px rgba(0,0,0,.48), inset 0 1px 0 rgba(255,255,255,.10);
+  -webkit-backdrop-filter: saturate(160%) blur(28px);
+  backdrop-filter: saturate(160%) blur(28px);
+}
+.mmv-glass-modal::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(120deg, rgba(255,255,255,.065), transparent 28%, transparent 72%, rgba(196,166,106,.045));
+}
+.mmv-glass-modal > * { position: relative; }
+.mmv-glass-modal input,
+.mmv-glass-modal textarea,
+.mmv-glass-modal select {
+  background: rgba(255,255,255,.045);
+  border-color: rgba(255,255,255,.13);
+}
+.mmv-calendar-panel { box-shadow: 0 20px 48px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.075); }
+.light .mmv-surface {
+  background: linear-gradient(135deg, rgba(255,255,255,.94), rgba(250,249,246,.84));
+  border-color: rgba(164,134,78,.18);
+  box-shadow: 0 14px 34px rgba(45,38,25,.075), inset 0 1px 0 rgba(255,255,255,.95);
+}
+.light .mmv-glass-modal {
+  background: radial-gradient(ellipse at 92% 0%, rgba(196,166,106,.12), transparent 38%), linear-gradient(145deg, rgba(255,255,255,.98), rgba(246,244,239,.98));
+  border-color: rgba(164,134,78,.22);
+  box-shadow: 0 30px 80px rgba(35,30,20,.22), inset 0 1px 0 rgba(255,255,255,.98);
+}
+.light .mmv-glass-modal input,
+.light .mmv-glass-modal textarea,
+.light .mmv-glass-modal select { background: rgba(255,255,255,.72); border-color: rgba(164,134,78,.2); }
+@media (max-width: 640px) {
+  .mmv-glass-modal { border-radius: 18px; }
+}
