@@ -225,7 +225,7 @@ export default function CalendarPage() {
   return (
     <Shell nav={CALENDAR_NAV} sidebarEyebrow="Plataforma">
       <div className="space-y-6">
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <header className="mmv-page-header flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="mmv-label">Organização e planejamento</p>
             <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink">Calendário</h1>
@@ -400,7 +400,7 @@ export default function CalendarPage() {
 
       {modalOpen && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center overflow-y-auto bg-black/55 p-4">
-          <div className="my-auto w-full max-w-xl rounded-2xl border border-line bg-surface shadow-lift">
+          <div className="mmv-glass-modal my-auto w-full max-w-xl rounded-2xl border border-line bg-surface shadow-lift">
             <div className="flex items-center justify-between border-b border-line px-5 py-4">
               <div>
                 <p className="mmv-label">Calendário compartilhado</p>
