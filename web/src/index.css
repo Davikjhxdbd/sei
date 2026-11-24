@@ -866,3 +866,25 @@ html, body, #root {
 @media (max-width: 640px) {
   .mmv-directory-state-card { border-radius: 15px; }
 }
+
+
+/* Indicadores de carregamento — presença visual discreta */
+.mmv-loading-state {
+  min-height: 112px;
+  margin-block: 8px;
+  border: 1px solid rgba(196,166,106,.10);
+  border-radius: 16px;
+  background: linear-gradient(110deg, rgba(255,255,255,.018), rgba(196,166,106,.035), rgba(255,255,255,.018));
+  letter-spacing: .01em;
+}
+.mmv-loading-state > svg {
+  color: #c5a76e;
+  filter: drop-shadow(0 0 7px rgba(196,166,106,.22));
+}
+.light .mmv-loading-state {
+  border-color: rgba(164,134,78,.14);
+  background: linear-gradient(110deg, rgba(255,255,255,.68), rgba(196,166,106,.055), rgba(255,255,255,.68));
+}
+@media (max-width: 640px) {
+  .mmv-loading-state { min-height: 96px; border-radius: 14px; }
+}
