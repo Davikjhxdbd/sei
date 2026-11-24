@@ -41,7 +41,77 @@ function dateLabel(value?: string | null) {
   return date.toLocaleDateString('pt-BR');
 }
 
-function TaskCard({ task, onStatus }: { task: any; onStatus: (id: string, status: string) => void }) {
+function TaskCard({
+  task, onStatus, currentUserId, canEdit,
+}: {
+  task: any;
+  onStatus: (id: string, status: string) => void;
+  currentUserId?: string;
+  canEdit: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const [activity, setActivity] = useState<any[]>([]);
+  const [message, setMessage] = useState('');
+  const [loadingActivity, setLoadingActivity] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState('');
+
+  async function loadActivity() {
+    setLoadingActivity(true);
+    setError('');
+    try {
+      const result = await get<{ items: any[] }>(`/studio/production/tasks/${task.id}/activity`);
+      setActivity(result.items || []);
+    } catch (err: any) {
+      setError(err.message || 'Não foi possível carregar o histórico.');
+    } finally {
+      setLoadingActivity(false);
+    }
+  }
+
+  async function toggleActivity() {
+    const next = !expanded;
+    setExpanded(next);
+    if (next) await loadActivity();
+  }
+
+  async function acceptTask() {
+    setSending(true);
+    setError('');
+    try {
+      await post(`/studio/production/tasks/${task.id}/accept`, {});
+      await loadActivity();
+    } catch (err: any) {
+      setError(err.message || 'Não foi possível confirmar o recebimento.');
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function sendMessage(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!message.trim()) return;
+    setSending(true);
+    setError('');
+    try {
+      await post(`/studio/production/tasks/${task.id}/comments`, { message: message.trim() });
+      setMessage('');
+      await loadActivity();
+    } catch (err: any) {
+      setError(err.message || 'Não foi possível enviar a mensagem.');
+    } finally {
+      setSending(false);
+    }
+  }
+
+  const accepted = activity.some(item => item.action === 'accepted' && item.user_id === currentUserId);
+  const actionLabel: Record<string, string> = {
+    created: 'criou a tarefa',
+    updated: 'atualizou a produção',
+    accepted: 'confirmou o recebimento',
+    comment: 'enviou uma mensagem',
+  };
+
   return (
     <article className="rounded-xl border border-line bg-surface p-4">
       <div className="flex items-start justify-between gap-3">
@@ -56,7 +126,7 @@ function TaskCard({ task, onStatus }: { task: any; onStatus: (id: string, status
         <div className="flex items-center gap-2"><CalendarDays className="h-3.5 w-3.5" />Prazo: {dateLabel(task.due_date)}</div>
         {task.recording_date && <div className="flex items-center gap-2"><Video className="h-3.5 w-3.5" />Gravação: {dateLabel(task.recording_date)}</div>}
       </div>
-      <div className="mt-4 border-t border-line pt-3">
+      {canEdit && <div className="mt-4 border-t border-line pt-3">
         <label className="mb-1.5 block text-[10px] uppercase tracking-wider text-muted">Etapa</label>
         <select
           value={task.status}
@@ -65,7 +135,38 @@ function TaskCard({ task, onStatus }: { task: any; onStatus: (id: string, status
         >
           {STATUS.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
         </select>
+      </div>}
+      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3">
+        <button type="button" onClick={toggleActivity} className="rounded-lg border border-line px-3 py-2 text-[11px] font-medium text-ink hover:border-[#C4A66A]/50">
+          {expanded ? 'Fechar conversa' : 'Histórico e conversa'}
+        </button>
+        {task.assigned_to === currentUserId && expanded && !accepted && (
+          <button type="button" disabled={sending} onClick={acceptTask} className="rounded-lg bg-[#C4A66A] px-3 py-2 text-[11px] font-semibold text-[#111] disabled:opacity-50">
+            {sending ? 'Confirmando...' : 'Confirmar recebimento'}
+          </button>
+        )}
       </div>
+      {expanded && <div className="mt-3 space-y-3">
+        {loadingActivity ? <p className="text-xs text-muted">Carregando histórico...</p> : (
+          <div className="max-h-56 space-y-2 overflow-y-auto">
+            {activity.map(item => {
+              const details = item.details || {};
+              const text = details.message || (item.action === 'created' ? details.title : '');
+              return <div key={item.id} className="rounded-lg bg-ink/[0.035] p-3">
+                <p className="text-[10px] text-muted">{item.user_name} · {actionLabel[item.action] || item.action} · {new Date(item.created_at).toLocaleString('pt-BR')}</p>
+                {text && <p className="mt-1 whitespace-pre-wrap text-xs text-ink">{text}</p>}
+              </div>;
+            })}
+            {!activity.length && <p className="text-xs text-muted">Nenhuma atividade registrada ainda.</p>}
+          </div>
+        )}
+        {task.assigned_to === currentUserId && accepted && <p className="text-[10px] text-emerald-600">Recebimento confirmado.</p>}
+        <form onSubmit={sendMessage} className="flex gap-2">
+          <input value={message} onChange={e => setMessage(e.target.value)} maxLength={4000} placeholder="Escreva uma atualização ou mensagem..." className="h-10 min-w-0 flex-1 rounded-lg border border-line bg-canvas px-3 text-xs text-ink outline-none focus:border-[#C4A66A]" />
+          <button type="submit" disabled={sending || !message.trim()} className="rounded-lg bg-[#C4A66A] px-3 text-xs font-semibold text-[#111] disabled:opacity-50">Enviar</button>
+        </form>
+        {error && <p className="text-xs text-red-500">{error}</p>}
+      </div>}
     </article>
   );
 }
