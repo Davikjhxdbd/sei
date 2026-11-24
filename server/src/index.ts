@@ -16,6 +16,7 @@ import notificationRoutes from './routes/notifications';
 import communicationRoutes from './routes/communication';
 import profileRoutes from './routes/profile';
 import calendarRoutes from './routes/calendar';
+import studioProductionRoutes from './routes/studio/production';
 
 const app = express();
 // Render terminates one trusted proxy hop; do not trust arbitrary client-supplied X-Forwarded-For chains.
@@ -52,6 +53,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/communication', communicationRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/calendar', calendarRoutes);
+app.use('/api/studio', studioProductionRoutes);
 
 app.use('/api', (_req, res) => {
   res.status(404).json({ error: 'not_found', message: 'Rota não encontrada.' });
