@@ -45,8 +45,14 @@ function useOutside(open: boolean, onClose: () => void) {
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
     <Link to="/" className="flex items-center gap-2.5" aria-label="MMV CREATIVE — central">
-      <span className="grid h-8 w-8 place-items-center rounded-lg bg-brass text-[13px] font-bold tracking-tight text-white">
-        MV
+      <span className="grid h-8 w-8 place-items-center rounded-lg border border-brass/45 bg-[#171612]">
+        <svg viewBox="0 0 64 64" className="h-7 w-7" fill="none" aria-hidden="true">
+          <path d="M12 47V18L32 37L52 18V47" stroke="#F0E3C4" strokeWidth="3.2" strokeLinecap="square" strokeLinejoin="round" />
+          <path d="M32 37V10" stroke="#C4A66A" strokeWidth="3.2" strokeLinecap="square" />
+          <circle cx="32" cy="9" r="3.2" fill="#F4F2ED" />
+          <circle cx="12" cy="18" r="2.3" fill="#C4A66A" />
+          <circle cx="52" cy="18" r="2.3" fill="#C4A66A" />
+        </svg>
       </span>
       {!compact && (
         <span className="hidden flex-col leading-none sm:flex">
@@ -54,7 +60,7 @@ function Brand({ compact = false }: { compact?: boolean }) {
             MMV CREATIVE
           </span>
           <span className="mt-1 text-[10px] uppercase tracking-wider2 text-white/40">
-            Plataforma operacional
+            Plataforma integrada
           </span>
         </span>
       )}
@@ -123,7 +129,7 @@ function ModuleSwitcher({
                 Visão geral da plataforma
               </span>
             </span>
-            {!module && <Check className="h-4 w-4 text-studio" />}
+            {!module && <Check className="h-4 w-4 text-brass" />}
           </button>
 
           <div className="mx-3 my-1 border-t border-line" />
@@ -162,7 +168,7 @@ function ModuleSwitcher({
                     {item.description}
                   </span>
                 </span>
-                {active && <Check className="h-4 w-4 shrink-0 text-studio" />}
+                {active && <Check className="h-4 w-4 shrink-0 text-brass" />}
               </button>
             );
           })}
@@ -191,7 +197,7 @@ function ProfileMenu({ open, setOpen }: { open: boolean; setOpen: (v: boolean) =
         onClick={() => setOpen(!open)}
         aria-expanded={open}
         aria-label="Menu do perfil"
-        className="flex items-center gap-2 rounded-full p-0.5 transition-opacity hover:opacity-90"
+        className="flex items-center gap-2 rounded-full p-0.5 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-soft focus-visible:ring-offset-2 focus-visible:ring-offset-strong"
       >
         <Avatar name={user.full_name} size="sm" className="bg-brass" />
       </button>
@@ -268,30 +274,21 @@ export function Shell({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const location = useLocation();
   const groups = navGroups(nav, level);
-  const unread = state?.notifications.unread ?? 0;
+  const unread = state?.notifications?.unread ?? 0;
   const productName =
     (module?.settings?.product_name as string | undefined) ?? undefined;
 
   return (
-    <div
-      className="relative isolate min-h-screen bg-canvas font-sans"
-      onMouseMove={(event) => {
-        const root = event.currentTarget;
-        root.style.setProperty('--cursor-x', `${event.clientX}px`);
-        root.style.setProperty('--cursor-y', `${event.clientY}px`);
-      }}
-    >
+    <div className="mmv-app-shell relative isolate min-h-screen bg-canvas font-sans">
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-0"
         style={{
-          background: 'radial-gradient(520px circle at var(--cursor-x, 50vw) var(--cursor-y, 50vh), rgba(196,166,106,0.105), transparent 72%)',
-          transition: 'background 180ms ease-out',
-          willChange: 'background',
+          background: 'radial-gradient(760px circle at 82% 0%, rgba(196,166,106,0.075), transparent 68%)',
         }}
       />
       <div className="relative z-10">
-      <header className="sticky top-0 z-40 border-b border-white/[0.07] bg-strong shadow-lg shadow-black/10">
+      <header className="mmv-app-topbar sticky top-0 z-40 border-b border-white/[0.07] bg-strong shadow-lg shadow-black/10">
         <div className="mx-auto flex h-14 max-w-[1500px] items-center gap-3 px-3 sm:px-5">
           {groups.length > 0 && (
             <button
@@ -299,7 +296,7 @@ export function Shell({
               onClick={() => setSidebarCollapsed((value) => !value)}
               aria-label={sidebarCollapsed ? 'Expandir menu lateral' : 'Recolher menu lateral'}
               title={sidebarCollapsed ? 'Expandir menu' : 'Recolher menu'}
-              className="hidden h-9 w-9 shrink-0 place-items-center rounded-lg text-white/65 transition-colors hover:bg-white/10 hover:text-white lg:grid"
+              className="hidden h-9 w-9 shrink-0 place-items-center rounded-lg text-white/65 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-soft focus-visible:ring-offset-2 focus-visible:ring-offset-strong lg:grid"
             >
               {sidebarCollapsed
                 ? <PanelLeftOpen className="h-[18px] w-[18px]" />
@@ -325,7 +322,7 @@ export function Shell({
                 ? `Notificações, ${unread} não lidas`
                 : 'Notificações'
             }
-            className="relative grid h-9 w-9 place-items-center rounded-lg text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+            className="relative grid h-9 w-9 place-items-center rounded-lg text-white/70 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-soft focus-visible:ring-offset-2 focus-visible:ring-offset-strong"
           >
             <Bell className="h-[18px] w-[18px]" />
             {unread > 0 && (
@@ -347,7 +344,7 @@ export function Shell({
 
       <div className="mx-auto flex w-full max-w-[1500px]">
         {groups.length > 0 && (
-          <aside className={cx("mmv-scroll sticky top-14 hidden h-[calc(100vh-3.5rem)] shrink-0 overflow-y-auto border-r border-line bg-surface/70 py-5 transition-[width] duration-200 lg:block", sidebarCollapsed ? "w-[76px] px-2" : "w-[248px] px-3")}>
+          <aside className={cx("mmv-app-sidebar mmv-scroll sticky top-14 hidden h-[calc(100vh-3.5rem)] shrink-0 overflow-y-auto border-r border-line bg-surface/70 py-5 transition-[width] duration-200 lg:block", sidebarCollapsed ? "w-[76px] px-2" : "w-[248px] px-3")}>
             {!sidebarCollapsed && (
               <div className="mb-4 px-2">
                 <p className="mmv-label">{sidebarEyebrow ?? 'Aplicativo'}</p>
@@ -374,10 +371,10 @@ export function Shell({
                       title={sidebarCollapsed ? item.label : undefined}
                       className={({ isActive }) =>
                         cx(
-                          'flex items-center rounded-lg py-2 text-[13px] transition-colors',
+                          'flex items-center rounded-lg py-2 text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-soft focus-visible:ring-inset',
                           sidebarCollapsed ? 'justify-center px-2' : 'gap-2.5 px-2.5',
                           isActive
-                            ? 'bg-strong font-medium text-white'
+                            ? 'relative bg-brass/[0.10] font-medium text-ink shadow-[inset_2px_0_0_rgb(196_166_106)]'
                             : 'text-ink/75 hover:bg-ink/[0.05] hover:text-ink',
                         )
                       }
@@ -410,7 +407,7 @@ export function Shell({
 
         <div className="min-w-0 flex-1">
           {groups.length > 0 && (
-            <div className="mmv-scroll sticky top-14 z-30 flex gap-1.5 overflow-x-auto border-b border-line bg-surface px-3 py-2 lg:hidden">
+            <div className="mmv-app-mobile-nav mmv-scroll sticky top-14 z-30 flex gap-1.5 overflow-x-auto border-b border-line bg-surface px-3 py-2 lg:hidden">
               {groups.flatMap((group) =>
                 group.items.map((item) => (
                   <NavLink
@@ -419,9 +416,9 @@ export function Shell({
                     end={item.end}
                     className={({ isActive }) =>
                       cx(
-                        'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-medium',
+                        'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-soft focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
                         isActive
-                          ? 'border-strong bg-strong text-white'
+                          ? 'border-brass/45 bg-brass/[0.10] text-brass-deep shadow-sm'
                           : 'border-line bg-surface text-muted',
                       )
                     }
@@ -436,14 +433,14 @@ export function Shell({
 
           <main
             key={location.pathname}
-            className="mmv-fade-in mx-auto w-full px-4 py-5 sm:px-6 sm:py-7"
+            className="mmv-app-main mmv-fade-in mx-auto w-full px-4 py-6 sm:px-7 sm:py-8 lg:px-9"
           >
             {children}
           </main>
 
           {user && (
             <footer className="border-t border-line px-4 py-4 text-[11px] text-muted sm:px-6">
-              MMV CREATIVE · {user.full_name} ·{' '}
+              MMV / CREATIVE · {user.full_name} ·{' '}
               {user.roles.map((role) => ROLE_LABELS[role] ?? role).join(' · ')}
             </footer>
           )}

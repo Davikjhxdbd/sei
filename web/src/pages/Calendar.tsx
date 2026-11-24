@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   CalendarDays, ChevronLeft, ChevronRight, Plus, MapPin,
   Clock3, Pencil, Trash2, X,
@@ -70,12 +71,14 @@ function categoryColor(category: string) {
 }
 
 export default function CalendarPage() {
+  const [searchParams] = useSearchParams();
+  const requestedDate = searchParams.get('date');
   const { level } = useAuth();
   const toast = useToast();
   const canManage = level >= 4;
 
-  const [month, setMonth] = useState(() => new Date());
-  const [selectedDay, setSelectedDay] = useState(() => dateKey(new Date()));
+  const [month, setMonth] = useState(() => requestedDate ? new Date(`${requestedDate}T12:00:00`) : new Date());
+  const [selectedDay, setSelectedDay] = useState(() => requestedDate || dateKey(new Date()));
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<CalendarEvent | null>(null);
@@ -113,6 +116,16 @@ export default function CalendarPage() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (requestedDate && /^\d{4}-\d{2}-\d{2}$/.test(requestedDate)) {
+      const selected = new Date(`${requestedDate}T12:00:00`);
+      if (!Number.isNaN(selected.getTime())) {
+        setMonth(new Date(selected.getFullYear(), selected.getMonth(), 1));
+        setSelectedDay(requestedDate);
+      }
+    }
+  }, [requestedDate]);
 
   useEffect(() => {
     void loadEvents();
@@ -212,7 +225,7 @@ export default function CalendarPage() {
   return (
     <Shell nav={CALENDAR_NAV} sidebarEyebrow="Plataforma">
       <div className="space-y-6">
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <header className="mmv-page-header flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="mmv-label">Organização e planejamento</p>
             <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink">Calendário</h1>
@@ -387,7 +400,7 @@ export default function CalendarPage() {
 
       {modalOpen && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center overflow-y-auto bg-black/55 p-4">
-          <div className="my-auto w-full max-w-xl rounded-2xl border border-line bg-surface shadow-lift">
+          <div className="mmv-glass-modal my-auto w-full max-w-xl rounded-2xl border border-line bg-surface shadow-lift">
             <div className="flex items-center justify-between border-b border-line px-5 py-4">
               <div>
                 <p className="mmv-label">Calendário compartilhado</p>
@@ -398,18 +411,18 @@ export default function CalendarPage() {
             <div className="space-y-4 p-5">
               <label className="block space-y-1.5">
                 <span className="text-xs font-medium text-ink">Título *</span>
-                <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Nome do evento" className="h-10 w-full rounded-lg border border-line bg-canvas px-3 text-sm text-ink outline-none focus:border-brass" />
+                <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Nome do evento" className="mmv-form-control h-10 w-full rounded-lg border border-line bg-canvas px-3 text-sm text-ink outline-none focus:border-brass" />
               </label>
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block space-y-1.5">
                   <span className="text-xs font-medium text-ink">Categoria</span>
-                  <select value={category} onChange={(e) => setCategory(e.target.value)} className="h-10 w-full rounded-lg border border-line bg-canvas px-3 text-sm text-ink">
+                  <select value={category} onChange={(e) => setCategory(e.target.value)} className="mmv-form-control h-10 w-full rounded-lg border border-line bg-canvas px-3 text-sm text-ink">
                     {categories.map((item) => <option key={item.name}>{item.name}</option>)}
                   </select>
                 </label>
                 <label className="block space-y-1.5">
                   <span className="text-xs font-medium text-ink">Data *</span>
-                  <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-10 w-full rounded-lg border border-line bg-canvas px-3 text-sm text-ink" />
+                  <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="mmv-form-control h-10 w-full rounded-lg border border-line bg-canvas px-3 text-sm text-ink" />
                 </label>
               </div>
               <label className="flex items-center gap-2 text-xs text-ink">
@@ -420,21 +433,21 @@ export default function CalendarPage() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <label className="block space-y-1.5">
                     <span className="text-xs font-medium text-ink">Horário de início</span>
-                    <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="h-10 w-full rounded-lg border border-line bg-canvas px-3 text-sm text-ink" />
+                    <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="mmv-form-control h-10 w-full rounded-lg border border-line bg-canvas px-3 text-sm text-ink" />
                   </label>
                   <label className="block space-y-1.5">
                     <span className="text-xs font-medium text-ink">Horário de término</span>
-                    <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="h-10 w-full rounded-lg border border-line bg-canvas px-3 text-sm text-ink" />
+                    <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="mmv-form-control h-10 w-full rounded-lg border border-line bg-canvas px-3 text-sm text-ink" />
                   </label>
                 </div>
               )}
               <label className="block space-y-1.5">
                 <span className="text-xs font-medium text-ink">Local</span>
-                <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Local do evento" className="h-10 w-full rounded-lg border border-line bg-canvas px-3 text-sm text-ink" />
+                <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Local do evento" className="mmv-form-control h-10 w-full rounded-lg border border-line bg-canvas px-3 text-sm text-ink" />
               </label>
               <label className="block space-y-1.5">
                 <span className="text-xs font-medium text-ink">Descrição</span>
-                <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="Informações adicionais…" className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-sm text-ink outline-none focus:border-brass" />
+                <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="Informações adicionais…" className="mmv-form-control w-full rounded-lg border border-line bg-canvas px-3 py-2 text-sm text-ink outline-none focus:border-brass" />
               </label>
             </div>
             <div className="flex justify-end gap-2 border-t border-line px-5 py-4">

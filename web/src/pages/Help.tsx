@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   Bell,
   BookOpen,
-  CheckSquare,
   CircleHelp,
   ClipboardList,
   Search,
@@ -31,12 +30,6 @@ const topics = [
     description: 'Acompanhe avisos e atualizações da plataforma.',
     icon: Bell,
     href: '/notifications',
-  },
-  {
-    title: 'Gestão do Estúdio',
-    description: 'Acesse eventos, escalas, checklists e relatórios.',
-    icon: CheckSquare,
-    href: '/m/studio',
   },
 ];
 
@@ -138,7 +131,7 @@ export default function Help() {
             <h2 className="text-[17px] font-semibold text-ink">Perguntas frequentes</h2>
             <p className="mt-1 text-[12.5px] text-muted">Pesquise uma dúvida ou abra uma pergunta para ver a resposta.</p>
           </div>
-          <label className="mb-3 flex h-10 items-center gap-2.5 rounded-lg border border-line bg-surface px-3 text-muted focus-within:border-studio">
+          <label className="mb-3 flex h-10 items-center gap-2.5 rounded-lg border border-line bg-surface px-3 text-muted focus-within:border-brass">
             <Search className="h-4 w-4 shrink-0" />
             <input
               value={query}
@@ -172,7 +165,7 @@ export default function Help() {
 
         <section className="mmv-surface flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
           <div className="flex items-start gap-3">
-            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-studio" />
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brass" />
             <div>
               <h2 className="text-[13px] font-semibold text-ink">Ainda precisa de ajuda?</h2>
               <p className="mt-1 text-[12px] leading-relaxed text-muted">Procure a administração da sua organização para dúvidas sobre acesso, conta ou permissões.</p>

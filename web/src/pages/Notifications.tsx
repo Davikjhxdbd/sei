@@ -62,11 +62,12 @@ export default function Notifications() {
         }
       />
 
-      <div className="mmv-surface overflow-hidden">
+      <div className="mmv-surface mmv-notification-list overflow-hidden">
         {loading ? (
           <LoadingBlock />
         ) : !data?.items.length ? (
           <EmptyState
+            className="mmv-directory-state-card"
             icon={BellRing}
             title="Nenhuma notificação"
             description="Quando algo exigir sua atenção — uma nova escala, uma autorização ou um relatório — o aviso aparecerá aqui."
@@ -74,18 +75,17 @@ export default function Notifications() {
         ) : (
           <ul className="divide-y divide-line">
             {data.items.map((item) => (
-              <li key={item.id}>
+              <li key={item.id} className={cx("mmv-notification-item", !item.read_at && "is-unread")}>
                 <button
                   type="button"
                   onClick={() => open(item)}
                   className={cx(
-                    'flex w-full items-start gap-3 px-4 py-3.5 text-left transition-colors hover:bg-ink/[0.025]',
-                    !item.read_at && 'bg-studio-soft/40',
+                    'flex w-full items-start gap-3 px-4 py-4 text-left transition-colors',
                   )}
                 >
                   <span
                     className={cx(
-                      'mt-1.5 h-2 w-2 shrink-0 rounded-full',
+                      'mmv-notification-dot mt-1.5 h-2 w-2 shrink-0 rounded-full',
                       item.read_at ? 'bg-transparent' : 'bg-studio',
                     )}
                     aria-hidden

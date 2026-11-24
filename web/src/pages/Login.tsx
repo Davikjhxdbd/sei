@@ -62,7 +62,7 @@ export default function Login() {
   }
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#101010] px-5 py-10 sm:px-8 lg:justify-end lg:px-[10%]">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#0B0D10] px-5 py-10 sm:px-8 lg:justify-end lg:px-[10%]">
       {/* VÍDEO CINEMATOGRÁFICO DE FUNDO */}
       <video
         autoPlay
@@ -70,7 +70,6 @@ export default function Login() {
         loop
         playsInline
         preload="metadata"
-        poster="/site/login-hero.png"
         className="pointer-events-none absolute inset-0 h-full w-full object-cover"
         aria-hidden="true"
       >
@@ -79,20 +78,24 @@ export default function Login() {
 
       {/* CAMADA DE LEITURA */}
       <div
-        className="pointer-events-none absolute inset-0 bg-black/35"
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(5,7,12,.28),rgba(5,7,12,.68))]"
         aria-hidden="true"
       />
 
-      {/* IDENTIDADE MMV */}
+      {/* IDENTIDADE MMV CONNECT */}
       <div className="absolute left-7 top-7 z-10 flex items-center gap-3 sm:left-10 sm:top-9">
-        <div className="grid h-11 w-11 place-items-center border border-[#C4A66A] bg-[#111111]/80 text-sm font-bold text-[#D8BD86] backdrop-blur-md">
-          M
+        <div className="grid h-11 w-11 place-items-center rounded-[12px] border border-[#C4A66A]/40 bg-[#0B0D10]/80 shadow-[0_8px_28px_rgba(0,0,0,.3)] backdrop-blur-md">
+          <svg viewBox="0 0 64 64" className="h-8 w-8" fill="none" aria-hidden="true">
+            <path d="M12 47V18L32 37L52 18V47" stroke="#F0E3C4" strokeWidth="3.2" strokeLinecap="square" strokeLinejoin="round" />
+            <path d="M32 37V10" stroke="#C4A66A" strokeWidth="3.2" strokeLinecap="square" />
+            <circle cx="32" cy="9" r="3.2" fill="#F4F5F6" />
+            <circle cx="12" cy="18" r="2.3" fill="#C4A66A" />
+            <circle cx="52" cy="18" r="2.3" fill="#C4A66A" />
+          </svg>
         </div>
         <div>
-          <p className="text-[13px] font-semibold tracking-[0.24em] text-white">
-            MMV CREATIVE
-          </p>
-          <div className="mt-1 h-px w-12 bg-[#C4A66A]" />
+          <p className="text-[13px] font-semibold tracking-[0.2em] text-white">MMV<span className="text-[#C4A66A]">/</span>CONNECT</p>
+          <p className="mt-1.5 text-[8px] font-medium tracking-[0.24em] text-white/45">PLATAFORMA INTEGRADA</p>
         </div>
       </div>
 
@@ -233,7 +236,7 @@ export default function Login() {
       </section>
 
       <div className="absolute bottom-4 right-6 z-10 hidden text-[9px] uppercase tracking-[0.2em] text-white/35 sm:block">
-        MMV CREATIVE · Plataforma integrada
+        MMV CONNECT · Plataforma integrada
       </div>
     </main>
   );

@@ -5,6 +5,7 @@ import {
   type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
   useEffect,
+  useRef,
 } from 'react';
 import { createPortal } from 'react-dom';
 import {
@@ -21,7 +22,7 @@ export function cx(...parts: Array<string | false | null | undefined>) {
 }
 
 const TONES: Record<string, string> = {
-  neutral: 'bg-ink/[0.06] text-ink/70 ring-ink/10',
+  neutral: 'bg-brass/[0.08] text-brass-deep ring-brass/20',
   info: 'bg-studio-soft text-studio ring-studio/20',
   success: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
   warning: 'bg-amber-50 text-amber-700 ring-amber-200',
@@ -79,12 +80,12 @@ type ButtonSize = 'sm' | 'md' | 'lg';
 
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
   primary:
-    'bg-strong text-white border border-strong hover:bg-strong-soft hover:border-strong-soft',
+    'bg-brass text-[#17140E] border border-brass shadow-[0_5px_16px_rgba(196,166,106,.16)] hover:bg-[#D8BD86] hover:border-[#D8BD86] hover:shadow-[0_7px_22px_rgba(196,166,106,.22)]',
   secondary:
-    'bg-surface text-ink border border-line hover:border-ink/35 hover:bg-ink/[0.02]',
-  ghost: 'bg-transparent text-muted border border-transparent hover:text-ink hover:bg-ink/[0.05]',
+    'bg-surface text-ink border border-brass/25 hover:border-brass/55 hover:bg-brass/[0.06]',
+  ghost: 'bg-transparent text-muted border border-transparent hover:border-brass/20 hover:text-ink hover:bg-brass/[0.07]',
   danger: 'bg-red-600 text-white border border-red-600 hover:bg-red-700',
-  brass: 'bg-brass text-white border border-brass hover:bg-[#9d7639]',
+  brass: 'bg-brass text-[#17140E] border border-brass hover:bg-[#D8BD86] hover:border-[#D8BD86]',
 };
 
 const BUTTON_SIZES: Record<ButtonSize, string> = {
@@ -114,7 +115,7 @@ export function Button({
       disabled={disabled || loading}
       className={cx(
         'inline-flex items-center justify-center font-medium transition-colors',
-        'disabled:cursor-not-allowed disabled:opacity-50',
+        'disabled:cursor-not-allowed disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brass/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
         BUTTON_VARIANTS[variant],
         BUTTON_SIZES[size],
         className,
@@ -167,7 +168,7 @@ export function Field({
 }
 
 const CONTROL =
-  'w-full rounded-lg border border-line bg-surface px-3 text-sm text-ink placeholder:text-muted/60 transition-colors outline-none focus:border-studio focus:ring-2 focus:ring-studio/15 disabled:bg-canvas disabled:text-muted';
+  'mmv-form-control w-full rounded-xl border border-line bg-surface px-3 text-sm text-ink placeholder:text-muted/60 transition-[border-color,box-shadow] outline-none focus:border-brass focus:ring-2 focus:ring-brass/20 disabled:bg-canvas disabled:text-muted';
 
 export function Input({ className, ...rest }: InputHTMLAttributes<HTMLInputElement>) {
   return <input {...rest} className={cx(CONTROL, 'h-10', className)} />;
@@ -251,7 +252,7 @@ export function CardHeader({
     <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line px-5 py-4">
       <div className="flex items-start gap-3">
         {Icon && (
-          <span className="mt-0.5 grid h-8 w-8 place-items-center rounded-lg bg-ink/[0.05] text-ink/70">
+          <span className="mt-0.5 grid h-8 w-8 place-items-center rounded-xl border border-brass/20 bg-brass/[0.08] text-brass-deep">
             <Icon className="h-4 w-4" />
           </span>
         )}
@@ -281,9 +282,9 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <header className="mb-5 flex flex-wrap items-end justify-between gap-4">
+    <header className="mmv-page-header relative mb-7 flex flex-wrap items-end justify-between gap-4 border-b border-line pb-5 before:absolute before:bottom-[-1px] before:left-0 before:h-px before:w-16 before:bg-brass">
       <div className="min-w-0">
-        {eyebrow && <p className="mmv-label mb-1.5">{eyebrow}</p>}
+        {eyebrow && <p className="mmv-label mb-1.5 text-brass-deep">{eyebrow}</p>}
         <h1 className="truncate text-[22px] font-semibold leading-tight tracking-[-0.01em] text-ink sm:text-[26px]">
           {title}
         </h1>
@@ -314,7 +315,7 @@ export function StatCard({
   onClick?: () => void;
 }) {
   const tile: Record<string, string> = {
-    neutral: 'bg-ink/[0.05] text-ink/70',
+    neutral: 'bg-brass/[0.08] text-brass-deep',
     info: 'bg-studio-soft text-studio',
     warning: 'bg-amber-50 text-amber-700',
     danger: 'bg-red-50 text-red-600',
@@ -325,8 +326,8 @@ export function StatCard({
     <Component
       onClick={onClick}
       className={cx(
-        'mmv-surface flex items-start gap-3 p-4 text-left transition-shadow',
-        onClick && 'hover:shadow-lift',
+        'mmv-surface flex items-start gap-3 rounded-2xl border-brass/15 p-4 text-left transition-[border-color,box-shadow,transform]',
+        onClick && 'hover:-translate-y-0.5 hover:border-brass/45 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass/35',
       )}
     >
       {Icon && (
@@ -367,17 +368,56 @@ export function Modal({
   footer?: ReactNode;
   size?: 'md' | 'lg' | 'xl';
 }) {
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     if (!open) return undefined;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKey);
-    const previous = document.body.style.overflow;
+
+    const previousOverflow = document.body.style.overflow;
+    const previouslyFocused = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
     document.body.style.overflow = 'hidden';
+
+    const focusable = () => dialogRef.current?.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    ) ?? [];
+
+    requestAnimationFrame(() => {
+      const first = focusable()[0];
+      (first ?? dialogRef.current)?.focus();
+    });
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      const items = Array.from(focusable()).filter((item) => item.offsetParent !== null);
+      if (!items.length) {
+        event.preventDefault();
+        dialogRef.current?.focus();
+        return;
+      }
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && (document.activeElement === first || !dialogRef.current?.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !dialogRef.current?.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', onKey);
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = previous;
+      document.body.style.overflow = previousOverflow;
+      previouslyFocused?.focus();
     };
   }, [open, onClose]);
 
@@ -398,7 +438,7 @@ export function Modal({
         aria-modal="true"
         aria-label={title}
         className={cx(
-          'mmv-fade-in relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl border border-line bg-surface shadow-lift sm:rounded-2xl',
+          'mmv-glass-modal mmv-fade-in relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl border border-brass/20 bg-surface shadow-lift sm:rounded-2xl',
           width,
         )}
       >
@@ -415,7 +455,7 @@ export function Modal({
             type="button"
             onClick={onClose}
             aria-label="Fechar"
-            className="-mr-1 grid h-8 w-8 place-items-center rounded-lg text-muted hover:bg-ink/5 hover:text-ink"
+            className="-mr-1 grid h-8 w-8 place-items-center rounded-lg text-muted hover:bg-ink/5 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-soft"
           >
             <X className="h-4 w-4" />
           </button>
@@ -453,7 +493,7 @@ export function EmptyState({
       )}
     >
       {Icon && (
-        <span className="mb-3 grid h-11 w-11 place-items-center rounded-full bg-ink/[0.05] text-muted">
+        <span className="mb-3 grid h-11 w-11 place-items-center rounded-2xl border border-brass/20 bg-brass/[0.08] text-brass-deep">
           <Icon className="h-5 w-5" />
         </span>
       )}
@@ -487,10 +527,10 @@ export function FilterPills<T extends string>({
             type="button"
             onClick={() => onChange(item.value)}
             className={cx(
-              'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12.5px] font-medium transition-colors',
+              'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[12.5px] font-medium transition-[color,background-color,border-color,box-shadow]',
               active
-                ? 'border-strong bg-strong text-white'
-                : 'border-line bg-surface text-muted hover:border-ink/30 hover:text-ink',
+                ? 'border-brass bg-brass text-[#17140E] shadow-[0_3px_12px_rgba(196,166,106,.16)]'
+                : 'border-line bg-surface text-muted hover:border-brass/45 hover:bg-brass/[0.04] hover:text-ink',
             )}
           >
             {item.label}
@@ -555,7 +595,7 @@ export function InlineError({ children }: { children: ReactNode }) {
 
 export function LoadingBlock({ label = 'Carregando…' }: { label?: string }) {
   return (
-    <div className="flex items-center justify-center gap-2 py-12 text-[13px] text-muted">
+    <div className="mmv-loading-state flex items-center justify-center gap-2 py-12 text-[13px] text-muted">
       <Spinner />
       {label}
     </div>

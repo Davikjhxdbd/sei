@@ -8,6 +8,14 @@ import { ThemeProvider } from './lib/theme';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import './index.css';
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch((error) => {
+      console.error('[MMV CREATIVE] Não foi possível registrar o aplicativo offline:', error);
+    });
+  });
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>

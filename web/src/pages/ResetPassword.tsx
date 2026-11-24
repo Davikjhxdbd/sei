@@ -52,11 +52,17 @@ export default function ResetPassword() {
 
       <div className="absolute left-7 top-7 z-10 flex items-center gap-3 sm:left-10 sm:top-9">
         <div className="grid h-11 w-11 place-items-center border border-[#C4A66A] bg-[#111111]/80 text-sm font-bold text-[#D8BD86] backdrop-blur-md">
-          M
+          <svg viewBox="0 0 64 64" className="h-8 w-8" fill="none" aria-hidden="true">
+            <path d="M12 47V18L32 37L52 18V47" stroke="#F0E3C4" strokeWidth="3.2" strokeLinecap="square" strokeLinejoin="round" />
+            <path d="M32 37V10" stroke="#C4A66A" strokeWidth="3.2" strokeLinecap="square" />
+            <circle cx="32" cy="9" r="3.2" fill="#F4F2ED" />
+            <circle cx="12" cy="18" r="2.3" fill="#C4A66A" />
+            <circle cx="52" cy="18" r="2.3" fill="#C4A66A" />
+          </svg>
         </div>
         <div>
           <p className="text-[13px] font-semibold tracking-[0.24em] text-white">
-            MMV CREATIVE
+            MMV / CONNECT
           </p>
           <div className="mt-1 h-px w-12 bg-[#C4A66A]" />
         </div>

@@ -51,8 +51,10 @@ router.get(
   '/sectors',
   asyncHandler(async (req: any, res) => {
     const { rows } = await req.db.query(
-      `select id, key, name, description, active
-         from sectors where active = true order by name`,
+      `select s.id, s.key, s.name, s.description, s.active,
+              (select count(*)::int from user_sectors us join users u on u.id = us.user_id
+                where us.sector_id = s.id and u.status = 'active') as member_count
+         from sectors s where s.active = true order by s.name`,
     );
     res.json({ items: rows });
   }),
@@ -62,10 +64,15 @@ router.get(
   '/people',
   asyncHandler(async (req: any, res) => {
     const { rows } = await req.db.query(
-      `select id, full_name,
-              case when $1::int >= 5 then username else null end as username
-         from users where status = 'active'
-         order by full_name limit 500`,
+      `select u.id, u.full_name,
+              case when $1::int >= 5 then u.username else null end as username,
+              coalesce((
+                select json_agg(json_build_object('id', s.id, 'name', s.name) order by s.name)
+                  from user_sectors us join sectors s on s.id = us.sector_id
+                 where us.user_id = u.id and s.active = true
+              ), '[]'::json) as sectors
+         from users u where u.status = 'active'
+         order by u.full_name limit 500`,
       [req.user.level],
     );
     res.json({ items: rows });

@@ -11,6 +11,7 @@ router.get(
       `select id, key, name, description, icon, color, route, sort_order, settings
          from modules
         where active = true
+          and key not like 'studio%'
           and ($2 or exists (
             select 1 from unnest(allowed_roles) r where r::text = any($1::text[])
           ))
