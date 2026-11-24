@@ -13,6 +13,7 @@ const AppCentral = lazy(() => import('./pages/AppCentral'));
 const People = lazy(() => import('./pages/People'));
 const Departments = lazy(() => import('./pages/Departments'));
 const Communication = lazy(() => import('./pages/Communication'));
+const StudioProduction = lazy(() => import('./pages/studio/Production'));
 const DesignLab = lazy(() => import('./pages/DesignLab'));
 const CalendarPage = lazy(() => import('./pages/Calendar'));
 const EscalasPage = lazy(() => import('./pages/Escalas'));
@@ -148,6 +149,12 @@ export default function App() {
           </Route>
           <Route path="/m/communication" element={<ModuleLayout moduleKey="communication" />}>
             <Route index element={<Communication />} />
+          </Route>
+          <Route path="/m/studio" element={<ModuleLayout moduleKey="studio" />}>
+            <Route index element={<Navigate to="production" replace />} />
+            <Route path="production" element={<StudioProduction />} />
+            <Route path="production/:slug" element={<StudioProduction />} />
+            <Route path="my-space" element={<StudioProduction />} />
           </Route>
 
           <Route path="/admin" element={<AdminLayout />}>
