@@ -362,14 +362,15 @@ router.post('/production/tasks/:id/comments', asyncHandler(async (req: any, res)
     returning id, action, details, created_at
   `, [task.id, req.user.id, JSON.stringify({ message })]);
 
-  const recipient = req.user.id === task.assigned_to ? task.created_by : task.assigned_to;
-  await notify(req.db, {
-    userId: recipient,
+  const recipients = [...new Set([task.assigned_to, task.created_by])]
+    .filter((userId) => userId && userId !== req.user.id);
+  await Promise.all(recipients.map((userId) => notify(req.db, {
+    userId,
     title: 'Nova mensagem em uma produção',
     body: message.slice(0, 180),
-    link: req.user.id === task.assigned_to ? '/m/studio/production' : '/m/studio/my-space',
+    link: '/m/studio/production',
     moduleKey: 'studio'
-  });
+  })));
   await audit(req.db, req.user, {
     action: 'production.task_comment',
     entity: 'production_tasks',
