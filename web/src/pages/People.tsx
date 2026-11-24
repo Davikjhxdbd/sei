@@ -33,7 +33,7 @@ export default function People() {
         <Badge tone="accent">{people.length} {people.length === 1 ? 'integrante' : 'integrantes'}</Badge>
       </div>
       {loading ? <LoadingBlock /> : error ? (
-        <Card className="p-6 text-center">
+        <Card className="mmv-directory-state-card p-6 text-center">
           <p className="text-sm font-medium text-ink">Não foi possível carregar o diretório.</p>
           <button type="button" onClick={() => void reload()} className="mt-3 text-sm font-semibold text-brass-deep">Tentar novamente</button>
         </Card>
@@ -55,7 +55,7 @@ export default function People() {
           ))}
         </div>
       ) : (
-        <Card className="p-10 text-center">
+        <Card className="mmv-directory-state-card p-10 text-center">
           <Users className="mx-auto h-8 w-8 text-muted" />
           <p className="mt-3 text-sm font-semibold text-ink">{query ? 'Nenhuma pessoa encontrada' : 'Nenhum integrante cadastrado'}</p>
           <p className="mt-1 text-xs text-muted">{query ? 'Tente outro nome ou departamento.' : 'Os integrantes ativos aparecerão aqui.'}</p>
