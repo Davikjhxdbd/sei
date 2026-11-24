@@ -301,4 +301,98 @@ router.patch('/production/tasks/:id', asyncHandler(async (req: any, res) => {
   res.json({ task });
 }));
 
+
+/** Atividade e conversa da tarefa: reutiliza o histórico append-only já existente. */
+async function accessibleTask(req: any) {
+  const { rows } = await req.db.query(
+    'select * from production_tasks where id = $1',
+    [req.params.id]
+  );
+  if (!rows.length) throw notFound('Tarefa não encontrada.');
+  const task = rows[0];
+  if (task.assigned_to === req.user.id || task.created_by === req.user.id || req.user.level >= 3) {
+    return task;
+  }
+  const { rows: membership } = await req.db.query(
+    'select 1 from production_members where area_id = $1 and user_id = $2 limit 1',
+    [task.area_id, req.user.id]
+  );
+  if (!membership.length) throw notFound('Tarefa não encontrada.');
+  return task;
+}
+
+router.get('/production/tasks/:id/activity', asyncHandler(async (req: any, res) => {
+  await accessibleTask(req);
+  const { rows } = await req.db.query(`
+    select h.id, h.action, h.details, h.created_at,
+           coalesce(u.full_name, 'Usuário removido') as user_name,
+           h.user_id
+      from production_task_history h
+      left join users u on u.id = h.user_id
+     where h.task_id = $1
+     order by h.created_at asc, h.id asc
+  `, [req.params.id]);
+  res.json({ items: rows });
+}));
+
+router.post('/production/tasks/:id/comments', asyncHandler(async (req: any, res) => {
+  const task = await accessibleTask(req);
+  const message = required(req.body?.message, 'mensagem', 4000);
+  const { rows } = await req.db.query(`
+    insert into production_task_history (task_id, user_id, action, details)
+    values ($1, $2, 'comment', $3)
+    returning id, action, details, created_at
+  `, [task.id, req.user.id, JSON.stringify({ message })]);
+
+  const recipient = req.user.id === task.assigned_to ? task.created_by : task.assigned_to;
+  await notify(req.db, {
+    userId: recipient,
+    title: 'Nova mensagem em uma produção',
+    body: message.slice(0, 180),
+    link: req.user.id === task.assigned_to ? '/m/studio/production' : '/m/studio/my-space',
+    moduleKey: 'studio'
+  });
+  await audit(req.db, req.user, {
+    action: 'production.task_comment',
+    entity: 'production_tasks',
+    entityId: task.id,
+    after: { message },
+    moduleKey: 'studio'
+  });
+  res.status(201).json({ item: { ...rows[0], user_id: req.user.id, user_name: req.user.full_name } });
+}));
+
+router.post('/production/tasks/:id/accept', asyncHandler(async (req: any, res) => {
+  const task = await tx(req.db, async () => {
+    const { rows } = await req.db.query(
+      'select * from production_tasks where id = $1 for update',
+      [req.params.id]
+    );
+    if (!rows.length) throw notFound('Tarefa não encontrada.');
+    const current = rows[0];
+    if (current.assigned_to !== req.user.id) throw notFound('Tarefa não encontrada.');
+
+    const { rows: accepted } = await req.db.query(`
+      select 1 from production_task_history
+       where task_id = $1 and user_id = $2 and action = 'accepted'
+       limit 1
+    `, [current.id, req.user.id]);
+    if (!accepted.length) {
+      await req.db.query(`
+        insert into production_task_history (task_id, user_id, action, details)
+        values ($1, $2, 'accepted', $3)
+      `, [current.id, req.user.id, JSON.stringify({ confirmed: true })]);
+      await notify(req.db, {
+        userId: current.created_by,
+        title: 'Tarefa recebida',
+        body: req.user.full_name + ' confirmou o recebimento: ' + current.title,
+        link: '/m/studio/production',
+        moduleKey: 'studio'
+      });
+    }
+    return current;
+  });
+  res.json({ ok: true, task_id: task.id });
+}));
+
 export default router;
