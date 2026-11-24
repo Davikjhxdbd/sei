@@ -803,3 +803,43 @@ html, body, #root {
   .mmv-app-mobile-nav a,
   .mmv-app-shell [role="menu"] button { transition: none; }
 }
+
+
+/* Formulários — controles consistentes com o Liquid Glass */
+.mmv-form-control {
+  border-color: rgba(255,255,255,.13);
+  background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.025));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.045), 0 3px 12px rgba(0,0,0,.07);
+  transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+}
+.mmv-form-control:focus {
+  border-color: rgba(216,189,134,.58);
+  background-color: rgba(255,255,255,.055);
+  box-shadow: 0 0 0 3px rgba(196,166,106,.11), inset 0 1px 0 rgba(255,255,255,.06);
+}
+.mmv-form-control:disabled { opacity: .58; cursor: not-allowed; }
+.mmv-glass-modal {
+  background-image: radial-gradient(ellipse at 92% 0%, rgba(196,166,106,.09), transparent 40%), linear-gradient(145deg, rgba(39,39,39,.94), rgba(22,22,22,.96));
+  border-color: rgba(255,255,255,.13);
+  -webkit-backdrop-filter: saturate(155%) blur(26px);
+  backdrop-filter: saturate(155%) blur(26px);
+}
+.mmv-glass-modal > div:first-child,
+.mmv-glass-modal > div:last-child { border-color: rgba(255,255,255,.09); }
+.light .mmv-form-control {
+  border-color: rgba(164,134,78,.20);
+  background: linear-gradient(145deg, rgba(255,255,255,.92), rgba(248,247,243,.76));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.92), 0 3px 12px rgba(45,38,25,.035);
+}
+.light .mmv-form-control:focus {
+  border-color: rgba(164,134,78,.55);
+  background-color: rgba(255,255,255,.96);
+  box-shadow: 0 0 0 3px rgba(196,166,106,.13), inset 0 1px 0 rgba(255,255,255,.96);
+}
+.light .mmv-glass-modal {
+  background-image: radial-gradient(ellipse at 92% 0%, rgba(196,166,106,.12), transparent 40%), linear-gradient(145deg, rgba(255,255,255,.98), rgba(246,244,239,.97));
+  border-color: rgba(164,134,78,.20);
+}
+@media (prefers-reduced-motion: reduce) {
+  .mmv-form-control { transition: none; }
+}
