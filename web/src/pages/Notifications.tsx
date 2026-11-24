@@ -67,7 +67,6 @@ export default function Notifications() {
           <LoadingBlock />
         ) : !data?.items.length ? (
           <EmptyState
-            className="mmv-directory-state-card"
             icon={BellRing}
             title="Nenhuma notificação"
             description="Quando algo exigir sua atenção — uma nova escala, uma autorização ou um relatório — o aviso aparecerá aqui."
