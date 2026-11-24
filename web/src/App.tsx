@@ -3,13 +3,19 @@ import { useAuth } from './lib/auth';
 import { Shell } from './components/layout/Shell';
 import { ADMIN_NAV, MODULE_NAV } from './modules/registry';
 import { Spinner } from './components/ui';
+import { Link } from 'react-router-dom';
 import { ShieldAlert } from 'lucide-react';
 
 import Login from './pages/Login';
 import ResetPassword from './pages/ResetPassword';
 import AppCentral from './pages/AppCentral';
+import People from './pages/People';
+import Departments from './pages/Departments';
+import Communication from './pages/Communication';
 import DesignLab from './pages/DesignLab';
 import CalendarPage from './pages/Calendar';
+import EscalasPage from './pages/Escalas';
+import PersonalArea from './pages/PersonalArea';
 import Notifications from './pages/Notifications';
 import Profile from './pages/Profile';
 import Help from './pages/Help';
@@ -20,23 +26,8 @@ import ModulesPage from './pages/admin/Modules';
 import SectorsPage from './pages/admin/Sectors';
 import SettingsPage from './pages/admin/Settings';
 import AuditPage from './pages/admin/Audit';
+import Management from './pages/admin/Management';
 
-import Dashboard from './pages/studio/Dashboard';
-import Production from './pages/studio/Production';
-import Events from './pages/studio/Events';
-import EventDetail from './pages/studio/EventDetail';
-import Presets from './pages/studio/Presets';
-import Checklists from './pages/studio/Checklists';
-import ChecklistRun from './pages/studio/ChecklistRun';
-import Reports from './pages/studio/Reports';
-import ReportDetail from './pages/studio/ReportDetail';
-import Errors from './pages/studio/Errors';
-import Occurrences from './pages/studio/Occurrences';
-import Problems from './pages/studio/Problems';
-import ProblemDetail from './pages/studio/ProblemDetail';
-import Schedules from './pages/studio/Schedules';
-import Media from './pages/studio/Media';
-import Department from './pages/studio/Department';
 
 function FullScreenLoader() {
   return (
@@ -150,30 +141,21 @@ export default function App() {
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/calendar" element={<CalendarPage />} />
+        <Route path="/escalas" element={<EscalasPage />} />
+        <Route path="/pessoal" element={<PersonalArea />} />
 
-        <Route path="/m/studio" element={<ModuleLayout moduleKey="studio" />}>
-          <Route index element={<Dashboard />} />
-          <Route path="departments/:slug" element={<Department />} />
-          <Route path="production" element={<Production />} />
-          <Route path="production/:slug" element={<Production />} />
-          <Route path="my-space" element={<Production />} />
-          <Route path="events" element={<Events />} />
-          <Route path="events/:id" element={<EventDetail />} />
-          <Route path="presets" element={<Presets />} />
-          <Route path="checklists" element={<Checklists />} />
-          <Route path="checklists/runs/:id" element={<ChecklistRun />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="reports/:id" element={<ReportDetail />} />
-          <Route path="errors" element={<Errors />} />
-          <Route path="occurrences" element={<Gate level={3}><Occurrences /></Gate>} />
-          <Route path="problems" element={<Problems />} />
-          <Route path="problems/:id" element={<ProblemDetail />} />
-          <Route path="schedules" element={<Schedules />} />
-          <Route path="media" element={<Media />} />
+        <Route path="/m/people" element={<ModuleLayout moduleKey="people" />}>
+          <Route index element={<People />} />
+        </Route>
+        <Route path="/m/departments" element={<ModuleLayout moduleKey="departments" />}>
+          <Route index element={<Departments />} />
+        </Route>
+        <Route path="/m/communication" element={<ModuleLayout moduleKey="communication" />}>
+          <Route index element={<Communication />} />
         </Route>
 
         <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<Navigate to="/admin/audit" replace />} />
+          <Route index element={<Management />} />
           <Route
             path="users"
             element={
