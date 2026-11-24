@@ -652,3 +652,32 @@ html, body, #root {
 @media (max-width: 640px) {
   .mmv-glass-modal { border-radius: 18px; }
 }
+
+
+/* Comunicação — leitura editorial dos comunicados */
+.mmv-announcement-list { display: grid; gap: 13px; }
+.mmv-announcement-card {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(255,255,255,.085);
+  background: linear-gradient(135deg, rgba(255,255,255,.035), transparent 42%), linear-gradient(145deg, rgba(37,37,37,.82), rgba(23,23,23,.78));
+  box-shadow: 0 12px 30px rgba(0,0,0,.13), inset 0 1px 0 rgba(255,255,255,.045);
+}
+.mmv-announcement-card.is-unread {
+  border-color: rgba(196,166,106,.28);
+  background: linear-gradient(112deg, rgba(196,166,106,.075), transparent 42%), linear-gradient(145deg, rgba(39,37,32,.88), rgba(23,23,23,.82));
+}
+.mmv-announcement-card h2 { letter-spacing: -.018em; line-height: 1.45; }
+.mmv-announcement-card p.whitespace-pre-wrap { max-width: 880px; }
+@media (hover: hover) and (pointer: fine) {
+  .mmv-announcement-card:hover { border-color: rgba(196,166,106,.22); transform: translateY(-1px); }
+}
+.light .mmv-announcement-card {
+  background: linear-gradient(135deg, rgba(255,255,255,.96), rgba(249,248,244,.88));
+  border-color: rgba(164,134,78,.16);
+  box-shadow: 0 12px 30px rgba(45,38,25,.065), inset 0 1px 0 rgba(255,255,255,.95);
+}
+.light .mmv-announcement-card.is-unread {
+  background: linear-gradient(112deg, rgba(196,166,106,.10), transparent 45%), rgba(255,255,255,.94);
+  border-color: rgba(164,134,78,.30);
+}
