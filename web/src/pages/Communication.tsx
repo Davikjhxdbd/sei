@@ -130,7 +130,7 @@ export default function Communication() {
             <Textarea className="mt-1.5 min-h-40" value={body} onChange={(event) => setBody(event.target.value)} maxLength={12000} placeholder="Escreva a orientação ou o aviso institucional…" />
           </label>
           <label className="block text-xs font-medium text-ink">Prioridade
-            <select className="mt-1.5 h-10 w-full rounded-xl border border-line bg-surface px-3 text-sm text-ink" value={priority} onChange={(event) => setPriority(event.target.value as typeof priority)}>
+            <select className="mmv-form-control mt-1.5 h-10 w-full rounded-xl border border-line bg-surface px-3 text-sm text-ink" value={priority} onChange={(event) => setPriority(event.target.value as typeof priority)}>
               <option value="normal">Comunicado</option>
               <option value="important">Importante</option>
               <option value="urgent">Urgente</option>
