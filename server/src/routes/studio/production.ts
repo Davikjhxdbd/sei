@@ -356,29 +356,32 @@ router.get('/production/tasks/:id/activity', asyncHandler(async (req: any, res) 
 router.post('/production/tasks/:id/comments', asyncHandler(async (req: any, res) => {
   const task = await accessibleTask(req);
   const message = required(req.body?.message, 'mensagem', 4000);
-  const { rows } = await req.db.query(`
-    insert into production_task_history (task_id, user_id, action, details)
-    values ($1, $2, 'comment', $3)
-    returning id, action, details, created_at
-  `, [task.id, req.user.id, JSON.stringify({ message })]);
+  const item = await tx(req.db, async () => {
+    const { rows } = await req.db.query(`
+      insert into production_task_history (task_id, user_id, action, details)
+      values ($1, $2, 'comment', $3)
+      returning id, action, details, created_at
+    `, [task.id, req.user.id, JSON.stringify({ message })]);
 
-  const recipients = [...new Set([task.assigned_to, task.created_by])]
-    .filter((userId) => userId && userId !== req.user.id);
-  await Promise.all(recipients.map((userId) => notify(req.db, {
-    userId,
-    title: 'Nova mensagem em uma produção',
-    body: message.slice(0, 180),
-    link: '/m/studio/production',
-    moduleKey: 'studio'
-  })));
-  await audit(req.db, req.user, {
-    action: 'production.task_comment',
-    entity: 'production_tasks',
-    entityId: task.id,
-    after: { message },
-    moduleKey: 'studio'
+    const recipients = [...new Set([task.assigned_to, task.created_by])]
+      .filter((userId) => userId && userId !== req.user.id);
+    await Promise.all(recipients.map((userId) => notify(req.db, {
+      userId,
+      title: 'Nova mensagem em uma produção',
+      body: message.slice(0, 180),
+      link: '/m/studio/production',
+      moduleKey: 'studio'
+    })));
+    await audit(req.db, req.user, {
+      action: 'production.task_comment',
+      entity: 'production_tasks',
+      entityId: task.id,
+      after: { message },
+      moduleKey: 'studio'
+    });
+    return { ...rows[0], user_id: req.user.id, user_name: req.user.full_name };
   });
-  res.status(201).json({ item: { ...rows[0], user_id: req.user.id, user_name: req.user.full_name } });
+  res.status(201).json({ item });
 }));
 
 router.post('/production/tasks/:id/accept', asyncHandler(async (req: any, res) => {
