@@ -47,6 +47,25 @@ function formatTime(value: string) {
   return new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date(value));
 }
 
+function LocalClock() {
+  const [clock, setClock] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setClock(new Date()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  return (
+    <strong>
+      {clock.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      })}
+    </strong>
+  );
+}
+
 function getGreeting() {
   const hour = new Date().getHours();
   if (hour < 12) return 'BOM DIA';
@@ -101,12 +120,7 @@ export default function AppCentral() {
   const [commandOpen, setCommandOpen] = useState(false);
   const [commandQuery, setCommandQuery] = useState('');
   const [commandIndex, setCommandIndex] = useState(0);
-  const [clock, setClock] = useState(() => new Date());
   const [selectedAgendaDay, setSelectedAgendaDay] = useState(() => dateKey(new Date()));
-  useEffect(() => {
-    const timer = window.setInterval(() => setClock(new Date()), 1000);
-    return () => window.clearInterval(timer);
-  }, []);
   useEffect(() => {
     function handleShortcut(event: KeyboardEvent) {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
@@ -121,7 +135,7 @@ export default function AppCentral() {
     return () => window.removeEventListener('keydown', handleShortcut);
   }, []);
 
-  const weekStart = useMemo(() => getWeekStart(clock), [dateKey(clock)]);
+  const weekStart = useMemo(() => getWeekStart(new Date()), []);
   const weekEnd = useMemo(() => {
     const end = new Date(weekStart);
     end.setDate(end.getDate() + 7);
@@ -140,9 +154,9 @@ export default function AppCentral() {
   }), [weekStart]);
   useEffect(() => {
     if (!weekDays.some((date) => dateKey(date) === selectedAgendaDay)) {
-      setSelectedAgendaDay(dateKey(clock));
+      setSelectedAgendaDay(dateKey(new Date()));
     }
-  }, [weekDays, selectedAgendaDay, clock]);
+  }, [weekDays, selectedAgendaDay]);
 
   const todayKey = dateKey(new Date());
   const sector = sectorText(user?.sectors ?? []);
@@ -257,11 +271,11 @@ export default function AppCentral() {
           <section className="connect-command-hero" aria-labelledby="connect-greeting">
             <div className="connect-command-hero__topline">
               <span className="connect-eyebrow"><span className="connect-live-dot" /> MMV CREATIVE <span className="connect-topline-divider">/</span> CENTRAL DE OPERAÇÕES</span>
-              <span className="connect-session-code">SESSION {dateKey(clock).replace(/-/g, '').slice(2)} · LOCAL</span>
+              <span className="connect-session-code">SESSION {dateKey(new Date()).replace(/-/g, '').slice(2)} · LOCAL</span>
             </div>
             <div className="connect-command-hero__body">
               <div className="connect-command-hero__copy">
-                <p className="connect-date-line">{new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).format(clock)}</p>
+                <p className="connect-date-line">{new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).format(new Date())}</p>
                 <p className="connect-greeting-line">{getGreeting()},</p>
                 <h1 id="connect-greeting" className="connect-main-greeting">{firstName(user?.full_name)}<span>.</span></h1>
                 <p className="connect-hero-message">{personalizedMessage || verse.text}</p>
@@ -290,7 +304,7 @@ export default function AppCentral() {
               </div>
             </div>
             <div className="connect-telemetry">
-              <div className="connect-telemetry__clock"><span className="connect-telemetry__label">HORÁRIO LOCAL</span><strong>{clock.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</strong></div>
+              <div className="connect-telemetry__clock"><span className="connect-telemetry__label">HORÁRIO LOCAL</span><LocalClock /></div>
               <div><span className="connect-telemetry__label">AGENDA DA SEMANA</span><strong>{calendarLoading ? '—' : String(events.length).padStart(2,'0')} <small>compromissos</small></strong></div>
               <div><span className="connect-telemetry__label">NOTIFICAÇÕES</span><strong>{String(unread).padStart(2,'0')} <small>não lidas</small></strong></div>
               <div><span className="connect-telemetry__label">AMBIENTE</span><strong>{sectorLabel}</strong></div>
