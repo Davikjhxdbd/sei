@@ -22,6 +22,20 @@ router.get('/departments/:slug', asyncHandler(async (req: any, res) => {
   if (!departments.length) throw notFound('Departamento não encontrado.');
 
   const department = departments[0];
+  if (req.user.level < 3) {
+    const { rows: access } = await req.db.query(`
+      select 1
+        from studio_department_members
+       where department_id = $1 and user_id = $2
+      union
+      select 1
+        from production_members pm
+        join production_areas a on a.id = pm.area_id
+       where a.studio_department_id = $1 and pm.user_id = $2
+      limit 1
+    `, [department.id, req.user.id]);
+    if (!access.length) throw notFound('Departamento não encontrado.');
+  }
   const [areas, members, tasks, totals] = await Promise.all([
     req.db.query(`
       select a.id, a.name, a.slug, a.description,
@@ -82,6 +96,7 @@ router.get('/departments/:slug', asyncHandler(async (req: any, res) => {
 
 router.get('/production/summary', asyncHandler(async (req: any, res) => {
   ensure(req.user, 'production.view');
+  if (req.user.level < 3) throw forbidden('O resumo geral é restrito à liderança.');
 
   const [totals, statuses, areas] = await Promise.all([
     req.db.query(`
@@ -127,8 +142,17 @@ router.get('/production/areas', asyncHandler(async (req: any, res) => {
       (select count(*)::int from production_members m where m.area_id = a.id) as members_count,
       (select count(*)::int from production_tasks t where t.area_id = a.id) as tasks_count,
       (select count(*)::int from production_tasks t where t.area_id = a.id and t.status <> 'published') as open_tasks
-    from production_areas a where a.active = true order by a.created_at
-  `);
+    from production_areas a
+    where a.active = true
+      and (
+        $1 >= 3
+        or exists (
+          select 1 from production_members pm
+           where pm.area_id = a.id and pm.user_id = $1
+        )
+      )
+    order by a.created_at
+  `, [req.user.level, req.user.id]);
   res.json({ items: rows });
 }));
 
@@ -173,6 +197,13 @@ router.get('/production/areas/:slug', asyncHandler(async (req: any, res) => {
   if (!rows.length) throw notFound('Área de produção não encontrada.');
 
   const area = rows[0];
+  if (req.user.level < 3) {
+    const { rows: access } = await req.db.query(
+      'select 1 from production_members where area_id = $1 and user_id = $2 limit 1',
+      [area.id, req.user.id]
+    );
+    if (!access.length) throw notFound('Área de produção não encontrada.');
+  }
   const [members, tasks] = await Promise.all([
     req.db.query(`
       select u.id, u.full_name, m.function
@@ -207,6 +238,14 @@ router.post('/production/tasks', asyncHandler(async (req: any, res) => {
       [areaId]
     );
     if (!area.rows.length) throw badRequest('A área selecionada não existe ou está inativa.');
+
+    if (req.user.level < 3) {
+      const { rows: membership } = await req.db.query(
+        'select 1 from production_members where area_id = $1 and user_id = $2 limit 1',
+        [areaId, req.user.id]
+      );
+      if (!membership.length) throw forbidden('Você só pode criar solicitações nas equipes das quais participa.');
+    }
 
     if (assignedTo) {
       const member = await req.db.query(
@@ -252,7 +291,10 @@ router.post('/production/tasks', asyncHandler(async (req: any, res) => {
       });
     } else {
       const { rows: members } = await req.db.query(
-        `select distinct user_id from production_members where area_id = $1 and user_id <> $2`,
+        `select distinct pm.user_id
+           from production_members pm
+           join users u on u.id = pm.user_id
+          where pm.area_id = $1 and pm.user_id <> $2 and u.status = 'active'`,
         [areaId, req.user.id]
       );
       await Promise.all(members.map((member: any) => notify(req.db, {
