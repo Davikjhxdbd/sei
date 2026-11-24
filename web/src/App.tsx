@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from './lib/auth';
 import { Shell } from './components/layout/Shell';
@@ -6,28 +7,27 @@ import { Spinner } from './components/ui';
 import { Link } from 'react-router-dom';
 import { ShieldAlert } from 'lucide-react';
 
-import Login from './pages/Login';
-import ResetPassword from './pages/ResetPassword';
-import AppCentral from './pages/AppCentral';
-import People from './pages/People';
-import Departments from './pages/Departments';
-import Communication from './pages/Communication';
-import DesignLab from './pages/DesignLab';
-import CalendarPage from './pages/Calendar';
-import EscalasPage from './pages/Escalas';
-import PersonalArea from './pages/PersonalArea';
-import Notifications from './pages/Notifications';
-import Profile from './pages/Profile';
-import Help from './pages/Help';
-import NotFound from './pages/NotFound';
+const Login = lazy(() => import('./pages/Login'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const AppCentral = lazy(() => import('./pages/AppCentral'));
+const People = lazy(() => import('./pages/People'));
+const Departments = lazy(() => import('./pages/Departments'));
+const Communication = lazy(() => import('./pages/Communication'));
+const DesignLab = lazy(() => import('./pages/DesignLab'));
+const CalendarPage = lazy(() => import('./pages/Calendar'));
+const EscalasPage = lazy(() => import('./pages/Escalas'));
+const PersonalArea = lazy(() => import('./pages/PersonalArea'));
+const Notifications = lazy(() => import('./pages/Notifications'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Help = lazy(() => import('./pages/Help'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
-import UsersPage from './pages/admin/Users';
-import ModulesPage from './pages/admin/Modules';
-import SectorsPage from './pages/admin/Sectors';
-import SettingsPage from './pages/admin/Settings';
-import AuditPage from './pages/admin/Audit';
-import Management from './pages/admin/Management';
-
+const UsersPage = lazy(() => import('./pages/admin/Users'));
+const ModulesPage = lazy(() => import('./pages/admin/Modules'));
+const SectorsPage = lazy(() => import('./pages/admin/Sectors'));
+const SettingsPage = lazy(() => import('./pages/admin/Settings'));
+const AuditPage = lazy(() => import('./pages/admin/Audit'));
+const Management = lazy(() => import('./pages/admin/Management'));
 
 function FullScreenLoader() {
   return (
@@ -43,7 +43,6 @@ function FullScreenLoader() {
   );
 }
 
-
 function Protected() {
   const { user, loading } = useAuth();
   const location = useLocation();
@@ -51,11 +50,7 @@ function Protected() {
   if (!user) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
-  return (
-    <>
-      <Outlet />
-    </>
-  );
+  return <Outlet />;
 }
 
 function Gate({ level, children }: { level: number; children: JSX.Element }) {
@@ -130,55 +125,43 @@ function AdminLayout() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
+    <Suspense fallback={<FullScreenLoader />}>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
-      <Route element={<Protected />}>
-        <Route path="/" element={<AppCentral />} />
-        <Route path="/design-lab" element={<DesignLab />} />
-        <Route path="/help" element={<Help />} />
-        <Route path="/notifications" element={<Notifications />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/calendar" element={<CalendarPage />} />
-        <Route path="/escalas" element={<EscalasPage />} />
-        <Route path="/pessoal" element={<PersonalArea />} />
+        <Route element={<Protected />}>
+          <Route path="/" element={<AppCentral />} />
+          <Route path="/design-lab" element={<DesignLab />} />
+          <Route path="/help" element={<Help />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/escalas" element={<EscalasPage />} />
+          <Route path="/pessoal" element={<PersonalArea />} />
 
-        <Route path="/m/people" element={<ModuleLayout moduleKey="people" />}>
-          <Route index element={<People />} />
-        </Route>
-        <Route path="/m/departments" element={<ModuleLayout moduleKey="departments" />}>
-          <Route index element={<Departments />} />
-        </Route>
-        <Route path="/m/communication" element={<ModuleLayout moduleKey="communication" />}>
-          <Route index element={<Communication />} />
-        </Route>
+          <Route path="/m/people" element={<ModuleLayout moduleKey="people" />}>
+            <Route index element={<People />} />
+          </Route>
+          <Route path="/m/departments" element={<ModuleLayout moduleKey="departments" />}>
+            <Route index element={<Departments />} />
+          </Route>
+          <Route path="/m/communication" element={<ModuleLayout moduleKey="communication" />}>
+            <Route index element={<Communication />} />
+          </Route>
 
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<Management />} />
-          <Route
-            path="users"
-            element={
-              <Gate level={5}>
-                <UsersPage />
-              </Gate>
-            }
-          />
-          <Route
-            path="modules"
-            element={
-              <Gate level={5}>
-                <ModulesPage />
-              </Gate>
-            }
-          />
-          <Route path="sectors" element={<SectorsPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-          <Route path="audit" element={<AuditPage />} />
-        </Route>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Management />} />
+            <Route path="users" element={<Gate level={5}><UsersPage /></Gate>} />
+            <Route path="modules" element={<Gate level={5}><ModulesPage /></Gate>} />
+            <Route path="sectors" element={<SectorsPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="audit" element={<AuditPage />} />
+          </Route>
 
-        <Route path="*" element={<NotFound />} />
-      </Route>
-    </Routes>
+          <Route path="*" element={<NotFound />} />
+        </Route>
+      </Routes>
+    </Suspense>
   );
 }
