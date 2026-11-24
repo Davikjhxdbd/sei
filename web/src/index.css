@@ -843,3 +843,26 @@ html, body, #root {
 @media (prefers-reduced-motion: reduce) {
   .mmv-form-control { transition: none; }
 }
+
+
+/* Estados dos diretórios — vazio e recuperação */
+.mmv-directory-state-card {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(196,166,106,.15);
+  background: radial-gradient(ellipse at 50% 0%, rgba(196,166,106,.075), transparent 58%), linear-gradient(145deg, rgba(255,255,255,.035), rgba(255,255,255,.012));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.045), 0 14px 34px rgba(0,0,0,.11);
+}
+.mmv-directory-state-card > * { position: relative; }
+.mmv-directory-state-card > svg {
+  filter: drop-shadow(0 5px 12px rgba(196,166,106,.13));
+}
+.mmv-directory-state-card p:first-of-type { letter-spacing: -.012em; }
+.light .mmv-directory-state-card {
+  border-color: rgba(164,134,78,.17);
+  background: radial-gradient(ellipse at 50% 0%, rgba(196,166,106,.10), transparent 58%), linear-gradient(145deg, rgba(255,255,255,.96), rgba(247,245,240,.86));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.95), 0 12px 30px rgba(45,38,25,.055);
+}
+@media (max-width: 640px) {
+  .mmv-directory-state-card { border-radius: 15px; }
+}
