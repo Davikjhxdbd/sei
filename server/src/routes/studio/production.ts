@@ -295,6 +295,24 @@ router.patch('/production/tasks/:id', asyncHandler(async (req: any, res) => {
     after: rows[0],
     moduleKey: 'studio'
   });
+  if (before.status !== rows[0].status && before.assigned_to !== req.user.id) {
+    await notify(req.db, {
+      userId: before.assigned_to,
+      title: 'Etapa da produção atualizada',
+      body: rows[0].title,
+      link: '/m/studio/my-space',
+      moduleKey: 'studio'
+    });
+  }
+  if (before.status !== rows[0].status && before.created_by !== req.user.id) {
+    await notify(req.db, {
+      userId: before.created_by,
+      title: 'Produção atualizada',
+      body: req.user.full_name + ' atualizou: ' + rows[0].title,
+      link: '/m/studio/production',
+      moduleKey: 'studio'
+    });
+  }
   return rows[0];
   });
 
