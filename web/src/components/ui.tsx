@@ -595,7 +595,7 @@ export function InlineError({ children }: { children: ReactNode }) {
 
 export function LoadingBlock({ label = 'Carregando…' }: { label?: string }) {
   return (
-    <div className="flex items-center justify-center gap-2 py-12 text-[13px] text-muted">
+    <div className="mmv-loading-state flex items-center justify-center gap-2 py-12 text-[13px] text-muted">
       <Spinner />
       {label}
     </div>
