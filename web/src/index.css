@@ -511,3 +511,99 @@ html, body, #root {
   .mmv-person-card { min-height: 92px; padding: 13px; }
   .mmv-department-card { min-height: 196px; }
 }
+
+
+/* MMV CREATIVE — Liquid Glass (camada translúcida e controlada) */
+.mmv-app-topbar {
+  background: linear-gradient(110deg, rgba(17,17,17,.86), rgba(29,27,24,.78) 58%, rgba(17,17,17,.86));
+  -webkit-backdrop-filter: saturate(155%) blur(22px);
+  backdrop-filter: saturate(155%) blur(22px);
+  border-bottom-color: rgba(255,255,255,.10);
+}
+.mmv-app-sidebar {
+  background: linear-gradient(160deg, rgba(34,34,34,.78), rgba(18,18,18,.88));
+  -webkit-backdrop-filter: saturate(140%) blur(24px);
+  backdrop-filter: saturate(140%) blur(24px);
+  border-right-color: rgba(255,255,255,.075);
+}
+.mmv-app-mobile-nav {
+  background: rgba(25,25,25,.76);
+  border: 1px solid rgba(255,255,255,.09);
+  box-shadow: 0 12px 36px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.09);
+  -webkit-backdrop-filter: saturate(160%) blur(24px);
+  backdrop-filter: saturate(160%) blur(24px);
+}
+.mmv-surface {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.055), transparent 38%),
+    linear-gradient(145deg, rgba(39,39,39,.82), rgba(25,25,25,.76));
+  border-color: rgba(255,255,255,.095);
+  box-shadow:
+    0 16px 38px rgba(0,0,0,.20),
+    inset 0 1px 0 rgba(255,255,255,.085),
+    inset 0 -1px 0 rgba(196,166,106,.045);
+  -webkit-backdrop-filter: saturate(135%) blur(18px);
+  backdrop-filter: saturate(135%) blur(18px);
+}
+.mmv-surface::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(118deg, rgba(255,255,255,.075), transparent 24%, transparent 72%, rgba(196,166,106,.035));
+  opacity: .72;
+}
+.mmv-surface > * { position: relative; }
+.mmv-directory-toolbar {
+  background: linear-gradient(125deg, rgba(255,255,255,.065), rgba(255,255,255,.018) 52%, rgba(196,166,106,.045));
+  border-color: rgba(255,255,255,.105);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.075), 0 10px 28px rgba(0,0,0,.12);
+  -webkit-backdrop-filter: saturate(145%) blur(18px);
+  backdrop-filter: saturate(145%) blur(18px);
+}
+.mmv-app-shell [role="menu"],
+.mmv-app-shell [role="dialog"] {
+  background-color: rgba(29,29,29,.88);
+  border-color: rgba(255,255,255,.12);
+  box-shadow: 0 22px 60px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.07);
+  -webkit-backdrop-filter: saturate(150%) blur(24px);
+  backdrop-filter: saturate(150%) blur(24px);
+}
+.mmv-app-shell input,
+.mmv-app-shell textarea,
+.mmv-app-shell select {
+  background-color: rgba(255,255,255,.035);
+  border-color: rgba(255,255,255,.12);
+}
+@media (prefers-color-scheme: light) {
+  .mmv-app-shell.light .mmv-surface,
+  .light .mmv-app-shell .mmv-surface {
+    background: linear-gradient(135deg, rgba(255,255,255,.92), rgba(250,249,246,.78));
+    border-color: rgba(164,134,78,.18);
+    box-shadow: 0 14px 34px rgba(45,38,25,.075), inset 0 1px 0 rgba(255,255,255,.95);
+  }
+  .light .mmv-app-topbar,
+  .light .mmv-app-sidebar,
+  .light .mmv-app-mobile-nav {
+    -webkit-backdrop-filter: saturate(145%) blur(22px);
+    backdrop-filter: saturate(145%) blur(22px);
+  }
+  .light .mmv-app-shell [role="menu"],
+  .light .mmv-app-shell [role="dialog"] {
+    background-color: rgba(255,255,255,.90);
+    border-color: rgba(164,134,78,.17);
+    box-shadow: 0 22px 60px rgba(35,30,20,.16), inset 0 1px 0 rgba(255,255,255,.95);
+  }
+}
+@media (max-width: 640px) {
+  .mmv-app-topbar { -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
+  .mmv-surface { -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mmv-surface { transition: none; }
+}
