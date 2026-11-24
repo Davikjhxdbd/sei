@@ -888,3 +888,35 @@ html, body, #root {
 @media (max-width: 640px) {
   .mmv-loading-state { min-height: 96px; border-radius: 14px; }
 }
+
+
+/* Notificações — hierarquia de leitura e estados */
+.mmv-notification-list { display: grid; }
+.mmv-notification-item {
+  position: relative;
+  background: linear-gradient(110deg, rgba(255,255,255,.018), transparent 58%);
+  transition: background-color 180ms ease, box-shadow 180ms ease;
+}
+.mmv-notification-item.is-unread {
+  background: linear-gradient(105deg, rgba(196,166,106,.095), rgba(196,166,106,.025) 58%, transparent);
+  box-shadow: inset 2px 0 0 rgba(216,189,134,.72);
+}
+.mmv-notification-item button { min-height: 76px; }
+.mmv-notification-item button:focus-visible {
+  outline: 2px solid rgba(216,189,134,.72);
+  outline-offset: -3px;
+}
+.mmv-notification-item .mmv-notification-dot {
+  box-shadow: 0 0 0 4px rgba(196,166,106,.09), 0 0 12px rgba(196,166,106,.22);
+}
+.light .mmv-notification-item { background: rgba(255,255,255,.30); }
+.light .mmv-notification-item.is-unread {
+  background: linear-gradient(105deg, rgba(196,166,106,.13), rgba(255,255,255,.42) 68%);
+  box-shadow: inset 2px 0 0 rgba(164,134,78,.62);
+}
+@media (hover: hover) and (pointer: fine) {
+  .mmv-notification-item:hover { background-color: rgba(196,166,106,.055); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mmv-notification-item { transition: none; }
+}
