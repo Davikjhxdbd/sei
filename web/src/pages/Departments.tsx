@@ -34,7 +34,7 @@ export default function Departments() {
         <Badge tone="accent">{departments.length} {departments.length === 1 ? 'departamento' : 'departamentos'}</Badge>
       </div>
       {loading ? <LoadingBlock /> : error ? (
-        <Card className="p-6 text-center">
+        <Card className="mmv-directory-state-card p-6 text-center">
           <p className="text-sm font-medium text-ink">Não foi possível carregar os departamentos.</p>
           <button type="button" onClick={() => void reload()} className="mt-3 text-sm font-semibold text-brass-deep">Tentar novamente</button>
         </Card>
@@ -55,7 +55,7 @@ export default function Departments() {
           ))}
         </div>
       ) : (
-        <Card className="p-10 text-center">
+        <Card className="mmv-directory-state-card p-10 text-center">
           <Building2 className="mx-auto h-8 w-8 text-muted" />
           <p className="mt-3 text-sm font-semibold text-ink">{query ? 'Nenhum departamento encontrado' : 'Nenhum departamento cadastrado'}</p>
           <p className="mt-1 text-xs text-muted">Os departamentos ativos aparecerão aqui.</p>
