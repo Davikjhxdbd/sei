@@ -168,7 +168,7 @@ export function Field({
 }
 
 const CONTROL =
-  'w-full rounded-xl border border-line bg-surface px-3 text-sm text-ink placeholder:text-muted/60 transition-[border-color,box-shadow] outline-none focus:border-brass focus:ring-2 focus:ring-brass/20 disabled:bg-canvas disabled:text-muted';
+  'mmv-form-control w-full rounded-xl border border-line bg-surface px-3 text-sm text-ink placeholder:text-muted/60 transition-[border-color,box-shadow] outline-none focus:border-brass focus:ring-2 focus:ring-brass/20 disabled:bg-canvas disabled:text-muted';
 
 export function Input({ className, ...rest }: InputHTMLAttributes<HTMLInputElement>) {
   return <input {...rest} className={cx(CONTROL, 'h-10', className)} />;
@@ -438,7 +438,7 @@ export function Modal({
         aria-modal="true"
         aria-label={title}
         className={cx(
-          'mmv-fade-in relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl border border-brass/20 bg-surface shadow-lift sm:rounded-2xl',
+          'mmv-glass-modal mmv-fade-in relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl border border-brass/20 bg-surface shadow-lift sm:rounded-2xl',
           width,
         )}
       >
