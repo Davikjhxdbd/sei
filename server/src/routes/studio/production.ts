@@ -55,6 +55,7 @@ router.get('/departments/:slug', asyncHandler(async (req: any, res) => {
       where a.studio_department_id = $1
       order by
         case when t.status = 'published' then 1 else 0 end,
+        case t.priority when 'urgent' then 0 when 'high' then 1 when 'normal' then 2 else 3 end,
         t.due_date nulls last,
         t.created_at desc
       limit 100
@@ -182,7 +183,8 @@ router.get('/production/areas/:slug', asyncHandler(async (req: any, res) => {
       select t.*, u.full_name as assignee_name
         from production_tasks t left join users u on u.id = t.assigned_to
        where t.area_id = $1
-       order by t.due_date nulls last, t.created_at desc
+       order by case t.priority when 'urgent' then 0 when 'high' then 1 when 'normal' then 2 else 3 end,
+               t.due_date nulls last, t.created_at desc
     `, [area.id])
   ]);
 
@@ -388,8 +390,15 @@ router.post('/production/tasks/:id/comments', asyncHandler(async (req: any, res)
       returning id, action, details, created_at
     `, [task.id, req.user.id, JSON.stringify({ message })]);
 
-    const recipients = [...new Set([task.assigned_to, task.created_by])]
-      .filter((userId) => userId && userId !== req.user.id);
+    let recipients = [task.assigned_to, task.created_by];
+    if (!task.assigned_to) {
+      const { rows: team } = await req.db.query(
+        'select distinct user_id from production_members where area_id = $1',
+        [task.area_id]
+      );
+      recipients = [...recipients, ...team.map((member: any) => member.user_id)];
+    }
+    recipients = [...new Set(recipients)].filter((userId) => userId && userId !== req.user.id);
     await Promise.all(recipients.map((userId) => notify(req.db, {
       userId,
       title: 'Nova mensagem em uma produção',

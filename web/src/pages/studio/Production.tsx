@@ -127,7 +127,8 @@ function TaskCard({
     }
   }
 
-  const accepted = activity.some(item => item.action === 'accepted' && item.user_id === currentUserId);
+  const accepted = activity.some(item => ['accepted', 'claimed'].includes(item.action) && item.user_id === currentUserId);
+  const claimedByMe = activity.some(item => item.action === 'claimed' && item.user_id === currentUserId);
   const actionLabel: Record<string, string> = {
     created: 'criou a tarefa',
     updated: 'atualizou a produção',
@@ -186,7 +187,7 @@ function TaskCard({
             {!activity.length && <p className="text-xs text-muted">Nenhuma atividade registrada ainda.</p>}
           </div>
         )}
-        {task.assigned_to === currentUserId && accepted && <p className="text-[10px] text-emerald-600">Recebimento confirmado.</p>}
+        {task.assigned_to === currentUserId && accepted && <p className="text-[10px] text-emerald-600">{claimedByMe ? 'Você assumiu esta solicitação.' : 'Recebimento confirmado.'}</p>}
         <form onSubmit={sendMessage} className="flex gap-2">
           <input value={message} onChange={e => setMessage(e.target.value)} maxLength={4000} placeholder="Escreva uma atualização ou mensagem..." className="h-10 min-w-0 flex-1 rounded-lg border border-line bg-canvas px-3 text-xs text-ink outline-none focus:border-[#C4A66A]" />
           <button type="submit" disabled={sending || !message.trim()} className="rounded-lg bg-[#C4A66A] px-3 text-xs font-semibold text-[#111] disabled:opacity-50">Enviar</button>
