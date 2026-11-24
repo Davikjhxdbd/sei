@@ -9,6 +9,13 @@ import { useAuth } from '../../lib/auth';
 import { get, post, patch } from '../../lib/api';
 import { useApi } from '../../lib/useApi';
 
+const PRIORITY = [
+  { id: 'low', label: 'Baixa' },
+  { id: 'normal', label: 'Normal' },
+  { id: 'high', label: 'Alta' },
+  { id: 'urgent', label: 'Urgente' },
+] as const;
+
 const STATUS = [
   { id: 'planning', label: 'Planejamento' },
   { id: 'recording', label: 'Gravação' },
@@ -42,12 +49,14 @@ function dateLabel(value?: string | null) {
 }
 
 function TaskCard({
-  task, onStatus, currentUserId, canEdit,
+  task, onStatus, onClaim, currentUserId, canEdit, canClaim,
 }: {
   task: any;
   onStatus: (id: string, status: string) => void;
   currentUserId?: string;
   canEdit: boolean;
+  canClaim: boolean;
+  onClaim: (id: string) => Promise<void>;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [activity, setActivity] = useState<any[]>([]);
@@ -55,6 +64,7 @@ function TaskCard({
   const [loadingActivity, setLoadingActivity] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
+  const [claiming, setClaiming] = useState(false);
 
   async function loadActivity() {
     setLoadingActivity(true);
@@ -73,6 +83,19 @@ function TaskCard({
     const next = !expanded;
     setExpanded(next);
     if (next) await loadActivity();
+  }
+
+  async function claimTask() {
+    setClaiming(true);
+    setError('');
+    try {
+      await onClaim(task.id);
+      await loadActivity();
+    } catch (err: any) {
+      setError(err.message || 'Não foi possível assumir esta solicitação.');
+    } finally {
+      setClaiming(false);
+    }
   }
 
   async function acceptTask() {
@@ -110,6 +133,7 @@ function TaskCard({
     updated: 'atualizou a produção',
     accepted: 'confirmou o recebimento',
     comment: 'enviou uma mensagem',
+    claimed: 'assumiu a solicitação',
   };
 
   return (
@@ -122,7 +146,7 @@ function TaskCard({
       </div>
       {task.description && <p className="mt-2 text-xs leading-relaxed text-muted">{task.description}</p>}
       <div className="mt-4 space-y-2 text-[11px] text-muted">
-        <div className="flex items-center gap-2"><UserRound className="h-3.5 w-3.5" />{task.assignee_name || 'Sem responsável'}</div>
+        <div className="flex items-center gap-2"><UserRound className="h-3.5 w-3.5" />{task.assignee_name || (task.assigned_to ? 'Responsável não identificado' : 'Equipe · aguardando responsável')}</div>
         <div className="flex items-center gap-2"><CalendarDays className="h-3.5 w-3.5" />Prazo: {dateLabel(task.due_date)}</div>
         {task.recording_date && <div className="flex items-center gap-2"><Video className="h-3.5 w-3.5" />Gravação: {dateLabel(task.recording_date)}</div>}
       </div>
@@ -136,10 +160,12 @@ function TaskCard({
           {STATUS.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
         </select>
       </div>}
+      <div className="mt-2 flex flex-wrap items-center gap-2">{task.priority && <span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${task.priority === 'urgent' ? 'bg-red-500/10 text-red-500' : task.priority === 'high' ? 'bg-orange-500/10 text-orange-500' : 'bg-ink/[0.05] text-muted'}`}>Prioridade: {PRIORITY.find(p => p.id === task.priority)?.label || 'Normal'}</span>}</div>
       <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3">
         <button type="button" onClick={toggleActivity} className="rounded-lg border border-line px-3 py-2 text-[11px] font-medium text-ink hover:border-[#C4A66A]/50">
           {expanded ? 'Fechar conversa' : 'Histórico e conversa'}
         </button>
+        {task.assigned_to == null && canClaim && <button type="button" disabled={claiming} onClick={claimTask} className="rounded-lg bg-[#C4A66A] px-3 py-2 text-[11px] font-semibold text-[#111] disabled:opacity-50">{claiming ? 'Assumindo...' : 'Assumir solicitação'}</button>}
         {task.assigned_to === currentUserId && expanded && !accepted && (
           <button type="button" disabled={sending} onClick={acceptTask} className="rounded-lg bg-[#C4A66A] px-3 py-2 text-[11px] font-semibold text-[#111] disabled:opacity-50">
             {sending ? 'Confirmando...' : 'Confirmar recebimento'}
@@ -188,6 +214,7 @@ export default function Production() {
   const [assignedTo, setAssignedTo] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [recordingDate, setRecordingDate] = useState('');
+  const [priority, setPriority] = useState('normal');
 
   async function createTask(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -202,12 +229,14 @@ export default function Production() {
         assigned_to: assignedTo || null,
         due_date: dueDate || null,
         recording_date: recordingDate || null,
+        priority,
       });
       setTitle('');
       setDescription('');
       setAssignedTo('');
       setDueDate('');
       setRecordingDate('');
+      setPriority('normal');
       setShowForm(false);
       reload();
     } catch (err: any) {
@@ -269,15 +298,16 @@ export default function Production() {
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div><h2 className="text-sm font-semibold text-ink">Quadro de produção</h2><p className="mt-1 text-xs text-muted">Acompanhe cada entrega ao longo do fluxo.</p></div>
-          {level >= 2 && <button onClick={() => setShowForm(!showForm)} className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#C4A66A] px-4 text-xs font-semibold text-[#111] hover:bg-[#d3b77e]"><Plus className="h-4 w-4" />Nova tarefa</button>}
+          {level >= 2 && <button onClick={() => setShowForm(!showForm)} className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#C4A66A] px-4 text-xs font-semibold text-[#111] hover:bg-[#d3b77e]"><Plus className="h-4 w-4" />Nova solicitação</button>}
         </div>
 
         {showForm && <form onSubmit={createTask} className="grid gap-3 rounded-xl border border-[#C4A66A]/30 bg-surface p-5 md:grid-cols-2">
           <div className="md:col-span-2"><label className="mb-1.5 block text-xs text-muted">Título da tarefa *</label><input required value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex.: Editar Reel do culto" className="h-10 w-full rounded-lg border border-line bg-canvas px-3 text-sm text-ink outline-none focus:border-[#C4A66A]" /></div>
           <div className="md:col-span-2"><label className="mb-1.5 block text-xs text-muted">Descrição</label><textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} placeholder="Detalhes da entrega..." className="w-full rounded-lg border border-line bg-canvas p-3 text-sm text-ink outline-none focus:border-[#C4A66A]" /></div>
-          <div><label className="mb-1.5 block text-xs text-muted">Responsável</label><select value={assignedTo} onChange={e => setAssignedTo(e.target.value)} className="h-10 w-full rounded-lg border border-line bg-canvas px-3 text-xs text-ink"><option value="">Não atribuir agora</option>{members.map((m: any) => <option key={m.id} value={m.id}>{m.full_name} · {m.function}</option>)}</select></div>
+          <div><label className="mb-1.5 block text-xs text-muted">Responsável</label><select value={assignedTo} onChange={e => setAssignedTo(e.target.value)} className="h-10 w-full rounded-lg border border-line bg-canvas px-3 text-xs text-ink"><option value="">Equipe (alguém assume)</option>{members.map((m: any) => <option key={m.id} value={m.id}>{m.full_name} · {m.function}</option>)}</select></div>
           <div><label className="mb-1.5 block text-xs text-muted">Prazo de entrega</label><input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className="h-10 w-full rounded-lg border border-line bg-canvas px-3 text-xs text-ink" /></div>
           <div><label className="mb-1.5 block text-xs text-muted">Data da gravação</label><input type="date" value={recordingDate} onChange={e => setRecordingDate(e.target.value)} className="h-10 w-full rounded-lg border border-line bg-canvas px-3 text-xs text-ink" /></div>
+          <div><label className="mb-1.5 block text-xs text-muted">Prioridade</label><select value={priority} onChange={e => setPriority(e.target.value)} className="h-10 w-full rounded-lg border border-line bg-canvas px-3 text-xs text-ink">{PRIORITY.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></div>
           {formError && <p className="text-xs text-red-500 md:col-span-2">{formError}</p>}
           <div className="flex justify-end gap-2 md:col-span-2"><button type="button" onClick={() => setShowForm(false)} className="rounded-lg border border-line px-4 py-2 text-xs text-muted">Cancelar</button><button disabled={saving} className="rounded-lg bg-[#C4A66A] px-4 py-2 text-xs font-semibold text-[#111] disabled:opacity-50">{saving ? 'Salvando...' : 'Criar tarefa'}</button></div>
         </form>}
@@ -287,7 +317,7 @@ export default function Production() {
             const items = tasks.filter((task: any) => task.status === step.id);
             return <section key={step.id} className="min-w-0 rounded-xl border border-line bg-ink/[0.02] p-3">
               <div className="mb-3 flex items-center justify-between gap-2"><h3 className="text-xs font-semibold text-ink">{step.label}</h3><span className="rounded-full bg-ink/[0.06] px-2 py-0.5 text-[10px] text-muted">{items.length}</span></div>
-              <div className="space-y-2">{items.map((task: any) => <TaskCard key={task.id} task={task} onStatus={updateStatus} currentUserId={user?.id} canEdit={task.assigned_to === user?.id || task.created_by === user?.id || level >= 3} />)}</div>
+              <div className="space-y-2">{items.map((task: any) => <TaskCard key={task.id} task={task} onStatus={updateStatus} onClaim={async (id) => { await post(`/studio/production/tasks/${id}/claim`, {}); reload(); }} canClaim={members.some((m: any) => m.id === user?.id)} currentUserId={user?.id} canEdit={task.assigned_to === user?.id || task.created_by === user?.id || level >= 3} />)}</div>
               {!items.length && <p className="rounded-lg border border-dashed border-line p-4 text-center text-[10px] text-muted">Nenhuma tarefa</p>}
             </section>;
           })}
@@ -306,7 +336,7 @@ export default function Production() {
         {[{ label: 'Áreas vinculadas', value: areas.length }, { label: 'Tarefas em aberto', value: open.length }, { label: 'Entregas concluídas', value: tasks.filter((t: any) => t.status === 'published').length }].map(item => <div key={item.label} className="rounded-xl border border-line bg-surface p-4"><p className="text-xs text-muted">{item.label}</p><p className="mt-2 text-2xl font-semibold text-ink">{item.value}</p></div>)}
       </div>
       <h2 className="mb-3 text-sm font-semibold text-ink">Minhas tarefas</h2>
-      {tasks.length ? <div className="mb-7 grid gap-3 md:grid-cols-2 xl:grid-cols-3">{tasks.map((task: any) => <div key={task.id}><p className="mb-1 text-[10px] uppercase tracking-wider text-[#C4A66A]">{task.area_name}</p><TaskCard task={task} currentUserId={user?.id} canEdit={task.assigned_to === user?.id || task.created_by === user?.id || level >= 3} onStatus={async (id, status) => { try { await patch(`/studio/production/tasks/${id}`, { status }); reload(); } catch (err: any) { window.alert(err.message); } }} /></div>)}</div> : <p className="mb-7 rounded-xl border border-dashed border-line p-6 text-center text-sm text-muted">Você ainda não tem tarefas atribuídas.</p>}
+      {tasks.length ? <div className="mb-7 grid gap-3 md:grid-cols-2 xl:grid-cols-3">{tasks.map((task: any) => <div key={task.id}><p className="mb-1 text-[10px] uppercase tracking-wider text-[#C4A66A]">{task.area_name}</p><TaskCard task={task} currentUserId={user?.id} canClaim={areas.some((area: any) => area.area_id === task.area_id)} onClaim={async (id) => { await post(`/studio/production/tasks/${id}/claim`, {}); reload(); }} canEdit={task.assigned_to === user?.id || task.created_by === user?.id || level >= 3} onStatus={async (id, status) => { try { await patch(`/studio/production/tasks/${id}`, { status }); reload(); } catch (err: any) { window.alert(err.message); } }} /></div>)}</div> : <p className="mb-7 rounded-xl border border-dashed border-line p-6 text-center text-sm text-muted">Você ainda não tem tarefas atribuídas.</p>}
       <h2 className="mb-3 text-sm font-semibold text-ink">Minhas áreas</h2>
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{areas.map((area: any) => { const Icon = AREAS.find(a => a.slug === area.slug)?.icon || FolderKanban; return <Link key={area.area_id} to={`/m/studio/production/${area.slug}`} className="rounded-xl border border-line bg-surface p-5 transition hover:border-[#C4A66A]/50"><Icon className="h-5 w-5 text-[#C4A66A]" /><h3 className="mt-3 text-sm font-semibold text-ink">{area.name}</h3><p className="mt-1 text-xs text-muted">{area.function}</p><span className="mt-4 flex items-center gap-1 text-xs text-[#C4A66A]">Acessar área <ArrowUpRight className="h-3.5 w-3.5" /></span></Link>; })}</div>
       {!areas.length && <p className="mt-3 text-xs text-muted">Seu perfil ainda não está vinculado a uma equipe de produção.</p>}

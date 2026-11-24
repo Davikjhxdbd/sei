@@ -1,11 +1,12 @@
 import { Router } from 'express';
-import { asyncHandler, badRequest, forbidden, notFound, required, optionalText } from '../../http';
+import { asyncHandler, badRequest, forbidden, notFound, required, optionalText, oneOf } from '../../http';
 import { assertAction, type Action } from '../../permissions';
 import { audit, notify } from '../../audit';
 import { tx } from '../../db';
 
 const router = Router();
 const STATUSES = ['planning', 'recording', 'editing', 'review', 'published'] as const;
+const PRIORITIES = ['low', 'normal', 'high', 'urgent'] as const;
 
 function ensure(user: any, action: Action) {
   assertAction(user.level, action);
@@ -139,7 +140,16 @@ router.get('/production/mine', asyncHandler(async (req: any, res) => {
       join production_areas a on a.id = t.area_id
       left join users u on u.id = t.assigned_to
      where t.assigned_to = $1
-     order by t.due_date nulls last, t.created_at desc
+        or (
+          t.assigned_to is null
+          and exists (
+            select 1 from production_members pm
+             where pm.area_id = t.area_id and pm.user_id = $1
+          )
+        )
+     order by
+       case t.priority when 'urgent' then 0 when 'high' then 1 when 'normal' then 2 else 3 end,
+       t.due_date nulls last, t.created_at desc
   `, [req.user.id]);
 
   const { rows: memberships } = await req.db.query(`
@@ -187,6 +197,7 @@ router.post('/production/tasks', asyncHandler(async (req: any, res) => {
   const assignedTo = req.body?.assigned_to || null;
   const dueDate = req.body?.due_date || null;
   const recordingDate = req.body?.recording_date || null;
+  const priority = oneOf(req.body?.priority ?? 'normal', PRIORITIES, 'prioridade');
 
   const task = await tx(req.db, async () => {
     const area = await req.db.query(
@@ -211,15 +222,15 @@ router.post('/production/tasks', asyncHandler(async (req: any, res) => {
 
     const { rows } = await req.db.query(`
       insert into production_tasks
-        (area_id, title, description, assigned_to, due_date, recording_date, created_by)
-      values ($1, $2, $3, $4, $5, $6, $7)
+        (area_id, title, description, assigned_to, due_date, recording_date, created_by, priority)
+      values ($1, $2, $3, $4, $5, $6, $7, $8)
       returning *
-    `, [areaId, title, description, assignedTo, dueDate, recordingDate, req.user.id]);
+    `, [areaId, title, description, assignedTo, dueDate, recordingDate, req.user.id, priority]);
 
     await req.db.query(`
       insert into production_task_history (task_id, user_id, action, details)
       values ($1, $2, 'created', $3)
-    `, [rows[0].id, req.user.id, JSON.stringify({ title })]);
+    `, [rows[0].id, req.user.id, JSON.stringify({ title, priority, assigned_to: assignedTo })]);
 
     await audit(req.db, req.user, {
       action: 'production.task_created',
@@ -229,13 +240,27 @@ router.post('/production/tasks', asyncHandler(async (req: any, res) => {
       moduleKey: 'studio'
     });
 
-    await notify(req.db, {
-      userId: assignedTo,
-      title: 'Nova tarefa de produção',
-      body: title,
-      link: '/m/studio/my-space',
-      moduleKey: 'studio'
-    });
+    if (assignedTo) {
+      await notify(req.db, {
+        userId: assignedTo,
+        title: 'Nova solicitação de produção',
+        body: title,
+        link: '/m/studio/my-space',
+        moduleKey: 'studio'
+      });
+    } else {
+      const { rows: members } = await req.db.query(
+        `select distinct user_id from production_members where area_id = $1 and user_id <> $2`,
+        [areaId, req.user.id]
+      );
+      await Promise.all(members.map((member: any) => notify(req.db, {
+        userId: member.user_id,
+        title: 'Nova solicitação para sua equipe',
+        body: title,
+        link: '/m/studio/my-space',
+        moduleKey: 'studio'
+      })));
+    }
     return rows[0];
   });
 
@@ -382,6 +407,55 @@ router.post('/production/tasks/:id/comments', asyncHandler(async (req: any, res)
     return { ...rows[0], user_id: req.user.id, user_name: req.user.full_name };
   });
   res.status(201).json({ item });
+}));
+
+router.post('/production/tasks/:id/claim', asyncHandler(async (req: any, res) => {
+  const task = await tx(req.db, async () => {
+    const { rows } = await req.db.query(
+      'select * from production_tasks where id = $1 for update',
+      [req.params.id]
+    );
+    if (!rows.length) throw notFound('Solicitação não encontrada.');
+    const current = rows[0];
+    if (current.assigned_to) throw badRequest('Esta solicitação já foi assumida por outra pessoa.');
+
+    const { rows: membership } = await req.db.query(
+      `select 1 from production_members pm
+        join users u on u.id = pm.user_id
+       where pm.area_id = $1 and pm.user_id = $2 and u.status = 'active'
+       for share of pm, u`,
+      [current.area_id, req.user.id]
+    );
+    if (!membership.length) throw notFound('Solicitação não encontrada.');
+
+    const { rows: updated } = await req.db.query(
+      'update production_tasks set assigned_to = $1, updated_at = now() where id = $2 and assigned_to is null returning *',
+      [req.user.id, current.id]
+    );
+    if (!updated.length) throw badRequest('Outra pessoa acabou de assumir esta solicitação.');
+
+    await req.db.query(`
+      insert into production_task_history (task_id, user_id, action, details)
+      values ($1, $2, 'claimed', $3)
+    `, [current.id, req.user.id, JSON.stringify({ assigned_to: req.user.id })]);
+    await notify(req.db, {
+      userId: current.created_by,
+      title: 'Solicitação assumida',
+      body: req.user.full_name + ' assumiu: ' + current.title,
+      link: '/m/studio/production',
+      moduleKey: 'studio'
+    });
+    await audit(req.db, req.user, {
+      action: 'production.task_claimed',
+      entity: 'production_tasks',
+      entityId: current.id,
+      before: current,
+      after: updated[0],
+      moduleKey: 'studio'
+    });
+    return updated[0];
+  });
+  res.json({ task });
 }));
 
 router.post('/production/tasks/:id/accept', asyncHandler(async (req: any, res) => {
