@@ -56,9 +56,21 @@ async function main() {
               set_config('mmv.actor_level', '9', false)`,
     );
 
+    const demoPasswordHash = await hashPassword(DEMO_PASSWORD);
     const { rows: existing } = await client.query('select count(*)::int as total from users');
     if (existing[0].total > 0) {
-      console.log('base já possui dados — seed ignorado.');
+      // A base de teste pode já conter contas criadas por uma execução anterior.
+      // Corrige credenciais sem recriar eventos, tarefas ou outros dados existentes.
+      for (const user of USERS) {
+        await client.query(
+          `update users
+              set full_name = $2, username = $3, email = $4,
+                  password_hash = $5, status = 'active', updated_at = now()
+            where id = $1`,
+          [user.id, user.name, user.username, user.email, demoPasswordHash],
+        );
+      }
+      console.log('contas de demonstração verificadas e credenciais atualizadas.');
       return;
     }
 
@@ -94,7 +106,7 @@ async function main() {
       await client.query(
         `insert into users (id, full_name, username, email, password_hash, status)
          values ($1, $2, $3, $4, $5, 'active') on conflict (id) do nothing`,
-        [user.id, user.name, user.username, user.email, hashPassword(DEMO_PASSWORD)],
+        [user.id, user.name, user.username, user.email, demoPasswordHash],
       );
       for (const role of user.roles) {
         await client.query(
