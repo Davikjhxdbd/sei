@@ -14,6 +14,9 @@ create index if not exists personal_projects_owner_idx
   on personal_projects (owner_id, status, updated_at desc);
 
 
+create unique index if not exists personal_projects_id_owner_uq
+  on personal_projects (id, owner_id);
+
 create table if not exists personal_tasks (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null references users(id) on delete cascade,
@@ -33,8 +36,6 @@ create table if not exists personal_tasks (
     references personal_projects(id, owner_id)
     on delete set null (project_id)
 );
-create unique index if not exists personal_projects_id_owner_uq
-  on personal_projects (id, owner_id);
 create index if not exists personal_tasks_owner_status_idx
   on personal_tasks (owner_id, status, due_date, created_at desc);
 create index if not exists personal_tasks_project_idx
