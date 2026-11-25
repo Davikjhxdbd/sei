@@ -5,7 +5,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowUpRight, Bell, CalendarDays, ChevronRight,
   ArrowRight, Command, HelpCircle, Menu,
-  Search, UserRound, X,
+  Search, UserRound, X, BriefcaseBusiness, Clapperboard,
+  MessagesSquare, Settings2,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useApi } from '../lib/useApi';
@@ -114,7 +115,7 @@ function getPersonalMessage(sector: string) {
 
 export default function AppCentral() {
   const navigate = useNavigate();
-  const { user, state } = useAuth();
+  const { user, state, level } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [commandQuery, setCommandQuery] = useState('');
@@ -170,7 +171,11 @@ export default function AppCentral() {
     { id: 'notifications', name: 'Notificações', route: '/notifications', icon: Bell, group: 'ESPAÇOS' },
     { id: 'profile', name: 'Meu perfil', route: '/profile', icon: UserRound, group: 'ESPAÇOS' },
     { id: 'help', name: 'Ajuda', route: '/help', icon: HelpCircle, group: 'ESPAÇOS' },
-  ].filter((item) => item.name.toLocaleLowerCase('pt-BR').includes(commandQuery.trim().toLocaleLowerCase('pt-BR'))), [commandQuery]);
+    { id: 'management', name: 'Gestão', route: '/ambiente/gestao', icon: BriefcaseBusiness, group: 'AMBIENTES' },
+    { id: 'creative', name: 'Produção Criativa', route: '/ambiente/producao', icon: Clapperboard, group: 'AMBIENTES' },
+    { id: 'intelligence', name: 'Comunicação e Inteligência', route: '/ambiente/inteligencia', icon: MessagesSquare, group: 'AMBIENTES' },
+    ...(level >= 4 ? [{ id: 'admin', name: 'Administração', route: '/ambiente/administracao', icon: Settings2, group: 'RESTRITO' }] : []),
+  ].filter((item) => item.name.toLocaleLowerCase('pt-BR').includes(commandQuery.trim().toLocaleLowerCase('pt-BR'))), [commandQuery, level]);
   useEffect(() => {
     if (!commandOpen) return;
     function handleCommandKeys(event: KeyboardEvent) {

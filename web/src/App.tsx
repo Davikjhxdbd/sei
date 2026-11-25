@@ -10,6 +10,7 @@ import { ShieldAlert } from 'lucide-react';
 const Login = lazy(() => import('./pages/Login'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const AppCentral = lazy(() => import('./pages/AppCentral'));
+const WorkspaceHub = lazy(() => import('./pages/WorkspaceHub'));
 const People = lazy(() => import('./pages/People'));
 const Departments = lazy(() => import('./pages/Departments'));
 const Communication = lazy(() => import('./pages/Communication'));
@@ -132,6 +133,7 @@ export default function App() {
 
         <Route element={<Protected />}>
           <Route path="/" element={<AppCentral />} />
+          <Route path="/ambiente/:slug" element={<WorkspaceHub />} />
           <Route path="/design-lab" element={<DesignLab />} />
           <Route path="/help" element={<Help />} />
           <Route path="/notifications" element={<Notifications />} />
