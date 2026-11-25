@@ -43,8 +43,8 @@ const workspaces: Record<string, Workspace> = {
     icon: BriefcaseBusiness,
     mode: 'office',
     cards: [
-      { title: 'Projetos', description: 'Tire ideias do papel, organize etapas e acompanhe cada entrega.', detail: 'PLANEJAMENTO · PROGRESSO · ENTREGAS', icon: FolderKanban, state: 'planned' },
-      { title: 'Tarefas', description: 'Uma mesa de trabalho pessoal para prioridades, prazos e próximos passos.', detail: 'HOJE · PRÓXIMAS · CONCLUÍDAS', icon: CheckSquare, state: 'planned' },
+      { title: 'Projetos', description: 'Tire ideias do papel, organize etapas e acompanhe cada entrega.', detail: 'PLANEJAMENTO · PROGRESSO · ENTREGAS', icon: FolderKanban, route: '/gestao?tab=projetos', state: 'active' },
+      { title: 'Tarefas', description: 'Uma mesa de trabalho pessoal para prioridades, prazos e próximos passos.', detail: 'HOJE · PRÓXIMAS · CONCLUÍDAS', icon: CheckSquare, route: '/gestao?tab=tarefas', state: 'active' },
       { title: 'Escalas', description: 'Consulte suas responsabilidades e os compromissos das equipes.', detail: 'RESPONSABILIDADES · CONFIRMAÇÕES', icon: CalendarCheck, route: '/escalas', state: 'active' },
     ],
   },
