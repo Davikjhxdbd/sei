@@ -18,7 +18,7 @@ interface RequestOptions {
 }
 
 const REQUEST_TIMEOUT_MS = 30_000;
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\\/+$/, '');
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
 
 export async function api<T = any>(
   path: string,
