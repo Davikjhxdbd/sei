@@ -148,7 +148,7 @@ router.get('/production/areas', asyncHandler(async (req: any, res) => {
         $1 >= 3
         or exists (
           select 1 from production_members pm
-           where pm.area_id = a.id and pm.user_id = $1
+           where pm.area_id = a.id and pm.user_id = $2
         )
       )
     order by a.created_at
