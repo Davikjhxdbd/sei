@@ -26,20 +26,16 @@ const MAX_NETWORK_ATTEMPTS = 30;
 const RECOVERY_WINDOW_MS = 15 * 60_000;
 const MAX_RECOVERY_ATTEMPTS = 10;
 
-// A central começa vazia: somente aplicativos escolhidos e publicados explicitamente entram aqui.
-const PUBLISHED_MODULE_KEYS: string[] = [];
-
 export async function buildBootstrap(db: any, user: any) {
   const { rows: modules } = await db.query(
     `select id, key, name, description, icon, color, route, sort_order, settings
        from modules
       where active = true
-        and key = any($3::text[])
         and ($2 or exists (
           select 1 from unnest(allowed_roles) r where r::text = any($1::text[])
         ))
       order by sort_order, name`,
-    [user.roles, user.level >= 5, PUBLISHED_MODULE_KEYS],
+    [user.roles, user.level >= 5],
   );
 
   const { rows: counts } = await db.query(
