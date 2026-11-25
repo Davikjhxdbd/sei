@@ -46,8 +46,7 @@ export default function Login() {
     }
   }
 
-  async function onRecoverySubmit(event: FormEvent) {
-    event.preventDefault();
+  async function onRecoverySubmit() {
     setRecoveryError('');
     setRecoveryLoading(true);
 
@@ -82,7 +81,7 @@ export default function Login() {
         aria-hidden="true"
       />
 
-      {/* IDENTIDADE MMV CONNECT */}
+      {/* IDENTIDADE MMV CREATIVE */}
       <div className="absolute left-7 top-7 z-10 flex items-center gap-3 sm:left-10 sm:top-9">
         <div className="grid h-11 w-11 place-items-center rounded-[12px] border border-[#C4A66A]/40 bg-[#0B0D10]/80 shadow-[0_8px_28px_rgba(0,0,0,.3)] backdrop-blur-md">
           <svg viewBox="0 0 64 64" className="h-8 w-8" fill="none" aria-hidden="true">
@@ -179,7 +178,7 @@ export default function Login() {
                   </p>
                 </>
               ) : (
-                <form onSubmit={onRecoverySubmit}>
+                <div>
                   <p className="text-sm font-semibold text-[#D8BD86]">
                     Recuperar acesso
                   </p>
@@ -202,13 +201,14 @@ export default function Login() {
                     </p>
                   )}
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={() => void onRecoverySubmit()}
                     disabled={recoveryLoading || !recoveryEmail.trim()}
                     className="mt-3 h-11 w-full rounded-lg border border-[#C4A66A]/50 bg-[#171717] text-[13px] font-semibold text-[#D8BD86] transition hover:bg-[#252525] disabled:opacity-50"
                   >
                     {recoveryLoading ? 'Enviando...' : 'Enviar link de recuperação'}
                   </button>
-                </form>
+                </div>
               )}
             </div>
           )}
@@ -236,7 +236,7 @@ export default function Login() {
       </section>
 
       <div className="absolute bottom-4 right-6 z-10 hidden text-[9px] uppercase tracking-[0.2em] text-white/35 sm:block">
-        MMV CONNECT · Plataforma integrada
+        MMV CREATIVE · Plataforma integrada
       </div>
     </main>
   );
