@@ -4,16 +4,20 @@ import {
   ArrowLeft, ArrowUpRight, BriefcaseBusiness, Camera, ChartNoAxesCombined,
   CheckSquare, Clapperboard, Clock3, FolderKanban, MessageSquareText,
   Palette, Presentation, RadioTower, Sparkles, Users, CalendarCheck,
-  Bot, LockKeyhole,
+  Bot, LockKeyhole, CalendarDays, FileText, ShieldCheck, Settings2,
+  Film, Aperture, Layers3, Megaphone, ClipboardList, Video,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 
 type AppCard = {
   title: string;
   description: string;
-  icon: import('lucide-react').LucideIcon;
+  detail: string;
+  icon: LucideIcon;
   route?: string;
-  status: 'Disponível' | 'Em construção';
+  access?: number;
+  state: 'active' | 'planned' | 'restricted';
 };
 
 type Workspace = {
@@ -22,163 +26,192 @@ type Workspace = {
   subtitle: string;
   intro: string;
   accent: string;
-  glow: string;
-  icon: import('lucide-react').LucideIcon;
-  atmosphere: string;
+  tint: string;
+  icon: LucideIcon;
+  mode: 'office' | 'studio' | 'command' | 'admin';
   cards: AppCard[];
 };
 
 const workspaces: Record<string, Workspace> = {
   gestao: {
-    eyebrow: 'ESPAÇO DE TRABALHO PESSOAL',
+    eyebrow: 'GESTÃO · ESPAÇO PESSOAL DE TRABALHO',
     title: 'Seu escritório.',
-    subtitle: 'Organize ideias. Conduza projetos. Conclua o que importa.',
-    intro: 'Um espaço para cuidar das suas responsabilidades, acompanhar seus projetos e transformar planos em entregas.',
-    accent: '#D5B77D',
-    glow: 'rgba(196,166,106,.20)',
+    subtitle: 'Um lugar para pensar, organizar e fazer acontecer.',
+    intro: 'Seus projetos, suas prioridades e suas responsabilidades reunidos em um espaço feito para dar clareza ao seu trabalho.',
+    accent: '#D7BD8D',
+    tint: 'rgba(196,166,106,.19)',
     icon: BriefcaseBusiness,
-    atmosphere: 'office',
+    mode: 'office',
     cards: [
-      { title: 'Projetos', description: 'Seus projetos, objetivos, etapas e entregas em um só lugar.', icon: FolderKanban, status: 'Em construção' },
-      { title: 'Tarefas', description: 'Prioridades, prazos e próximos passos do seu trabalho.', icon: CheckSquare, status: 'Em construção' },
-      { title: 'Escalas', description: 'Consulte suas responsabilidades e compromissos de equipe.', icon: CalendarCheck, route: '/escalas', status: 'Disponível' },
+      { title: 'Projetos', description: 'Tire ideias do papel, organize etapas e acompanhe cada entrega.', detail: 'PLANEJAMENTO · PROGRESSO · ENTREGAS', icon: FolderKanban, state: 'planned' },
+      { title: 'Tarefas', description: 'Uma mesa de trabalho pessoal para prioridades, prazos e próximos passos.', detail: 'HOJE · PRÓXIMAS · CONCLUÍDAS', icon: CheckSquare, state: 'planned' },
+      { title: 'Escalas', description: 'Consulte suas responsabilidades e os compromissos das equipes.', detail: 'RESPONSABILIDADES · CONFIRMAÇÕES', icon: CalendarCheck, route: '/escalas', state: 'active' },
     ],
   },
   producao: {
-    eyebrow: 'AMBIENTE DE CRIAÇÃO',
+    eyebrow: 'PRODUÇÃO CRIATIVA · AMBIENTE DE ESTÚDIO',
     title: 'O estúdio criativo.',
-    subtitle: 'Da primeira ideia à entrega final.',
-    intro: 'Ambientes especializados para cada disciplina criativa, com processos e ferramentas pensados para o trabalho de produção.',
-    accent: '#B8C7D9',
-    glow: 'rgba(91,125,164,.22)',
+    subtitle: 'Cada ideia tem um processo. Cada entrega tem um padrão.',
+    intro: 'Um ambiente técnico e visual para organizar a produção, acompanhar equipes e conduzir cada trabalho da criação à entrega.',
+    accent: '#B8CBE0',
+    tint: 'rgba(76,119,166,.22)',
     icon: Clapperboard,
-    atmosphere: 'studio',
+    mode: 'studio',
     cards: [
-      { title: 'Audiovisual', description: 'Produções, gravações, edição, revisão e aprovação de vídeos.', icon: Clapperboard, status: 'Em construção' },
-      { title: 'Design', description: 'Briefings, peças gráficas, referências e aprovações.', icon: Palette, status: 'Em construção' },
-      { title: 'Fotografia', description: 'Coberturas, ensaios, seleção e tratamento de imagens.', icon: Camera, status: 'Em construção' },
-      { title: 'Transmissão', description: 'Programação, preparação e operação das transmissões.', icon: RadioTower, status: 'Em construção' },
-      { title: 'Slides', description: 'Apresentações, letras, versículos e conteúdo de projeção.', icon: Presentation, status: 'Em construção' },
+      { title: 'Audiovisual', description: 'Briefings, gravações, edição, revisão e aprovação de vídeos.', detail: 'CÂMERA · EDIÇÃO · FINALIZAÇÃO', icon: Video, state: 'planned' },
+      { title: 'Design', description: 'Demandas visuais, referências, peças gráficas e aprovações.', detail: 'BRIEFING · CRIAÇÃO · APROVAÇÃO', icon: Palette, state: 'planned' },
+      { title: 'Fotografia', description: 'Coberturas, ensaios, seleção, tratamento e entrega de imagens.', detail: 'CAPTAÇÃO · SELEÇÃO · TRATAMENTO', icon: Aperture, state: 'planned' },
+      { title: 'Transmissão', description: 'Preparação técnica, programação e operação das transmissões.', detail: 'PRÉ-PRODUÇÃO · AO VIVO · OPERAÇÃO', icon: RadioTower, state: 'planned' },
+      { title: 'Slides', description: 'Apresentações, letras, versículos e conteúdos de projeção.', detail: 'ROTEIRO · MONTAGEM · PROJEÇÃO', icon: Presentation, state: 'planned' },
     ],
   },
   inteligencia: {
-    eyebrow: 'CENTRAL DE COMUNICAÇÃO',
-    title: 'Conexão e inteligência.',
-    subtitle: 'Informação clara. Decisões melhores. Equipes conectadas.',
-    intro: 'Um ambiente para comunicar, acompanhar resultados e usar inteligência para simplificar a rotina.',
-    accent: '#A8C9C0',
-    glow: 'rgba(79,150,132,.20)',
+    eyebrow: 'COMUNICAÇÃO E INTELIGÊNCIA · CENTRAL DE COMANDO',
+    title: 'Informação em movimento.',
+    subtitle: 'Conectar pessoas. Dar clareza. Enxergar resultados.',
+    intro: 'Um ambiente para manter a equipe informada, coordenar a comunicação externa e transformar atividades em informação útil para a liderança.',
+    accent: '#A9D0C4',
+    tint: 'rgba(72,151,132,.19)',
     icon: MessageSquareText,
-    atmosphere: 'command',
+    mode: 'command',
     cards: [
-      { title: 'Comunicação', description: 'Comunicados, campanhas, calendário editorial e Social Media.', icon: MessageSquareText, route: '/m/communication', status: 'Disponível' },
-      { title: 'Relatórios', description: 'Indicadores, andamento, entregas e visão geral dos resultados.', icon: ChartNoAxesCombined, status: 'Em construção' },
-      { title: 'Assistente IA', description: 'Apoio para organizar demandas, briefings e informações.', icon: Bot, status: 'Em construção' },
+      { title: 'Comunicação', description: 'Comunicados internos, campanhas, calendário editorial e Social Media.', detail: 'AVISOS · CONTEÚDO · REDES SOCIAIS', icon: Megaphone, route: '/m/communication', state: 'active' },
+      { title: 'Relatórios', description: 'Visão de andamento, entregas, pendências e indicadores operacionais.', detail: 'INDICADORES · ACOMPANHAMENTO', icon: ChartNoAxesCombined, state: 'planned' },
+      { title: 'Assistente IA', description: 'Ajuda para organizar demandas, resumir informações e preparar briefings.', detail: 'ASSISTÊNCIA · SÍNTESE · ORGANIZAÇÃO', icon: Bot, state: 'planned' },
     ],
   },
   administracao: {
-    eyebrow: 'ACESSO RESTRITO',
-    title: 'Administração.',
-    subtitle: 'Estrutura, pessoas e governança da plataforma.',
-    intro: 'Gerencie o acesso à MMV Creative, organize departamentos e mantenha as permissões sob controle.',
-    accent: '#D5B77D',
-    glow: 'rgba(196,166,106,.18)',
-    icon: LockKeyhole,
-    atmosphere: 'admin',
+    eyebrow: 'ADMINISTRAÇÃO · ACESSO RESTRITO',
+    title: 'Sala de administração.',
+    subtitle: 'Estrutura, acessos e governança da plataforma.',
+    intro: 'Ferramentas administrativas para manter a estrutura institucional organizada e os acessos sob controle.',
+    accent: '#D7BD8D',
+    tint: 'rgba(196,166,106,.18)',
+    icon: ShieldCheck,
+    mode: 'admin',
     cards: [
-      { title: 'Visão administrativa', description: 'Acompanhe a estrutura e as configurações da plataforma.', icon: BriefcaseBusiness, route: '/admin', status: 'Disponível' },
-      { title: 'Usuários', description: 'Cadastre pessoas e gerencie os acessos.', icon: Users, route: '/admin/users', status: 'Disponível' },
-      { title: 'Departamentos', description: 'Organize departamentos, setores e responsabilidades.', icon: Users, route: '/admin/sectors', status: 'Disponível' },
+      { title: 'Visão administrativa', description: 'Acompanhe a estrutura geral e as configurações da plataforma.', detail: 'VISÃO GERAL · CONTROLE', icon: BriefcaseBusiness, route: '/admin', state: 'active', access: 4 },
+      { title: 'Usuários', description: 'Cadastre pessoas e gerencie o acesso de cada conta.', detail: 'CONTAS · STATUS · ACESSOS', icon: Users, route: '/admin/users', state: 'active', access: 5 },
+      { title: 'Departamentos', description: 'Organize setores, departamentos e responsabilidades.', detail: 'ESTRUTURA · DEPARTAMENTOS', icon: Layers3, route: '/admin/sectors', state: 'active', access: 4 },
+      { title: 'Configurações', description: 'Ajuste parâmetros e preferências institucionais.', detail: 'PREFERÊNCIAS · CONFIGURAÇÕES', icon: Settings2, route: '/admin/settings', state: 'active', access: 4 },
+      { title: 'Auditoria', description: 'Consulte o histórico de ações e alterações administrativas.', detail: 'HISTÓRICO · RASTREABILIDADE', icon: FileText, route: '/admin/audit', state: 'active', access: 4 },
+      { title: 'Aplicativos e permissões', description: 'Controle os módulos habilitados e seus níveis de acesso.', detail: 'MÓDULOS · PERMISSÕES', icon: ClipboardList, route: '/admin/modules', state: 'active', access: 5 },
     ],
   },
 };
 
+function dateLabel() {
+  return new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).format(new Date());
+}
+
+function greeting() {
+  const hour = new Date().getHours();
+  return hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
+}
+
+function initials(name: string) {
+  return name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
+}
+
+function Status({ state }: { state: AppCard['state'] }) {
+  const label = state === 'active' ? 'Acesso disponível' : state === 'restricted' ? 'Acesso restrito' : 'Estrutura em construção';
+  return <span className={`workspace-status workspace-status--${state}`}>{label}</span>;
+}
+
+function OfficeArtwork() {
+  return <div className="workspace-office-art" aria-hidden="true">
+    <div className="office-window"><span/><span/><span/></div>
+    <div className="office-lamp"/>
+    <div className="office-desk"/>
+    <div className="office-notebook"><i/><i/><i/></div>
+    <div className="office-pen"/>
+    <div className="office-cup"/>
+  </div>;
+}
+
+function StudioArtwork() {
+  return <div className="workspace-studio-art" aria-hidden="true">
+    <div className="studio-monitor"><span/><span/><span/><i/></div>
+    <div className="studio-lens"><span/><i/></div>
+    <div className="studio-recording"><b/><span>REC</span></div>
+    <div className="studio-timeline"><i/><i/><i/><i/><i/></div>
+  </div>;
+}
+
+function CommandArtwork() {
+  return <div className="workspace-command-art" aria-hidden="true">
+    <div className="command-ring"><span/><i/></div>
+    <div className="command-bars"><i/><i/><i/><i/><i/><i/><i/></div>
+    <div className="command-wave"><i/><i/><i/><i/><i/><i/><i/><i/><i/></div>
+  </div>;
+}
+
+function AdminArtwork() {
+  return <div className="workspace-admin-art" aria-hidden="true">
+    <div className="admin-shield"><ShieldCheck size={58}/></div>
+    <div className="admin-lines"><i/><i/><i/><i/></div>
+  </div>;
+}
+
+function CardContent({ card, mode }: { card: AppCard; mode: Workspace['mode'] }) {
+  const Icon = card.icon;
+  return <>
+    <div className="flex items-start justify-between gap-3">
+      <span className={`workspace-app-icon workspace-app-icon--${mode}`}><Icon size={21}/></span>
+      <Status state={card.state}/>
+    </div>
+    <div className="mt-6">
+      <h2 className="text-[17px] font-semibold tracking-tight text-white">{card.title}</h2>
+      <p className="mt-2 min-h-[48px] text-[12px] leading-[1.75] text-white/55">{card.description}</p>
+    </div>
+    <div className="mt-5 flex items-center justify-between gap-3 border-t border-white/[.08] pt-3">
+      <span className="text-[8px] font-semibold tracking-[.16em] text-white/32">{card.detail}</span>
+      {card.route ? <ArrowUpRight size={15} className="shrink-0 text-[var(--workspace-accent)]"/> : <Clock3 size={14} className="shrink-0 text-white/25"/>}
+    </div>
+  </>;
+}
+
 export default function WorkspaceHub() {
   const { slug = '' } = useParams();
   const navigate = useNavigate();
-  const { level } = useAuth();
+  const { level, user } = useAuth();
   const workspace = workspaces[slug];
+  const firstName = user?.full_name?.trim().split(/\s+/)[0] ?? 'equipe';
   if (!workspace || (slug === 'administracao' && level < 4)) {
-    return (
-      <main className="min-h-[70vh] flex items-center justify-center px-5">
-        <section className="w-full max-w-md rounded-3xl border border-white/10 bg-[#17191d] p-7 text-center text-white">
-          <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-[#C4A66A]" />
-          <h1 className="text-xl font-semibold">Ambiente indisponível</h1>
-          <p className="mt-2 text-sm leading-6 text-white/55">Este ambiente não existe ou seu perfil não tem permissão para acessá-lo.</p>
-          <Link to="/" className="mt-5 inline-flex items-center gap-2 text-sm text-[#D8BD86]"><ArrowLeft size={16}/> Voltar à central</Link>
-        </section>
-      </main>
-    );
+    return <main className="flex min-h-[70vh] items-center justify-center px-5"><section className="w-full max-w-md rounded-3xl border border-white/10 bg-[#17191d] p-7 text-center text-white"><LockKeyhole className="mx-auto mb-4 h-8 w-8 text-[#C4A66A]"/><h1 className="text-xl font-semibold">Ambiente indisponível</h1><p className="mt-2 text-sm leading-6 text-white/55">Este ambiente não existe ou seu perfil não tem permissão para acessá-lo.</p><Link to="/" className="mt-5 inline-flex items-center gap-2 text-sm text-[#D8BD86]"><ArrowLeft size={16}/>Voltar à central</Link></section></main>;
   }
-
   const HeroIcon = workspace.icon;
-  return (
-    <main className={`workspace-page workspace-${workspace.atmosphere} min-h-[calc(100vh-3.5rem)] overflow-hidden text-white`} style={{ '--workspace-accent': workspace.accent, '--workspace-glow': workspace.glow } as CSSProperties}>
-      <div className="workspace-atmosphere" aria-hidden="true" />
-      <div className="relative mx-auto w-full max-w-[1320px] px-4 py-6 sm:px-7 sm:py-9 lg:px-10">
-        <button onClick={() => navigate('/')} className="mb-7 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[.035] px-3.5 py-2 text-xs font-medium text-white/65 transition hover:border-white/20 hover:text-white">
-          <ArrowLeft size={15}/> Central de aplicativos
-        </button>
-
-        <section className="workspace-hero relative overflow-hidden rounded-[28px] border border-white/10 p-6 sm:p-9 lg:p-11">
-          <div className="workspace-hero-orbit" aria-hidden="true"><span/><span/><span/></div>
-          <div className="relative z-10 max-w-3xl">
-            <p className="mb-4 flex items-center gap-2 text-[10px] font-bold tracking-[.24em]" style={{color:workspace.accent}}>
-              <span className="h-1.5 w-1.5 rounded-full" style={{background:workspace.accent}}/>
-              {workspace.eyebrow}
-            </p>
-            <div className="mb-5 flex items-center gap-3">
-              <span className="grid h-12 w-12 place-items-center rounded-2xl border border-white/15 bg-white/[.07] backdrop-blur-xl">
-                <HeroIcon size={23} style={{color:workspace.accent}}/>
-              </span>
-              <span className="text-[10px] font-semibold uppercase tracking-[.18em] text-white/35">MMV / CREATIVE</span>
-            </div>
-            <h1 className="text-4xl font-semibold tracking-[-.055em] sm:text-5xl lg:text-6xl">{workspace.title}</h1>
-            <p className="mt-3 text-base font-medium text-white/80 sm:text-lg">{workspace.subtitle}</p>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-white/50">{workspace.intro}</p>
-          </div>
-          <div className="workspace-hero-caption"><span>WORKSPACE</span><span>MMV — {slug.toUpperCase()}</span></div>
-        </section>
-
-        <section className="mt-8 sm:mt-10">
-          <div className="mb-5 flex items-end justify-between gap-4">
-            <div>
-              <p className="text-[9px] font-bold tracking-[.22em]" style={{color:workspace.accent}}>SEU AMBIENTE</p>
-              <h2 className="mt-1 text-xl font-semibold tracking-tight text-white sm:text-2xl">Aplicativos</h2>
-            </div>
-            <span className="text-[11px] text-white/35">{workspace.cards.length} espaços</span>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {workspace.cards.map((card, index) => {
-              const Icon = card.icon;
-              const content = (
-                <>
-                  <div className="flex items-start justify-between gap-3">
-                    <span className="workspace-app-icon"><Icon size={21}/></span>
-                    <span className={`workspace-status ${card.status === 'Disponível' ? 'is-ready' : ''}`}>{card.status}</span>
-                  </div>
-                  <div className="mt-7">
-                    <h3 className="text-lg font-semibold tracking-tight text-white">{card.title}</h3>
-                    <p className="mt-2 min-h-[44px] text-[12px] leading-6 text-white/48">{card.description}</p>
-                  </div>
-                  <div className="mt-5 flex items-center justify-between border-t border-white/[.08] pt-3 text-[10px] font-semibold uppercase tracking-[.13em] text-white/35">
-                    <span>{card.route ? 'Acessar aplicativo' : 'Estrutura planejada'}</span>
-                    {card.route ? <ArrowUpRight size={15}/> : <Clock3 size={14}/>}
-                  </div>
-                </>
-              );
-              return card.route ? (
-                <Link key={card.title} to={card.route} className="workspace-app-card group" style={{animationDelay:`${index*70}ms`}}>{content}</Link>
-              ) : (
-                <article key={card.title} className="workspace-app-card workspace-app-card--planned" style={{animationDelay:`${index*70}ms`}}>{content}</article>
-              );
-            })}
-          </div>
-        </section>
-        <div className="mt-9 flex items-center gap-2 border-t border-white/[.08] pt-5 text-[10px] tracking-[.12em] text-white/25">
-          <Sparkles size={13} style={{color:workspace.accent}}/> CADA AMBIENTE, UMA EXPERIÊNCIA. UMA SÓ MMV CREATIVE.
+  const Artwork = workspace.mode === 'office' ? OfficeArtwork : workspace.mode === 'studio' ? StudioArtwork : workspace.mode === 'command' ? CommandArtwork : AdminArtwork;
+  const visibleCards = workspace.cards.filter((card) => level >= (card.access ?? 1));
+  return <main className={`workspace-page workspace-${workspace.mode} min-h-[calc(100vh-3.5rem)] overflow-hidden text-white`} style={{ '--workspace-accent': workspace.accent, '--workspace-glow': workspace.tint } as CSSProperties}>
+    <div className="workspace-atmosphere" aria-hidden="true"/>
+    <div className="relative mx-auto w-full max-w-[1360px] px-4 py-5 sm:px-7 sm:py-8 lg:px-10">
+      <button onClick={() => navigate('/')} className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[.035] px-3.5 py-2 text-[11px] font-semibold text-white/55 transition hover:border-white/20 hover:text-white"><ArrowLeft size={14}/>Central de aplicativos</button>
+      <section className="workspace-hero relative overflow-hidden rounded-[28px] border border-white/10">
+        <div className="workspace-hero-copy relative z-10 p-6 sm:p-9 lg:p-11">
+          <p className="mb-4 flex items-center gap-2 text-[9px] font-bold tracking-[.25em]" style={{color:workspace.accent}}><span className="h-1.5 w-1.5 rounded-full" style={{background:workspace.accent}}/>{workspace.eyebrow}</p>
+          <div className="mb-5 flex items-center gap-3"><span className="grid h-11 w-11 place-items-center rounded-2xl border border-white/15 bg-white/[.06]"><HeroIcon size={21} style={{color:workspace.accent}}/></span><span className="text-[9px] font-semibold tracking-[.2em] text-white/35">MMV / CREATIVE</span></div>
+          <h1 className="max-w-2xl text-[2.55rem] font-semibold leading-[1.02] tracking-[-.06em] sm:text-5xl lg:text-[3.7rem]">{workspace.title}</h1>
+          <p className="mt-4 max-w-xl text-sm font-medium leading-6 text-white/78 sm:text-base">{workspace.subtitle}</p>
+          <p className="mt-3 max-w-xl text-[12px] leading-6 text-white/48">{workspace.intro}</p>
+          {workspace.mode === 'office' && <div className="mt-6 flex flex-wrap items-center gap-3 text-[10px] text-white/45"><span className="rounded-full border border-white/10 bg-black/15 px-3 py-1.5">{greeting()}, {firstName}</span><span className="flex items-center gap-1.5"><CalendarDays size={12}/>{dateLabel()}</span></div>}
         </div>
-      </div>
-    </main>
-  );
+        <Artwork/>
+        <div className="workspace-hero-foot"><span>MMV CREATIVE</span><span>{workspace.mode.toUpperCase()} / 0{Object.keys(workspaces).indexOf(slug)+1}</span></div>
+      </section>
+
+      <section className="mt-8 sm:mt-10">
+        <div className="mb-5 flex items-end justify-between gap-4"><div><p className="text-[9px] font-bold tracking-[.22em]" style={{color:workspace.accent}}>SEU AMBIENTE DE TRABALHO</p><h2 className="mt-1 text-xl font-semibold tracking-tight text-white sm:text-2xl">Aplicativos</h2></div><span className="text-[10px] text-white/32">{visibleCards.length.toString().padStart(2,'0')} espaços</span></div>
+        <div className={`grid gap-3 ${workspace.mode === 'studio' ? 'sm:grid-cols-2 xl:grid-cols-3' : 'sm:grid-cols-2 xl:grid-cols-3'}`}>
+          {visibleCards.map((card) => {
+            const content = <CardContent card={card} mode={workspace.mode}/>;
+            return card.route
+              ? <Link key={card.title} to={card.route} className="workspace-app-card group">{content}</Link>
+              : <article key={card.title} className="workspace-app-card workspace-app-card--planned">{content}</article>;
+          })}
+        </div>
+      </section>
+      <footer className="mt-9 flex flex-wrap items-center justify-between gap-3 border-t border-white/[.08] pt-5 text-[9px] tracking-[.15em] text-white/25"><span className="flex items-center gap-2"><Sparkles size={12} style={{color:workspace.accent}}/>UM AMBIENTE FEITO PARA O SEU TRABALHO</span><span>MMV CREATIVE · {workspace.mode.toUpperCase()}</span></footer>
+    </div>
+  </main>;
 }

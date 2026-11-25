@@ -166,11 +166,8 @@ export default function AppCentral() {
   const events = calendarData?.items ?? [];
   const sectorLabel = user?.sectors?.[0]?.name || 'SEU AMBIENTE';
   const commandItems = useMemo(() => [
-    { id: 'personal', name: 'Meu espaço', route: '/pessoal', icon: UserRound, group: 'PESSOAL' },
-    { id: 'calendar', name: 'Agenda', route: '/calendar', icon: CalendarDays, group: 'ESPAÇOS' },
-    { id: 'notifications', name: 'Notificações', route: '/notifications', icon: Bell, group: 'ESPAÇOS' },
-    { id: 'profile', name: 'Meu perfil', route: '/profile', icon: UserRound, group: 'ESPAÇOS' },
-    { id: 'help', name: 'Ajuda', route: '/help', icon: HelpCircle, group: 'ESPAÇOS' },
+    { id: 'personal', name: 'Meu Espaço', route: '/pessoal', icon: UserRound, group: 'PESSOAL' },
+    { id: 'calendar', name: 'Agenda', route: '/calendar', icon: CalendarDays, group: 'PESSOAL' },
     { id: 'management', name: 'Gestão', route: '/ambiente/gestao', icon: BriefcaseBusiness, group: 'AMBIENTES' },
     { id: 'creative', name: 'Produção Criativa', route: '/ambiente/producao', icon: Clapperboard, group: 'AMBIENTES' },
     { id: 'intelligence', name: 'Comunicação e Inteligência', route: '/ambiente/inteligencia', icon: MessagesSquare, group: 'AMBIENTES' },
@@ -237,8 +234,14 @@ export default function AppCentral() {
           <button aria-label="Fechar menu" onClick={() => setMenuOpen(false)} className="fixed inset-0 z-20 cursor-default" />
           <nav className="absolute right-4 top-[5.1rem] z-30 w-[min(88vw,320px)] overflow-hidden rounded-2xl border border-[#C4A66A]/30 bg-[#111316]/95 p-2 shadow-[0_24px_80px_rgba(0,0,0,.75)] backdrop-blur-2xl sm:right-7 lg:right-10" aria-label="Menu principal">
             <div className="mb-1 flex items-center justify-between px-3 pb-2 pt-2.5"><p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#D8BD86]/65">NAVEGAÇÃO</p><span className="text-[8px] font-bold tracking-[0.16em] text-[#C4A66A]/55">MMV CREATIVE</span></div>
+            <Link to="/pessoal" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-3 text-[13px] font-semibold text-white/80 transition hover:bg-[#C4A66A]/10"><UserRound className="h-4 w-4 text-[#D8BD86]" />Meu Espaço</Link>
             <Link to="/calendar" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-3 text-[13px] font-semibold text-white/80 transition hover:bg-[#C4A66A]/10"><CalendarDays className="h-4 w-4 text-[#D8BD86]" />Agenda</Link>
-            <Link to="/pessoal" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-3 text-[13px] font-semibold text-white/80 transition hover:bg-[#C4A66A]/10"><UserRound className="h-4 w-4 text-[#D8BD86]" />Meu espaço</Link>
+            <div className="mx-3 my-2 border-t border-white/10" />
+            <p className="px-3 pb-1 pt-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[#D8BD86]/55">AMBIENTES</p>
+            <Link to="/ambiente/gestao" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-3 text-[13px] font-semibold text-white/80 transition hover:bg-[#C4A66A]/10"><BriefcaseBusiness className="h-4 w-4 text-[#D8BD86]" />Gestão<ChevronRight className="ml-auto h-4 w-4 text-white/35" /></Link>
+            <Link to="/ambiente/producao" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-3 text-[13px] font-semibold text-white/80 transition hover:bg-[#C4A66A]/10"><Clapperboard className="h-4 w-4 text-[#D8BD86]" />Produção Criativa<ChevronRight className="ml-auto h-4 w-4 text-white/35" /></Link>
+            <Link to="/ambiente/inteligencia" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-3 text-[13px] font-semibold text-white/80 transition hover:bg-[#C4A66A]/10"><MessagesSquare className="h-4 w-4 text-[#D8BD86]" />Comunicação e Inteligência<ChevronRight className="ml-auto h-4 w-4 text-white/35" /></Link>
+            {level >= 4 && <Link to="/ambiente/administracao" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-3 text-[13px] font-semibold text-white/80 transition hover:bg-[#C4A66A]/10"><Settings2 className="h-4 w-4 text-[#D8BD86]" />Administração<ChevronRight className="ml-auto h-4 w-4 text-white/35" /></Link>}
           </nav>
         </>}
         {commandOpen && <div className="connect-command-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setCommandOpen(false); }}>
