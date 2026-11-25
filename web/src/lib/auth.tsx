@@ -87,6 +87,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (username: string, password: string) => {
     const data = await post<Bootstrap>('/auth/login', { username, password });
+    if (!data || typeof data !== 'object' || !data.user?.id) {
+      throw new ApiError(
+        502,
+        'O acesso foi recebido, mas o servidor não confirmou a sessão. Verifique se está usando o endereço oficial do MMV Creative.',
+        'invalid_login_session',
+      );
+    }
     sessionStorage.removeItem('mmv-welcome-seen');
     setState(data);
   }, []);
