@@ -13,10 +13,11 @@ create table if not exists personal_projects (
 create index if not exists personal_projects_owner_idx
   on personal_projects (owner_id, status, updated_at desc);
 
+
 create table if not exists personal_tasks (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null references users(id) on delete cascade,
-  project_id uuid references personal_projects(id) on delete set null,
+  project_id uuid,
   title varchar(180) not null,
   description text,
   status varchar(16) not null default 'todo'
