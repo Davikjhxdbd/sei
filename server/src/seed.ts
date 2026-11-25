@@ -1,5 +1,5 @@
 import { pool } from './db';
-import { hashPassword } from './auth';
+import { hashPassword, verifyPassword } from './auth';
 import { audit } from './audit';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -40,6 +40,21 @@ const USERS = [
 
 const DEMO_PASSWORD = process.env.SEED_PASSWORD || 'MMVconnect#2026';
 
+async function verifyDemoUsers(client: any) {
+  const { rows } = await client.query(
+    'select id, password_hash from users where id = any($1::uuid[])',
+    [USERS.map((user) => user.id)],
+  );
+  if (rows.length !== USERS.length) {
+    throw new Error('A validação das contas de demonstração encontrou usuários ausentes.');
+  }
+  for (const row of rows) {
+    if (!await verifyPassword(DEMO_PASSWORD, row.password_hash)) {
+      throw new Error('A validação das credenciais de demonstração falhou.');
+    }
+  }
+}
+
 function at(daysFromNow: number, hour: number, minute = 0) {
   const d = new Date();
   d.setDate(d.getDate() + daysFromNow);
@@ -70,7 +85,8 @@ async function main() {
           [user.id, user.name, user.username, user.email, demoPasswordHash],
         );
       }
-      console.log('contas de demonstração verificadas e credenciais atualizadas.');
+      await verifyDemoUsers(client);
+      console.log('contas de demonstração verificadas; hashes de senha validados.');
       return;
     }
 
@@ -148,6 +164,8 @@ async function main() {
                'Aviso da central', 'Mensagem exibida na central de aplicativos.', 'general')
        on conflict (key) do nothing`,
     );
+
+    await verifyDemoUsers(client);
 
     // ---------------------------------------------------------------
     // Eventos
