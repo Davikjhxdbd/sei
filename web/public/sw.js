@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mmv-creative-shell-v1';
+const CACHE_NAME = 'mmv-creative-shell-v2';
 const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icons/mmv-mark.svg'];
 
 self.addEventListener('install', (event) => {
