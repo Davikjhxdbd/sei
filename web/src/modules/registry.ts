@@ -15,6 +15,7 @@ import {
   Video,
   CalendarClock,
   ClipboardList,
+  ClipboardCheck,
   FileText,
   AlertTriangle,
   type LucideIcon,
@@ -114,5 +115,6 @@ export const STUDIO_NAV: NavGroup[] = [
     { label: 'Relatórios', to: '/m/studio/reports', icon: FileText },
     { label: 'Problemas', to: '/m/studio/problems', icon: AlertTriangle, minLevel: 3 },
     { label: 'Ocorrências', to: '/m/studio/occurrences', icon: ClipboardList, minLevel: 3 },
+    { label: 'Erros operacionais', to: '/m/studio/errors', icon: AlertTriangle, minLevel: 3 },
   ]},
 ];
