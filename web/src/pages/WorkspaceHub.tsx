@@ -1,16 +1,17 @@
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import type { CSSProperties } from 'react';
 import {
   ArrowLeft, ArrowUpRight, BriefcaseBusiness, Camera, ChartNoAxesCombined,
   CheckSquare, Clapperboard, Clock3, FolderKanban, MessageSquareText,
   Palette, Presentation, RadioTower, Sparkles, Users, CalendarCheck,
-  Bot, LockKeyhole, ChevronRight,
+  Bot, LockKeyhole,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 
 type AppCard = {
   title: string;
   description: string;
-  icon: typeof FolderKanban;
+  icon: import('lucide-react').LucideIcon;
   route?: string;
   status: 'Disponível' | 'Em construção';
 };
@@ -22,7 +23,7 @@ type Workspace = {
   intro: string;
   accent: string;
   glow: string;
-  icon: typeof BriefcaseBusiness;
+  icon: import('lucide-react').LucideIcon;
   atmosphere: string;
   cards: AppCard[];
 };
@@ -112,7 +113,7 @@ export default function WorkspaceHub() {
 
   const HeroIcon = workspace.icon;
   return (
-    <main className={`workspace-page workspace-${workspace.atmosphere} min-h-[calc(100vh-3.5rem)] overflow-hidden text-white`} style={{ '--workspace-accent': workspace.accent, '--workspace-glow': workspace.glow } as React.CSSProperties}>
+    <main className={`workspace-page workspace-${workspace.atmosphere} min-h-[calc(100vh-3.5rem)] overflow-hidden text-white`} style={{ '--workspace-accent': workspace.accent, '--workspace-glow': workspace.glow } as CSSProperties}>
       <div className="workspace-atmosphere" aria-hidden="true" />
       <div className="relative mx-auto w-full max-w-[1320px] px-4 py-6 sm:px-7 sm:py-9 lg:px-10">
         <button onClick={() => navigate('/')} className="mb-7 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[.035] px-3.5 py-2 text-xs font-medium text-white/65 transition hover:border-white/20 hover:text-white">
