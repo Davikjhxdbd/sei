@@ -3,10 +3,6 @@ import { asyncHandler } from '../http';
 
 const router = Router();
 
-// Aplicativos legados não são publicados automaticamente. A lista será preenchida
-// somente quando cada novo aplicativo for escolhido e aprovado para a central.
-const PUBLISHED_MODULE_KEYS: string[] = [];
-
 /** Módulos autorizados para o usuário autenticado (a central consome isto). */
 router.get(
   '/',
@@ -15,12 +11,12 @@ router.get(
       `select id, key, name, description, icon, color, route, sort_order, settings
          from modules
         where active = true
-          and key = any($3::text[])
+          and key not like 'studio%'
           and ($2 or exists (
             select 1 from unnest(allowed_roles) r where r::text = any($1::text[])
           ))
         order by sort_order, name`,
-      [req.user.roles, req.user.level >= 5, PUBLISHED_MODULE_KEYS],
+      [req.user.roles, req.user.level >= 5],
     );
     res.json({ items: rows });
   }),
