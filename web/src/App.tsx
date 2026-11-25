@@ -12,6 +12,21 @@ const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const AppCentral = lazy(() => import('./pages/AppCentral'));
 const WorkspaceHub = lazy(() => import('./pages/WorkspaceHub'));
 const ManagementWorkspace = lazy(() => import('./pages/ManagementWorkspace'));
+const StudioLayout = lazy(() => import('./pages/studio/StudioLayout'));
+const StudioDashboard = lazy(() => import('./pages/studio/Dashboard'));
+const StudioEvents = lazy(() => import('./pages/studio/Events'));
+const StudioEventDetail = lazy(() => import('./pages/studio/EventDetail'));
+const StudioSchedules = lazy(() => import('./pages/studio/Schedules'));
+const StudioChecklists = lazy(() => import('./pages/studio/Checklists'));
+const StudioChecklistRun = lazy(() => import('./pages/studio/ChecklistRun'));
+const StudioProduction = lazy(() => import('./pages/studio/Production'));
+const StudioDepartment = lazy(() => import('./pages/studio/Department'));
+const StudioReports = lazy(() => import('./pages/studio/Reports'));
+const StudioReportDetail = lazy(() => import('./pages/studio/ReportDetail'));
+const StudioProblems = lazy(() => import('./pages/studio/Problems'));
+const StudioProblemDetail = lazy(() => import('./pages/studio/ProblemDetail'));
+const StudioOccurrences = lazy(() => import('./pages/studio/Occurrences'));
+const StudioErrors = lazy(() => import('./pages/studio/Errors'));
 const People = lazy(() => import('./pages/People'));
 const Departments = lazy(() => import('./pages/Departments'));
 const Communication = lazy(() => import('./pages/Communication'));
@@ -136,6 +151,24 @@ export default function App() {
           <Route path="/" element={<AppCentral />} />
           <Route path="/ambiente/:slug" element={<WorkspaceHub />} />
           <Route path="/gestao" element={<ManagementWorkspace />} />
+          <Route path="/m/studio" element={<StudioLayout />}>
+            <Route index element={<StudioDashboard />} />
+            <Route path="events" element={<StudioEvents />} />
+            <Route path="events/:id" element={<StudioEventDetail />} />
+            <Route path="schedules" element={<StudioSchedules />} />
+            <Route path="checklists" element={<StudioChecklists />} />
+            <Route path="checklists/runs/:id" element={<StudioChecklistRun />} />
+            <Route path="production" element={<StudioProduction />} />
+            <Route path="production/my-space" element={<StudioProduction />} />
+            <Route path="production/:slug" element={<StudioProduction />} />
+            <Route path="departments/:slug" element={<StudioDepartment />} />
+            <Route path="reports" element={<StudioReports />} />
+            <Route path="reports/:id" element={<StudioReportDetail />} />
+            <Route path="problems" element={<StudioProblems />} />
+            <Route path="problems/:id" element={<StudioProblemDetail />} />
+            <Route path="occurrences" element={<StudioOccurrences />} />
+            <Route path="errors" element={<StudioErrors />} />
+          </Route>
           <Route path="/design-lab" element={<DesignLab />} />
           <Route path="/help" element={<Help />} />
           <Route path="/notifications" element={<Notifications />} />

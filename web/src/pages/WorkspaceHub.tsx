@@ -58,7 +58,7 @@ const workspaces: Record<string, Workspace> = {
     icon: Clapperboard,
     mode: 'studio',
     cards: [
-      { title: 'Audiovisual', description: 'Briefings, gravações, edição, revisão e aprovação de vídeos.', detail: 'CÂMERA · EDIÇÃO · FINALIZAÇÃO', icon: Video, state: 'planned' },
+      { title: 'Audiovisual', description: 'Briefings, gravações, edição, revisão e aprovação de vídeos.', detail: 'CÂMERA · EDIÇÃO · FINALIZAÇÃO', icon: Video, route: '/m/studio/production', state: 'active' },
       { title: 'Design', description: 'Demandas visuais, referências, peças gráficas e aprovações.', detail: 'BRIEFING · CRIAÇÃO · APROVAÇÃO', icon: Palette, state: 'planned' },
       { title: 'Fotografia', description: 'Coberturas, ensaios, seleção, tratamento e entrega de imagens.', detail: 'CAPTAÇÃO · SELEÇÃO · TRATAMENTO', icon: Aperture, state: 'planned' },
       { title: 'Transmissão', description: 'Preparação técnica, programação e operação das transmissões.', detail: 'PRÉ-PRODUÇÃO · AO VIVO · OPERAÇÃO', icon: RadioTower, state: 'planned' },
@@ -76,7 +76,7 @@ const workspaces: Record<string, Workspace> = {
     mode: 'command',
     cards: [
       { title: 'Comunicação', description: 'Comunicados internos, campanhas, calendário editorial e Social Media.', detail: 'AVISOS · CONTEÚDO · REDES SOCIAIS', icon: Megaphone, route: '/m/communication', state: 'active' },
-      { title: 'Relatórios', description: 'Visão de andamento, entregas, pendências e indicadores operacionais.', detail: 'INDICADORES · ACOMPANHAMENTO', icon: ChartNoAxesCombined, state: 'planned' },
+      { title: 'Relatórios', description: 'Acompanhe eventos, entregas, pendências e indicadores operacionais.', detail: 'INDICADORES · ACOMPANHAMENTO', icon: ChartNoAxesCombined, route: '/m/studio/reports', state: 'active' },
       { title: 'Assistente IA', description: 'Ajuda para organizar demandas, resumir informações e preparar briefings.', detail: 'ASSISTÊNCIA · SÍNTESE · ORGANIZAÇÃO', icon: Bot, state: 'planned' },
     ],
   },

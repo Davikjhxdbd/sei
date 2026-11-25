@@ -12,6 +12,11 @@ import {
   Building2,
   MessageSquare,
   Home,
+  Video,
+  CalendarClock,
+  ClipboardList,
+  FileText,
+  AlertTriangle,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -97,4 +102,17 @@ export const CALENDAR_NAV: NavGroup[] = [
       { label: 'Calendário', to: '/calendar', icon: CalendarDays, end: true },
     ],
   },
+];
+
+export const STUDIO_NAV: NavGroup[] = [
+  { title: 'Estúdio criativo', items: [
+    { label: 'Visão geral', to: '/m/studio', icon: Home, end: true },
+    { label: 'Produção audiovisual', to: '/m/studio/production', icon: Clapperboard },
+    { label: 'Eventos e operação', to: '/m/studio/events', icon: CalendarDays },
+    { label: 'Escalas', to: '/m/studio/schedules', icon: CalendarClock },
+    { label: 'Checklists', to: '/m/studio/checklists', icon: ClipboardCheck },
+    { label: 'Relatórios', to: '/m/studio/reports', icon: FileText },
+    { label: 'Problemas', to: '/m/studio/problems', icon: AlertTriangle, minLevel: 3 },
+    { label: 'Ocorrências', to: '/m/studio/occurrences', icon: ClipboardList, minLevel: 3 },
+  ]},
 ];
