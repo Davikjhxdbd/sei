@@ -30,6 +30,7 @@ const StudioErrors = lazy(() => import('./pages/studio/Errors'));
 const People = lazy(() => import('./pages/People'));
 const Departments = lazy(() => import('./pages/Departments'));
 const Communication = lazy(() => import('./pages/Communication'));
+const SocialMedia = lazy(() => import('./pages/SocialMedia'));
 const DesignLab = lazy(() => import('./pages/DesignLab'));
 const CalendarPage = lazy(() => import('./pages/Calendar'));
 const EscalasPage = lazy(() => import('./pages/Escalas'));

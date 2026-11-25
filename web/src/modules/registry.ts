@@ -18,6 +18,7 @@ import {
   ClipboardCheck,
   FileText,
   AlertTriangle,
+  Megaphone,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -38,6 +39,7 @@ export interface NavGroup {
 export const MODULE_NAV: Record<string, NavGroup[]> = {
   communication: [{ title: 'Comunicação institucional', items: [
     { label: 'Comunicados', to: '/m/communication', icon: MessageSquare, end: true },
+    { label: 'Social Media', to: '/m/communication/social', icon: Megaphone },
   ]}],
   departments: [{ title: 'Departamentos', items: [
     { label: 'Visão geral', to: '/m/departments', icon: Building2, end: true },
