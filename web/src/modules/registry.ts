@@ -11,6 +11,7 @@ import {
   Users,
   Building2,
   MessageSquare,
+  UserRound,
   Home,
   type LucideIcon,
 } from 'lucide-react';
@@ -39,6 +40,10 @@ export const MODULE_NAV: Record<string, NavGroup[]> = {
   people: [{ title: 'Pessoas', items: [
     { label: 'Diretório', to: '/m/people', icon: Users, end: true },
   ]}],
+  studio: [{ title: 'MMV Creative', items: [
+    { label: 'Produção', to: '/m/studio/production', icon: Clapperboard, end: true },
+    { label: 'Meu espaço', to: '/m/studio/my-space', icon: UserRound },
+  ]}],
 
 };
 
@@ -64,6 +69,7 @@ const MODULE_ICONS: Record<string, LucideIcon> = {
   Users,
   Building2,
   MessageSquare,
+  UserRound,
 };
 
 export function moduleIcon(name?: string | null): LucideIcon {

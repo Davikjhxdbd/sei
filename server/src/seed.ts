@@ -1,5 +1,5 @@
 import { pool } from './db';
-import { hashPassword } from './auth';
+import { hashPassword, verifyPassword } from './auth';
 import { audit } from './audit';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -40,6 +40,21 @@ const USERS = [
 
 const DEMO_PASSWORD = process.env.SEED_PASSWORD || 'MMVconnect#2026';
 
+async function verifyDemoUsers(client: any) {
+  const { rows } = await client.query(
+    'select id, password_hash from users where id = any($1::uuid[])',
+    [USERS.map((user) => user.id)],
+  );
+  if (rows.length !== USERS.length) {
+    throw new Error('A validação das contas de demonstração encontrou usuários ausentes.');
+  }
+  for (const row of rows) {
+    if (!await verifyPassword(DEMO_PASSWORD, row.password_hash)) {
+      throw new Error('A validação das credenciais de demonstração falhou.');
+    }
+  }
+}
+
 function at(daysFromNow: number, hour: number, minute = 0) {
   const d = new Date();
   d.setDate(d.getDate() + daysFromNow);
@@ -56,9 +71,22 @@ async function main() {
               set_config('mmv.actor_level', '9', false)`,
     );
 
+    const demoPasswordHash = await hashPassword(DEMO_PASSWORD);
     const { rows: existing } = await client.query('select count(*)::int as total from users');
     if (existing[0].total > 0) {
-      console.log('base já possui dados — seed ignorado.');
+      // A base de teste pode já conter contas criadas por uma execução anterior.
+      // Corrige credenciais sem recriar eventos, tarefas ou outros dados existentes.
+      for (const user of USERS) {
+        await client.query(
+          `update users
+              set full_name = $2, username = $3, email = $4,
+                  password_hash = $5, status = 'active', updated_at = now()
+            where id = $1`,
+          [user.id, user.name, user.username, user.email, demoPasswordHash],
+        );
+      }
+      await verifyDemoUsers(client);
+      console.log('contas de demonstração verificadas; hashes de senha validados.');
       return;
     }
 
@@ -94,7 +122,7 @@ async function main() {
       await client.query(
         `insert into users (id, full_name, username, email, password_hash, status)
          values ($1, $2, $3, $4, $5, 'active') on conflict (id) do nothing`,
-        [user.id, user.name, user.username, user.email, hashPassword(DEMO_PASSWORD)],
+        [user.id, user.name, user.username, user.email, demoPasswordHash],
       );
       for (const role of user.roles) {
         await client.query(
@@ -136,6 +164,8 @@ async function main() {
                'Aviso da central', 'Mensagem exibida na central de aplicativos.', 'general')
        on conflict (key) do nothing`,
     );
+
+    await verifyDemoUsers(client);
 
     // ---------------------------------------------------------------
     // Eventos
