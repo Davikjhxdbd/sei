@@ -54,6 +54,14 @@ export async function api<T = any>(
     const text = await response.text();
     const payload = text ? safeJson(text) : null;
 
+    if (response.ok && payload === null) {
+      throw new ApiError(
+        502,
+        'O servidor da plataforma não respondeu em formato válido. Abra o endereço oficial do MMV Creative e tente novamente.',
+        'invalid_api_response',
+      );
+    }
+
     if (!response.ok) {
       const message =
         (payload && (payload.message as string)) ||
