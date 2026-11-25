@@ -45,7 +45,7 @@ const workspaces: Record<string, Workspace> = {
     cards: [
       { title: 'Projetos', description: 'Tire ideias do papel, organize etapas e acompanhe cada entrega.', detail: 'PLANEJAMENTO · PROGRESSO · ENTREGAS', icon: FolderKanban, route: '/gestao?tab=projetos', state: 'active' },
       { title: 'Tarefas', description: 'Uma mesa de trabalho pessoal para prioridades, prazos e próximos passos.', detail: 'HOJE · PRÓXIMAS · CONCLUÍDAS', icon: CheckSquare, route: '/gestao?tab=tarefas', state: 'active' },
-      { title: 'Escalas', description: 'Consulte suas responsabilidades e os compromissos das equipes.', detail: 'RESPONSABILIDADES · CONFIRMAÇÕES', icon: CalendarCheck, route: '/escalas', state: 'active' },
+      { title: 'Escalas', description: 'Consulte suas responsabilidades e os compromissos das equipes.', detail: 'RESPONSABILIDADES · CONFIRMAÇÕES', icon: CalendarCheck, route: '/m/studio/schedules', state: 'active' },
     ],
   },
   producao: {
@@ -58,11 +58,11 @@ const workspaces: Record<string, Workspace> = {
     icon: Clapperboard,
     mode: 'studio',
     cards: [
-      { title: 'Audiovisual', description: 'Briefings, gravações, edição, revisão e aprovação de vídeos.', detail: 'CÂMERA · EDIÇÃO · FINALIZAÇÃO', icon: Video, route: '/m/studio/production', state: 'active' },
-      { title: 'Design', description: 'Demandas visuais, referências, peças gráficas e aprovações.', detail: 'BRIEFING · CRIAÇÃO · APROVAÇÃO', icon: Palette, state: 'planned' },
-      { title: 'Fotografia', description: 'Coberturas, ensaios, seleção, tratamento e entrega de imagens.', detail: 'CAPTAÇÃO · SELEÇÃO · TRATAMENTO', icon: Aperture, state: 'planned' },
-      { title: 'Transmissão', description: 'Preparação técnica, programação e operação das transmissões.', detail: 'PRÉ-PRODUÇÃO · AO VIVO · OPERAÇÃO', icon: RadioTower, state: 'planned' },
-      { title: 'Slides', description: 'Apresentações, letras, versículos e conteúdos de projeção.', detail: 'ROTEIRO · MONTAGEM · PROJEÇÃO', icon: Presentation, state: 'planned' },
+      { title: 'Audiovisual', description: 'Briefings, gravações, edição, revisão e aprovação de vídeos.', detail: 'CÂMERA · EDIÇÃO · FINALIZAÇÃO', icon: Video, route: '/m/studio/departments/audiovisual', state: 'active' },
+      { title: 'Design', description: 'Demandas visuais, referências, peças gráficas e aprovações.', detail: 'BRIEFING · CRIAÇÃO · APROVAÇÃO', icon: Palette, route: '/m/studio/departments/design', state: 'active' },
+      { title: 'Fotografia', description: 'Coberturas, ensaios, seleção, tratamento e entrega de imagens.', detail: 'CAPTAÇÃO · SELEÇÃO · TRATAMENTO', icon: Aperture, route: '/m/studio/departments/fotos', state: 'active' },
+      { title: 'Transmissão', description: 'Preparação técnica, programação e operação das transmissões.', detail: 'PRÉ-PRODUÇÃO · AO VIVO · OPERAÇÃO', icon: RadioTower, route: '/m/studio/departments/transmissao', state: 'active' },
+      { title: 'Slides', description: 'Apresentações, letras, versículos e conteúdos de projeção.', detail: 'ROTEIRO · MONTAGEM · PROJEÇÃO', icon: Presentation, route: '/m/studio/departments/slide', state: 'active' },
     ],
   },
   inteligencia: {

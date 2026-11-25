@@ -48,7 +48,7 @@ export default function Department() {
       </Link>
 
       <header className="rounded-2xl border border-white/[.09] bg-gradient-to-br from-[#1c1b18] to-[#101010] p-6 sm:p-9">
-        <p className="text-[10px] font-semibold uppercase tracking-[.28em] text-[#C4A66A]">MMV CONNECT / DEPARTAMENTOS</p>
+        <p className="text-[10px] font-semibold uppercase tracking-[.28em] text-[#C4A66A]">MMV CREATIVE / PRODUÇÃO CRIATIVA</p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">{department.name}</h1>
         <p className="mt-2 max-w-2xl text-sm text-white/45">{department.description || 'Ambiente de trabalho do departamento.'}</p>
         <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
