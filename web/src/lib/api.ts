@@ -18,6 +18,7 @@ interface RequestOptions {
 }
 
 const REQUEST_TIMEOUT_MS = 30_000;
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\\/+$/, '');
 
 export async function api<T = any>(
   path: string,
@@ -41,9 +42,10 @@ export async function api<T = any>(
   }
 
   try {
-    const response = await fetch(path.startsWith('/api') ? path : `/api${path}`, {
+    const endpoint = path.startsWith('/api') ? path : `/api${path}`;
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: options.method ?? 'GET',
-      credentials: 'same-origin',
+      credentials: 'include',
       headers: options.body !== undefined
         ? { 'Content-Type': 'application/json' }
         : undefined,
