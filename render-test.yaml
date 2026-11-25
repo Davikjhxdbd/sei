@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: mmv-creative-test-api
+    runtime: node
+    plan: free
+    region: virginia
+    branch: feat/mmv-creative-workflow
+    rootDir: server
+    buildCommand: npm ci --include=dev
+    startCommand: npm run migrate && npm run seed && npm start
+    autoDeployTrigger: commit
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mmv-creative-test-db
+          property: connectionString
+      - key: NODE_ENV
+        value: production
+      - key: WEB_ORIGIN
+        value: https://mmv-creative-test-web.onrender.com
+      - key: APP_URL
+        value: https://mmv-creative-test-web.onrender.com
+      - key: SEED_PASSWORD
+        value: MMVconnect#2026
+
+databases:
+  - name: mmv-creative-test-db
+    plan: free
+    region: virginia
+    postgresMajorVersion: 16
