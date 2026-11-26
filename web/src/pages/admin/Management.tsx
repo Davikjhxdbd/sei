@@ -9,6 +9,7 @@ import { Badge, Card, LoadingBlock, PageHeader, StatCard } from '../../component
 interface Person { id: string }
 interface Sector { id: string; name: string; active: boolean; member_count?: number }
 interface AuditEntry { id: string; actor_name: string | null; action: string; entity: string; created_at: string }
+interface ModuleSummary { id: string; active: boolean }
 
 const sections = [
   { title: 'Pessoas e acessos', description: 'Contas, cargos, vínculos e situação de acesso.', href: '/admin/users', icon: Users, restricted: true },
@@ -23,6 +24,8 @@ export default function Management() {
   const people = useApi<{ items: Person[] }>('/catalog/people');
   const sectors = useApi<{ items: Sector[] }>('/catalog/sectors');
   const audit = useApi<{ items: AuditEntry[]; total: number }>('/admin/audit?limit=6');
+  const modules = useApi<{ items: ModuleSummary[] }>(level >= 5 ? '/admin/modules' : null);
+  const activeModules = modules.data?.items.filter((item) => item.active).length ?? 0;
   const visibleSections = sections.filter((section) => !section.restricted || level >= 5);
   const activeSectors = sectors.data?.items.filter((item) => item.active).length ?? 0;
 
@@ -31,21 +34,22 @@ export default function Management() {
     <>
       <PageHeader
         eyebrow="MMV CREATIVE · GESTÃO"
-        title="Gestão"
-        description="Administração institucional, estrutura de equipes, acessos e acompanhamento da plataforma."
+        title="Administração"
+        description="Controle institucional de usuários, permissões, módulos, setores e integridade da plataforma."
         actions={<Badge tone="accent"><ShieldCheck className="h-3 w-3" /> Área restrita</Badge>}
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div className={`grid gap-3 sm:grid-cols-2 ${level >= 5 ? "xl:grid-cols-4" : "xl:grid-cols-3"}`}>
         <StatCard label="Pessoas ativas" value={people.loading ? '—' : people.data?.items.length ?? 0} hint="Integrantes cadastrados" icon={Users} />
         <StatCard label="Departamentos ativos" value={sectors.loading ? '—' : activeSectors} hint="Estrutura institucional" icon={Building2} />
         <StatCard label="Registros de auditoria" value={audit.loading ? '—' : audit.data?.total ?? 0} hint="Eventos registrados" icon={ClipboardList} />
+        {level >= 5 && <StatCard label="Módulos ativos" value={modules.loading ? '—' : activeModules} hint="Aplicativos habilitados" icon={Boxes} />}
       </div>
 
       <div className="mt-7 mb-3 flex items-end justify-between gap-3">
         <div>
           <p className="mmv-label text-brass-deep">Administração</p>
-          <h2 className="mt-1 text-[17px] font-semibold text-ink">Central de gestão</h2>
+          <h2 className="mt-1 text-[17px] font-semibold text-ink">Central de administração</h2>
         </div>
         <span className="text-[11px] text-muted">{visibleSections.length} áreas disponíveis</span>
       </div>
