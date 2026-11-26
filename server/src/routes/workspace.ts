@@ -7,6 +7,7 @@ const router = Router();
 const PROJECT_STATUSES = ['active', 'paused', 'completed', 'archived'] as const;
 const TASK_STATUSES = ['todo', 'doing', 'waiting', 'done', 'archived'] as const;
 const PRIORITIES = ['low', 'normal', 'high', 'urgent'] as const;
+const TASK_STATUS_LABELS: Record<string, string> = { todo: 'A fazer', doing: 'Em andamento', waiting: 'Aguardando', done: 'Concluída', archived: 'Arquivada' };
 
 function dateValue(value: unknown, label: string): string | null {
   if (value === null || value === '' || value === undefined) return null;
@@ -200,6 +201,18 @@ router.patch('/tasks/:id', asyncHandler(async (req: any, res) => {
       userId: ownerId, title: 'Tarefa atribuída a você',
       body: title, link: '/gestao?tab=tarefas', moduleKey: 'management',
     });
+    if (status !== before.status) {
+      const notifyUser = req.user.id === before.owner_id ? before.created_by : ownerId;
+      if (notifyUser && notifyUser !== req.user.id) {
+        await notify(req.db, {
+          userId: notifyUser,
+          title: status === 'done' ? 'Tarefa concluída' : 'Tarefa atualizada',
+          body: `${title} · ${TASK_STATUS_LABELS[status] ?? status}`,
+          link: '/gestao?tab=tarefas',
+          moduleKey: 'management',
+        });
+      }
+    }
     return rows[0];
   });
   res.json({ task });
