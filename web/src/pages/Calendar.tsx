@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   CalendarDays, ChevronLeft, ChevronRight, Plus, MapPin,
   Clock3, Pencil, Trash2, X,
@@ -20,6 +20,12 @@ type CalendarEvent = {
   ends_at: string | null;
   all_day: boolean;
   created_by_name?: string | null;
+  source?: 'shared' | 'studio';
+  studio_event_id?: string;
+  studio_status?: string;
+  assignments?: number;
+  checklist_runs?: number;
+  reports?: number;
 };
 
 const categories = [
@@ -108,8 +114,29 @@ export default function CalendarPage() {
         from: rangeStart.toISOString(),
         to: rangeEnd.toISOString(),
       });
-      const result = await get<{ items: CalendarEvent[] }>(`/calendar?${params}`);
-      setEvents(result.items ?? []);
+      const [sharedResult, studioResult] = await Promise.all([
+        get<{ items: CalendarEvent[] }>(`/calendar?${params}`),
+        get<{ items: { id: string; name: string; type: string; starts_at: string; ends_at: string | null; notes: string | null; status: string; created_by_name?: string | null; assignments: number; checklist_runs: number; reports: number }[] }>(`/studio/events?${params}`),
+      ]);
+      const sharedEvents = (sharedResult.items ?? []).map((event) => ({ ...event, source: 'shared' as const }));
+      const studioEvents = (studioResult.items ?? []).map((event) => ({
+        id: `studio-${event.id}`,
+        studio_event_id: event.id,
+        title: event.name,
+        description: event.notes,
+        category: categories.some((item) => item.name === event.type) ? event.type : 'Evento especial',
+        location: null,
+        starts_at: event.starts_at,
+        ends_at: event.ends_at,
+        all_day: false,
+        created_by_name: event.created_by_name,
+        source: 'studio' as const,
+        studio_status: event.status,
+        assignments: event.assignments,
+        checklist_runs: event.checklist_runs,
+        reports: event.reports,
+      }));
+      setEvents([...sharedEvents, ...studioEvents].sort((a, b) => a.starts_at.localeCompare(b.starts_at)));
     } catch (error: any) {
       toast.push(error?.message ?? 'Não foi possível carregar o calendário.', 'error');
     } finally {
@@ -348,9 +375,11 @@ export default function CalendarPage() {
                       <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: categoryColor(event.category) }} />
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-semibold text-ink">{event.title}</p>
-                        <p className="mt-1 text-[11px] text-muted">{event.category}</p>
+                        <p className="mt-1 text-[11px] text-muted">{event.source === 'studio' ? `Estúdio · ${event.category}` : event.category}</p>
                       </div>
-                      {canManage && (
+                      {event.source === 'studio' && event.studio_event_id ? (
+                        <Link to={`/m/studio/events/${event.studio_event_id}`} aria-label="Abrir evento do estúdio" className="rounded p-1 text-muted hover:bg-ink/[.05]"><CalendarDays className="h-3.5 w-3.5" /></Link>
+                      ) : canManage && (
                         <div className="flex gap-1">
                           <button onClick={() => openEdit(event)} aria-label="Editar evento" className="rounded p-1 text-muted hover:bg-ink/[0.05]"><Pencil className="h-3.5 w-3.5" /></button>
                           <button onClick={() => removeEvent(event)} aria-label="Excluir evento" className="rounded p-1 text-muted hover:bg-red-50 hover:text-red-600"><Trash2 className="h-3.5 w-3.5" /></button>
@@ -361,6 +390,7 @@ export default function CalendarPage() {
                       <p className="flex items-center gap-1.5"><Clock3 className="h-3 w-3" />{event.all_day ? 'Dia inteiro' : `${timeLabel(event.starts_at)}${event.ends_at ? ` – ${timeLabel(event.ends_at)}` : ''}`}</p>
                       {event.location && <p className="flex items-center gap-1.5"><MapPin className="h-3 w-3" />{event.location}</p>}
                       {event.description && <p className="pt-1 leading-relaxed">{event.description}</p>}
+                      {event.source === 'studio' && <p className="pt-1 text-[10px] text-muted">{event.assignments ?? 0} designações · {event.checklist_runs ?? 0} checklists · {event.reports ?? 0} relatórios</p>}
                     </div>
                   </article>
                 ))}
@@ -388,7 +418,7 @@ export default function CalendarPage() {
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-xs font-semibold text-ink">{event.title}</span>
-                      <span className="mt-1 block text-[10px] text-muted">{event.all_day ? 'Dia inteiro' : timeLabel(event.starts_at)} · {event.category}</span>
+                      <span className="mt-1 block text-[10px] text-muted">{event.all_day ? 'Dia inteiro' : timeLabel(event.starts_at)} · {event.source === 'studio' ? 'Evento do estúdio' : event.category}</span>
                     </span>
                   </button>
                 ))}
