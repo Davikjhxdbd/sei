@@ -29,8 +29,8 @@ const FLOW = [
   { id: 'planning', label: 'Planejamento' },
   { id: 'recording', label: 'Captação' },
   { id: 'editing', label: 'Em execução' },
-  { id: 'review', label: 'Em revisão' },
-  { id: 'published', label: 'Concluída' },
+  { id: 'review', label: 'Revisão e aprovação' },
+  { id: 'published', label: 'Entregue' },
 ] as const;
 
 const THEMES: Record<string, { accent: string; glow: string; descriptor: string }> = {
