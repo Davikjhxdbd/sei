@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   ArrowUpRight, BriefcaseBusiness, CalendarDays, Check,
@@ -49,11 +49,25 @@ export default function ManagementWorkspace() {
   const [projectDue,setProjectDue] = useState('');
   const [projectAssignee,setProjectAssignee] = useState('');
   const [editingProject,setEditingProject] = useState<Project | null>(null);
+  const [focusTaskId,setFocusTaskId] = useState(() => {
+    try { return localStorage.getItem(`mmv:management:focus:${user?.id ?? 'guest'}`) ?? ''; }
+    catch { return ''; }
+  });
+  useEffect(() => {
+    try {
+      const key = `mmv:management:focus:${user?.id ?? 'guest'}`;
+      if (focusTaskId) localStorage.setItem(key, focusTaskId);
+      else localStorage.removeItem(key);
+    } catch { /* armazenamento local indisponível: foco continua nesta sessão */ }
+  }, [focusTaskId, user?.id]);
 
   const tasks = useMemo(() => (data?.tasks ?? []).filter(t => t.status !== 'archived').filter(t => {
     const q=query.trim().toLocaleLowerCase('pt-BR');
     return !q || [t.title, t.project_name ?? '', t.assignee_name ?? ''].some(value => value.toLocaleLowerCase('pt-BR').includes(q));
   }),[data,query]);
+  const personalTasks = tasks.filter(task => task.owner_id === user?.id && task.status !== 'done');
+  const focusedTask = personalTasks.find(task => task.id === focusTaskId) ?? null;
+
   const projects = useMemo(() => (data?.projects ?? []).filter(p => p.status !== 'archived').filter(p => {
     const q=query.trim().toLocaleLowerCase('pt-BR');
     return !q || [p.name, p.owner_name ?? ''].some(value => value.toLocaleLowerCase('pt-BR').includes(q));
@@ -154,6 +168,26 @@ export default function ManagementWorkspace() {
           <div className="mt-4 flex justify-end gap-2"><button type="button" onClick={()=>setShowForm(false)} className="rounded-xl border border-white/10 px-4 py-2.5 text-xs text-white/60">Cancelar</button><button disabled={saving} className="rounded-xl bg-[#d7bd8d] px-4 py-2.5 text-xs font-bold text-[#17140e] disabled:opacity-50">{saving?'Salvando…':'Salvar'}</button></div>
         </form>}
 
+
+        {tab==='tarefas' && <section className="mt-5 rounded-2xl border border-[#d7bd8d]/20 bg-[linear-gradient(115deg,rgba(215,189,141,.10),rgba(255,255,255,.025))] p-4 sm:p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="flex items-center gap-2 text-[9px] font-bold tracking-[.2em] text-[#d7bd8d]"><Target size={12}/> MEU FOCO DE HOJE</p>
+              <h2 className="mt-2 text-base font-semibold">{focusedTask ? focusedTask.title : 'Escolha o que merece sua atenção primeiro.'}</h2>
+              <p className="mt-1 text-xs leading-5 text-white/45">{focusedTask ? focusedTask.project_name ?? 'Tarefa pessoal' : 'Defina uma prioridade pessoal para manter o próximo passo sempre visível.'}{focusedTask ? ' · ' + priorityLabel[focusedTask.priority] + ' · ' + dateText(focusedTask.due_date) : ''}</p>
+            </div>
+            {focusedTask && <button onClick={() => void updateTask(focusedTask,{status:'done'})} className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[#d7bd8d] px-3 py-2.5 text-xs font-bold text-[#17140e] hover:bg-[#e4cca0]"><Check size={14}/> Concluir foco</button>}
+          </div>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <select aria-label="Escolher meu foco de hoje" value={focusedTask?.id ?? ''} onChange={e=>setFocusTaskId(e.target.value)} className="min-w-0 flex-1 rounded-xl border border-white/10 bg-[#17191d] px-3 py-2.5 text-xs text-white">
+              <option value="">Selecionar uma tarefa minha…</option>
+              {personalTasks.map(task=><option key={task.id} value={task.id}>{task.title}</option>)}
+            </select>
+            {focusTaskId && <button onClick={()=>setFocusTaskId('')} className="rounded-xl border border-white/10 px-3 py-2.5 text-xs text-white/55 hover:text-white">Limpar foco</button>}
+          </div>
+          <p className="mt-2 text-[10px] text-white/30">Sua escolha fica salva neste dispositivo e não altera a tarefa nem a visão da equipe.</p>
+        </section>}
+        
         <div className="relative mt-4 max-w-sm"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30"/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder={tab==='tarefas'?'Buscar tarefas ou projetos…':'Buscar projetos…'} className="h-10 w-full rounded-xl border border-white/10 bg-white/[.035] pl-9 pr-3 text-xs text-white outline-none focus:border-[#d7bd8d]/40"/></div>
 
         {loading?<div className="mt-5 rounded-2xl border border-white/10 p-8 text-center text-sm text-white/45">Preparando sua mesa…</div>:error?<div className="mt-5 rounded-2xl border border-red-400/20 bg-red-400/5 p-6 text-center text-sm text-white/65">{error}<button onClick={reload} className="ml-2 text-[#d7bd8d] underline">Tentar novamente</button></div>:tab==='tarefas'?(
