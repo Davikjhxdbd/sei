@@ -91,7 +91,7 @@ function DepartmentShowcase({ slug, tasks, theme }: { slug: string; tasks: Task[
                     <span className="text-[10px] font-semibold" style={{color:theme.accent}}>{stage.label}</span>
                     <span className="truncate text-[10px] text-muted">{task.assignee_name || 'Responsável a definir'}</span>
                   </div>
-                  <div className="mt-2 grid grid-cols-5 gap-1">{FLOW.map((item,index)=><span key={item.id} title={item.label} className="h-1 rounded-full" style={{background:index<=stageIndex?theme.accent:'var(--line)'}}/>)}</div>
+                  <div className="mt-2 grid grid-cols-5 gap-1">{FLOW.map((item,index)=><span key={item.id} title={item.label} className="h-1 rounded-full" style={{background:index<=stageIndex?theme.accent:'rgba(128,128,128,.20)'}}/>)}</div>
                   <div className="mt-3 flex items-center justify-between gap-2 text-[10px] text-muted">
                     <span>{task.recording_date ? dateLabel(task.recording_date) : 'Em execução'}</span>
                     <span>{task.due_date ? `Entrega · ${dateLabel(task.due_date)}` : 'Sem prazo'}</span>
