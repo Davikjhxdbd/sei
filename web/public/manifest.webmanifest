@@ -1,6 +1,6 @@
 {
   "name": "MMV CREATIVE",
-  "short_name": "MMV CREATIVE",
+  "short_name": "MMV",
   "description": "Plataforma institucional integrada do Ministério Mudança de Vida.",
   "lang": "pt-BR",
   "start_url": "/",
@@ -11,7 +11,7 @@
   "theme_color": "#111111",
   "icons": [
     {
-      "src": "/icons/apple-touch-icon.png?v=3",
+      "src": "/icons/apple-touch-icon.png?v=4",
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
