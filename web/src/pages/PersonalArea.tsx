@@ -148,7 +148,7 @@ export default function PersonalArea() {
             <div>
               <p className="mmv-label">Rotina compartilhada</p>
               <h2 className="mt-1 text-lg font-semibold text-ink">ESCALA DE LIMPEZA DIÁRIA — LIVE</h2>
-              <p className="mt-1 text-sm text-muted">Um responsável por dia. Início: 23 de novembro de 2026.</p>
+              <p className="mt-1 text-sm text-muted">Um responsável por dia. Hoje: <strong className="font-semibold text-ink">{currentPerson}</strong>. Início: 23 de novembro de 2026.</p>
             </div>
             <span className="inline-flex w-fit items-center gap-2 rounded-full bg-canvas px-3 py-1.5 text-xs font-medium text-muted"><CalendarDays size={13} /> 23/11/2026 a 06/12/2026</span>
           </div>
