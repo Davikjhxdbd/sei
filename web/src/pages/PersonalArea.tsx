@@ -13,7 +13,10 @@ const nav: NavGroup[] = [{
   title: 'Meu espaço',
   items: [
     { label: 'Visão pessoal', to: '/pessoal', icon: Home, end: true },
-    { label: 'Escala de limpeza', to: '/pessoal#limpeza', icon: ClipboardCheck },
+    { label: 'Agenda', to: '/calendar', icon: CalendarDays },
+    { label: 'Minhas tarefas', to: '/gestao?tab=tarefas', icon: ListTodo },
+    { label: 'Escalas', to: '/m/studio/schedules', icon: ClipboardCheck },
+    { label: 'Escala de limpeza', to: '/pessoal#limpeza', icon: Users },
   ],
 }];
 
@@ -39,8 +42,8 @@ function formatDate(date: Date, options: Intl.DateTimeFormatOptions) {
 }
 
 
-type PersonalTask = { id: string; title: string; status: string; priority: string; due_date: string | null; project_name: string | null };
-type PersonalProject = { id: string; name: string; status: string; task_count: number; completed_tasks: number };
+type PersonalTask = { id: string; owner_id: string; title: string; status: string; priority: string; due_date: string | null; completed_at: string | null; project_name: string | null };
+type PersonalProject = { id: string; owner_id: string; name: string; status: string; task_count: number; completed_tasks: number };
 type PersonalWorkspace = { tasks: PersonalTask[]; projects: PersonalProject[]; totals: { open_tasks: number; doing_tasks: number; completed_this_week: number; overdue_tasks: number } };
 type PersonalSchedule = { id: string; role_title: string; event_name: string; starts_at: string; readiness: string | null; status: string };
 type PersonalEvent = { id: string; title: string; starts_at: string; category: string; location: string | null; all_day: boolean };
@@ -59,7 +62,13 @@ export default function PersonalArea() {
   const schedules = useApi<{ items: PersonalSchedule[] }>('/studio/schedules?mine=1');
   const agenda = useApi<{ items: PersonalEvent[] }>('/calendar');
   const [completing, setCompleting] = useState<string | null>(null);
-  const openTasks = (workspace.data?.tasks ?? []).filter(task => task.status !== 'done');
+  const personalTasks = (workspace.data?.tasks ?? []).filter(task => task.owner_id === user?.id);
+  const openTasks = personalTasks.filter(task => task.status !== 'done');
+  const weekStart = new Date(); weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7)); weekStart.setHours(0,0,0,0);
+  const completedThisWeek = personalTasks.filter(task => task.status === 'done' && task.completed_at && new Date(task.completed_at) >= weekStart).length;
+  const personalProjects = (workspace.data?.projects ?? []).filter(project => project.owner_id === user?.id && project.status === 'active');
+  const doingTasks = personalTasks.filter(task => task.status === 'doing').length;
+  const overdueTasks = openTasks.filter(task => task.due_date && task.due_date < localDateKey(today)).length;
   const nextSchedules = (schedules.data?.items ?? []).filter(item => item.status === 'published' && new Date(item.starts_at).getTime() >= Date.now()).sort((a,b)=>a.starts_at.localeCompare(b.starts_at)).slice(0,4);
   const nextEvents = (agenda.data?.items ?? []).filter(item => new Date(item.starts_at).getTime() >= Date.now()).sort((a,b)=>a.starts_at.localeCompare(b.starts_at)).slice(0,4);
 
@@ -100,10 +109,10 @@ export default function PersonalArea() {
 
         <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
           {[
-            { label: 'Tarefas em aberto', value: workspace.data?.totals.open_tasks ?? openTasks.length, icon: ListTodo },
-            { label: 'Em andamento', value: workspace.data?.totals.doing_tasks ?? 0, icon: Clock3 },
-            { label: 'Concluídas na semana', value: workspace.data?.totals.completed_this_week ?? 0, icon: CheckCircle2 },
-            { label: 'Atrasadas', value: workspace.data?.totals.overdue_tasks ?? 0, icon: AlertCircle },
+            { label: 'Tarefas em aberto', value: openTasks.length, icon: ListTodo },
+            { label: 'Em andamento', value: doingTasks, icon: Clock3 },
+            { label: 'Concluídas na semana', value: completedThisWeek, icon: CheckCircle2 },
+            { label: 'Atrasadas', value: overdueTasks, icon: AlertCircle },
           ].map(item => <article key={item.label} className="mmv-surface p-4"><div className="flex items-center justify-between text-muted"><span className="text-[10px]">{item.label}</span><item.icon size={15} className="text-brass"/></div><p className="mt-3 text-2xl font-semibold tabular-nums text-ink">{workspace.loading ? '—' : item.value}</p></article>)}
         </section>
 
@@ -126,21 +135,12 @@ export default function PersonalArea() {
 
         <section className="grid gap-4 xl:grid-cols-2">
           <article className="mmv-surface p-5"><div className="mb-4 flex items-center justify-between"><div><p className="mmv-label">Planejamento</p><h2 className="mt-1 text-sm font-semibold text-ink">Próximos compromissos</h2></div><Link to="/calendar" className="text-[11px] font-semibold text-brass hover:underline">Agenda completa</Link></div>{agenda.loading?<LoadingBlock/>:nextEvents.length?<div className="space-y-3">{nextEvents.map(event=><div key={event.id} className="flex items-start gap-3 border-b border-line pb-3 last:border-0 last:pb-0"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-canvas"><span className="text-[9px] uppercase text-muted">{formatDate(new Date(event.starts_at),{month:'short'})}</span><span className="text-sm font-semibold text-ink">{new Date(event.starts_at).getDate()}</span></span><div className="min-w-0 flex-1"><p className="text-xs font-semibold text-ink">{event.title}</p><p className="mt-1 text-[10px] text-muted">{event.all_day?'Dia inteiro':formatDate(new Date(event.starts_at),{hour:'2-digit',minute:'2-digit'})} · {event.category}</p>{event.location&&<p className="mt-1 text-[10px] text-muted">{event.location}</p>}</div></div>)}</div>:<p className="py-5 text-center text-xs text-muted">Nenhum compromisso próximo cadastrado.</p>}</article>
-          <article className="mmv-surface p-5"><div className="mb-4 flex items-center justify-between"><div><p className="mmv-label">Projetos</p><h2 className="mt-1 text-sm font-semibold text-ink">Sob minha responsabilidade</h2></div><Link to="/gestao?tab=projetos" className="text-[11px] font-semibold text-brass hover:underline">Ver projetos</Link></div>{workspace.loading?<LoadingBlock/>:(workspace.data?.projects??[]).filter(project=>project.status==='active').slice(0,4).map(project=>{const progress=project.task_count?Math.round(project.completed_tasks/project.task_count*100):0;return <div key={project.id} className="mb-3 border-b border-line pb-3 last:mb-0 last:border-0 last:pb-0"><div className="flex items-center justify-between gap-3"><p className="truncate text-xs font-semibold text-ink">{project.name}</p><span className="text-[10px] tabular-nums text-muted">{progress}%</span></div><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-ink/[.06]"><div className="h-full rounded-full bg-brass" style={{width:progress+'%'}}/></div><p className="mt-1 text-[10px] text-muted">{project.completed_tasks} de {project.task_count} tarefas concluídas</p></div>})}</article>
+          <article className="mmv-surface p-5"><div className="mb-4 flex items-center justify-between"><div><p className="mmv-label">Projetos</p><h2 className="mt-1 text-sm font-semibold text-ink">Sob minha responsabilidade</h2></div><Link to="/gestao?tab=projetos" className="text-[11px] font-semibold text-brass hover:underline">Ver projetos</Link></div>{workspace.loading?<LoadingBlock/>:personalProjects.slice(0,4).map(project=>{const progress=project.task_count?Math.round(project.completed_tasks/project.task_count*100):0;return <div key={project.id} className="mb-3 border-b border-line pb-3 last:mb-0 last:border-0 last:pb-0"><div className="flex items-center justify-between gap-3"><p className="truncate text-xs font-semibold text-ink">{project.name}</p><span className="text-[10px] tabular-nums text-muted">{progress}%</span></div><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-ink/[.06]"><div className="h-full rounded-full bg-brass" style={{width:progress+'%'}}/></div><p className="mt-1 text-[10px] text-muted">{project.completed_tasks} de {project.task_count} tarefas concluídas</p></div>})}</article>
         </section>
 
-        <section className="grid gap-4 sm:grid-cols-2">
-          <article className="mmv-surface p-5">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted"><Sparkles size={15} className="text-brass" /> Seu espaço</div>
-            <h2 className="mt-3 text-lg font-semibold text-ink">Tudo organizado em um só lugar.</h2>
-            <p className="mt-1 text-sm leading-relaxed text-muted">Aqui ficam as escalas e pequenas responsabilidades que fazem parte da rotina.</p>
-          </article>
-          <article className="mmv-surface p-5">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted"><Users size={15} className="text-brass" /> Escala de hoje</div>
-            <p className="mt-3 text-2xl font-semibold text-ink">{currentPerson}</p>
-            <p className="mt-1 text-sm text-muted">Responsável pela limpeza de hoje.</p>
-            <a href="#limpeza" className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-brass hover:underline">Ver escala completa <ChevronRight size={14} /></a>
-          </article>
+        <section className="grid gap-3 sm:grid-cols-2">
+          <Link to="/gestao?tab=tarefas" className="mmv-surface group flex items-center justify-between p-4 transition hover:border-brass/40"><div><p className="text-sm font-semibold text-ink">Minhas tarefas</p><p className="mt-1 text-xs text-muted">Acompanhe prioridades e entregas pessoais.</p></div><ChevronRight size={17} className="text-muted transition group-hover:translate-x-1 group-hover:text-brass"/></Link>
+          <Link to="/m/studio/schedules" className="mmv-surface group flex items-center justify-between p-4 transition hover:border-brass/40"><div><p className="text-sm font-semibold text-ink">Minhas escalas</p><p className="mt-1 text-xs text-muted">Consulte compromissos e confirme disponibilidade.</p></div><ChevronRight size={17} className="text-muted transition group-hover:translate-x-1 group-hover:text-brass"/></Link>
         </section>
 
         <section id="limpeza" className="mmv-surface overflow-hidden">
@@ -186,10 +186,7 @@ export default function PersonalArea() {
             <div><p className="text-sm font-semibold text-ink">Escalas dos cultos</p><p className="mt-1 text-xs text-muted">Equipe, funções e organização dos cultos.</p></div>
             <ChevronRight size={17} className="text-muted transition group-hover:translate-x-1 group-hover:text-brass" />
           </Link>
-          <div className="mmv-surface flex items-center justify-between p-4 opacity-70">
-            <div><p className="text-sm font-semibold text-ink">Minhas tarefas</p><p className="mt-1 text-xs text-muted">Área preparada para próximas rotinas.</p></div>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted">Em breve</span>
-          </div>
+          <Link to="/gestao?tab=tarefas" className="mmv-surface group flex items-center justify-between p-4 transition hover:border-brass/40"><div><p className="text-sm font-semibold text-ink">Minhas tarefas</p><p className="mt-1 text-xs text-muted">Abra sua lista completa de prioridades e entregas.</p></div><ChevronRight size={17} className="text-muted transition group-hover:translate-x-1 group-hover:text-brass"/></Link>
         </section>
       </div>
     </Shell>
