@@ -10,11 +10,11 @@ import { useApi } from '../lib/useApi';
 import { useToast } from '../components/Toast';
 
 type Project = {
-  id: string; name: string; description: string | null; status: 'active'|'paused'|'completed'|'archived';
+  id: string; owner_id: string; owner_name: string; name: string; description: string | null; status: 'active'|'paused'|'completed'|'archived';
   due_date: string | null; task_count: number; completed_tasks: number;
 };
 type Task = {
-  id: string; project_id: string | null; title: string; description: string | null;
+  id: string; owner_id: string; created_by: string; assignee_name: string; project_id: string | null; title: string; description: string | null;
   status: 'todo'|'doing'|'waiting'|'done'|'archived'; priority: 'low'|'normal'|'high'|'urgent';
   due_date: string | null; project_name: string | null;
 };
@@ -30,6 +30,8 @@ export default function ManagementWorkspace() {
   const tab = searchParams.get('tab') === 'projetos' ? 'projetos' : 'tarefas';
   const toast = useToast();
   const { data, loading, error, reload } = useApi<Overview>('/workspace/overview');
+  const { level, user } = useAuth();
+  const people = useApi<{items:{id:string;full_name:string}[]}>('/catalog/people');
   const [query,setQuery] = useState('');
   const [showForm,setShowForm] = useState(false);
   const [saving,setSaving] = useState(false);
@@ -39,9 +41,11 @@ export default function ManagementWorkspace() {
   const [taskProject,setTaskProject] = useState('');
   const [taskDue,setTaskDue] = useState('');
   const [taskPriority,setTaskPriority] = useState<Task['priority']>('normal');
+  const [taskAssignee,setTaskAssignee] = useState('');
   const [projectName,setProjectName] = useState('');
   const [projectDescription,setProjectDescription] = useState('');
   const [projectDue,setProjectDue] = useState('');
+  const [projectAssignee,setProjectAssignee] = useState('');
   const [editingProject,setEditingProject] = useState<Project | null>(null);
 
   const tasks = useMemo(() => (data?.tasks ?? []).filter(t => t.status !== 'archived').filter(t => {
@@ -55,25 +59,25 @@ export default function ManagementWorkspace() {
 
   function newTask() {
     setEditingTask(null); setTaskTitle(''); setTaskDescription(''); setTaskProject('');
-    setTaskDue(''); setTaskPriority('normal'); setShowForm(true);
+    setTaskDue(''); setTaskPriority('normal'); setTaskAssignee(user?.id ?? ''); setShowForm(true);
   }
   function editTask(task:Task) {
     setEditingTask(task); setTaskTitle(task.title); setTaskDescription(task.description ?? '');
     setTaskProject(task.project_id ?? ''); setTaskDue(task.due_date?.slice(0,10) ?? '');
-    setTaskPriority(task.priority); setShowForm(true);
+    setTaskPriority(task.priority); setTaskAssignee(task.owner_id); setShowForm(true);
   }
   function newProject() {
-    setEditingProject(null); setProjectName(''); setProjectDescription(''); setProjectDue(''); setShowForm(true);
+    setEditingProject(null); setProjectName(''); setProjectDescription(''); setProjectDue(''); setProjectAssignee(user?.id ?? ''); setShowForm(true);
   }
   function editProject(project:Project) {
     setEditingProject(project); setProjectName(project.name); setProjectDescription(project.description ?? '');
-    setProjectDue(project.due_date?.slice(0,10) ?? ''); setShowForm(true);
+    setProjectDue(project.due_date?.slice(0,10) ?? ''); setProjectAssignee(project.owner_id); setShowForm(true);
   }
   async function saveTask(event:React.FormEvent) {
     event.preventDefault(); if(!taskTitle.trim()) return;
     setSaving(true);
     try {
-      const body={title:taskTitle,description:taskDescription,project_id:taskProject||null,due_date:taskDue||null,priority:taskPriority};
+      const body={title:taskTitle,description:taskDescription,project_id:taskProject||null,due_date:taskDue||null,priority:taskPriority,assigned_to:taskAssignee||user?.id};
       if(editingTask) await patch(`/workspace/tasks/${editingTask.id}`,body); else await post('/workspace/tasks',body);
       setShowForm(false); reload(); toast.push(editingTask?'Tarefa atualizada.':'Tarefa adicionada à sua mesa.');
     } catch(e:any){toast.push(e?.message ?? 'Não foi possível salvar a tarefa.','error');}
@@ -83,7 +87,7 @@ export default function ManagementWorkspace() {
     event.preventDefault(); if(!projectName.trim()) return;
     setSaving(true);
     try {
-      const body={name:projectName,description:projectDescription,due_date:projectDue||null};
+      const body={name:projectName,description:projectDescription,due_date:projectDue||null,owner_id:projectAssignee||user?.id};
       if(editingProject) await patch(`/workspace/projects/${editingProject.id}`,body); else await post('/workspace/projects',body);
       setShowForm(false); reload(); toast.push(editingProject?'Projeto atualizado.':'Projeto criado no seu escritório.');
     } catch(e:any){toast.push(e?.message ?? 'Não foi possível salvar o projeto.','error');}
@@ -136,13 +140,15 @@ export default function ManagementWorkspace() {
           {tab==='tarefas'?<div className="grid gap-3 sm:grid-cols-2">
             <label className="text-xs text-white/60 sm:col-span-2">O que precisa ser feito?<input required maxLength={180} value={taskTitle} onChange={e=>setTaskTitle(e.target.value)} className="mt-1.5 h-11 w-full rounded-xl border border-white/10 bg-black/20 px-3 text-sm text-white outline-none focus:border-[#d7bd8d]/60"/></label>
             <label className="text-xs text-white/60 sm:col-span-2">Detalhes<textarea value={taskDescription} onChange={e=>setTaskDescription(e.target.value)} rows={3} maxLength={3000} className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-white outline-none focus:border-[#d7bd8d]/60"/></label>
-            <label className="text-xs text-white/60">Projeto<select value={taskProject} onChange={e=>setTaskProject(e.target.value)} className="mt-1.5 h-11 w-full rounded-xl border border-white/10 bg-[#17191d] px-3 text-sm text-white"><option value="">Sem projeto</option>{(data?.projects??[]).filter(p=>p.status!=='archived').map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
+            <label className="text-xs text-white/60">Projeto<select value={taskProject} onChange={e=>setTaskProject(e.target.value)} className="mt-1.5 h-11 w-full rounded-xl border border-white/10 bg-[#17191d] px-3 text-sm text-white"><option value="">Sem projeto</option>{(data?.projects??[]).filter(p=>p.status!=='archived'&&p.owner_id===taskAssignee).map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
             <label className="text-xs text-white/60">Prazo<input type="date" value={taskDue} onChange={e=>setTaskDue(e.target.value)} className="mt-1.5 h-11 w-full rounded-xl border border-white/10 bg-black/20 px-3 text-sm text-white"/></label>
             <label className="text-xs text-white/60">Prioridade<select value={taskPriority} onChange={e=>setTaskPriority(e.target.value as Task['priority'])} className="mt-1.5 h-11 w-full rounded-xl border border-white/10 bg-[#17191d] px-3 text-sm text-white">{Object.entries(priorityLabel).map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></label>
+            {level>=3&&<label className="text-xs text-white/60">Responsável<select value={taskAssignee} onChange={e=>{setTaskAssignee(e.target.value);setTaskProject('');}} className="mt-1.5 h-11 w-full rounded-xl border border-white/10 bg-[#17191d] px-3 text-sm text-white">{(people.data?.items??[]).map(p=><option key={p.id} value={p.id}>{p.full_name}</option>)}</select></label>}
           </div>:<div className="grid gap-3 sm:grid-cols-2">
             <label className="text-xs text-white/60 sm:col-span-2">Nome do projeto<input required maxLength={140} value={projectName} onChange={e=>setProjectName(e.target.value)} className="mt-1.5 h-11 w-full rounded-xl border border-white/10 bg-black/20 px-3 text-sm text-white outline-none focus:border-[#d7bd8d]/60"/></label>
             <label className="text-xs text-white/60 sm:col-span-2">Objetivo / descrição<textarea value={projectDescription} onChange={e=>setProjectDescription(e.target.value)} rows={3} maxLength={3000} className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-white outline-none focus:border-[#d7bd8d]/60"/></label>
             <label className="text-xs text-white/60">Prazo<input type="date" value={projectDue} onChange={e=>setProjectDue(e.target.value)} className="mt-1.5 h-11 w-full rounded-xl border border-white/10 bg-black/20 px-3 text-sm text-white"/></label>
+            {level>=3&&<label className="text-xs text-white/60">Responsável<select value={projectAssignee} onChange={e=>setProjectAssignee(e.target.value)} className="mt-1.5 h-11 w-full rounded-xl border border-white/10 bg-[#17191d] px-3 text-sm text-white">{(people.data?.items??[]).map(p=><option key={p.id} value={p.id}>{p.full_name}</option>)}</select></label>}
           </div>}
           <div className="mt-4 flex justify-end gap-2"><button type="button" onClick={()=>setShowForm(false)} className="rounded-xl border border-white/10 px-4 py-2.5 text-xs text-white/60">Cancelar</button><button disabled={saving} className="rounded-xl bg-[#d7bd8d] px-4 py-2.5 text-xs font-bold text-[#17140e] disabled:opacity-50">{saving?'Salvando…':'Salvar'}</button></div>
         </form>}
@@ -152,7 +158,7 @@ export default function ManagementWorkspace() {
         {loading?<div className="mt-5 rounded-2xl border border-white/10 p-8 text-center text-sm text-white/45">Preparando sua mesa…</div>:error?<div className="mt-5 rounded-2xl border border-red-400/20 bg-red-400/5 p-6 text-center text-sm text-white/65">{error}<button onClick={reload} className="ml-2 text-[#d7bd8d] underline">Tentar novamente</button></div>:tab==='tarefas'?(
           <div className="mt-4 space-y-2">{tasks.length?tasks.map(task=><article key={task.id} className="group flex flex-wrap items-center gap-3 rounded-2xl border border-white/[.08] bg-white/[.035] p-4 transition hover:border-[#d7bd8d]/25">
             <button onClick={()=>void updateTask(task,{status:task.status==='done'?'todo':'done'})} aria-label={task.status==='done'?'Reabrir tarefa':'Concluir tarefa'} className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-white/10 text-white/45 hover:border-[#d7bd8d]/40 hover:text-[#d7bd8d]">{task.status==='done'?<Check size={17}/>:<Circle size={17}/>}</button>
-            <button onClick={()=>editTask(task)} className="min-w-0 flex-1 text-left"><p className={`text-sm font-semibold ${task.status==='done'?'text-white/35 line-through':'text-white/90'}`}>{task.title}</p><p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-white/35"><span>{task.project_name??'Pessoal'}</span><span>{dateText(task.due_date)}</span><span>{priorityLabel[task.priority]}</span></p></button>
+            {(level>=3||task.created_by===user?.id)?<button onClick={()=>editTask(task)} className="min-w-0 flex-1 text-left"><p className={`text-sm font-semibold ${task.status==='done'?'text-white/35 line-through':'text-white/90'}`}>{task.title}</p><p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-white/35"><span>{task.project_name??'Pessoal'}</span><span>{task.assignee_name}</span><span>{dateText(task.due_date)}</span><span>{priorityLabel[task.priority]}</span></p></button>:<div className="min-w-0 flex-1 text-left"><p className={`text-sm font-semibold ${task.status==='done'?'text-white/35 line-through':'text-white/90'}`}>{task.title}</p><p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-white/35"><span>{task.project_name??'Pessoal'}</span><span>{task.assignee_name}</span><span>{dateText(task.due_date)}</span></p></div>}
             <select value={task.status} onChange={e=>void updateTask(task,{status:e.target.value as Task['status']})} className="rounded-lg border border-white/10 bg-[#17191d] px-2 py-2 text-[10px] text-white/65">{Object.entries(taskStatus).filter(([v])=>v!=='archived').map(([v,l])=><option key={v} value={v}>{l}</option>)}</select>
           </article>):<div className="rounded-2xl border border-dashed border-white/15 px-5 py-12 text-center"><Target size={24} className="mx-auto text-[#d7bd8d]/60"/><h3 className="mt-3 text-sm font-semibold">Sua mesa está livre.</h3><p className="mt-1 text-xs text-white/40">Adicione a primeira tarefa e transforme intenção em próximo passo.</p></div>}</div>
         ):(

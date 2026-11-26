@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { asyncHandler, badRequest, notFound, optionalText, required } from '../http';
-import { audit } from '../audit';
+import { audit, notify } from '../audit';
 import { tx } from '../db';
 
 const router = Router();
@@ -30,23 +30,26 @@ function oneOf<T extends readonly string[]>(value: unknown, allowed: T, label: s
 router.get('/overview', asyncHandler(async (req: any, res) => {
   const [projects, tasks, totals] = await Promise.all([
     req.db.query(`
-      select p.*,
+      select p.*, u.full_name as owner_name,
         count(t.id)::int as task_count,
         count(t.id) filter (where t.status = 'done')::int as completed_tasks
       from personal_projects p
+      join users u on u.id = p.owner_id
       left join personal_tasks t on t.project_id = p.id and t.owner_id = p.owner_id
-      where p.owner_id = $1
+      where p.owner_id = $1 or $2::int >= 3
       group by p.id
       order by case p.status when 'active' then 0 when 'paused' then 1 when 'completed' then 2 else 3 end,
                p.updated_at desc
     `, [req.user.id]),
     req.db.query(`
-      select t.id, t.project_id, t.title, t.description, t.status, t.priority,
+      select t.id, t.owner_id, t.created_by, owner.full_name as assignee_name,
+             t.project_id, t.title, t.description, t.status, t.priority,
              t.due_date, t.completed_at, t.created_at, t.updated_at,
              p.name as project_name
         from personal_tasks t
         left join personal_projects p on p.id = t.project_id and p.owner_id = t.owner_id
-       where t.owner_id = $1 and t.status <> 'archived'
+        join users owner on owner.id = t.owner_id
+       where (t.owner_id = $1 or $2::int >= 3) and t.status <> 'archived'
        order by case t.status when 'todo' then 0 when 'doing' then 1 when 'waiting' then 2 else 3 end,
                 t.due_date asc nulls last, t.created_at desc
        limit 250
@@ -57,8 +60,8 @@ router.get('/overview', asyncHandler(async (req: any, res) => {
         count(*) filter (where status = 'doing')::int as doing_tasks,
         count(*) filter (where status = 'done' and completed_at >= date_trunc('week', now()))::int as completed_this_week,
         count(*) filter (where status in ('todo','doing','waiting') and due_date < current_date)::int as overdue_tasks
-      from personal_tasks where owner_id = $1
-    `, [req.user.id]),
+      from personal_tasks where owner_id = $1 or $2::int >= 3
+    `, [req.user.id, req.user.level]),
   ]);
   res.json({ projects: projects.rows, tasks: tasks.rows, totals: totals.rows[0] });
 }));
@@ -67,15 +70,20 @@ router.post('/projects', asyncHandler(async (req: any, res) => {
   const name = required(req.body?.name, 'nome do projeto', 140);
   const description = optionalText(req.body?.description, 3000);
   const dueDate = dateValue(req.body?.due_date, 'prazo');
+  const ownerId = req.body?.owner_id || req.user.id;
+  if (ownerId !== req.user.id && req.user.level < 3) throw badRequest('Somente a liderança pode atribuir projetos a outra pessoa.');
+  const activeOwner = await req.db.query(\"select 1 from users where id = $1 and status = 'active'\", [ownerId]);
+  if (!activeOwner.rows.length) throw badRequest('A pessoa responsável não está ativa.');
   const project = await tx(req.db, async () => {
     const { rows } = await req.db.query(`
-      insert into personal_projects (owner_id, name, description, due_date)
-      values ($1, $2, $3, $4) returning *
-    `, [req.user.id, name, description, dueDate]);
+      insert into personal_projects (owner_id, created_by, name, description, due_date)
+      values ($1, $2, $3, $4, $5) returning *
+    `, [ownerId, req.user.id, name, description, dueDate]);
     await audit(req.db, req.user, {
       action: 'personal_project.created', entity: 'personal_projects',
-      entityId: rows[0].id, after: { name, due_date: dueDate }, moduleKey: 'management',
+      entityId: rows[0].id, after: { name, owner_id: ownerId, due_date: dueDate }, moduleKey: 'management',
     });
+    if (ownerId !== req.user.id) await notify(req.db, { userId: ownerId, title: 'Novo projeto atribuído a você', body: name, link: '/gestao?tab=projetos', moduleKey: 'management' });
     return rows[0];
   });
   res.status(201).json({ project });
@@ -83,8 +91,8 @@ router.post('/projects', asyncHandler(async (req: any, res) => {
 
 router.patch('/projects/:id', asyncHandler(async (req: any, res) => {
   const { rows: beforeRows } = await req.db.query(
-    'select * from personal_projects where id = $1 and owner_id = $2 for update',
-    [req.params.id, req.user.id],
+    'select * from personal_projects where id = $1 and (owner_id = $2 or $3::int >= 3) for update',
+    [req.params.id, req.user.id, req.user.level],
   );
   if (!beforeRows.length) throw notFound('Projeto não encontrado.');
   const before = beforeRows[0];
@@ -109,33 +117,40 @@ router.post('/tasks', asyncHandler(async (req: any, res) => {
   const description = optionalText(req.body?.description, 3000);
   const projectId = req.body?.project_id || null;
   const dueDate = dateValue(req.body?.due_date, 'prazo');
+  const ownerId = req.body?.assigned_to || req.user.id;
+  if (ownerId !== req.user.id && req.user.level < 3) throw badRequest('Somente a liderança pode atribuir tarefas a outra pessoa.');
+  const activeOwner = await req.db.query(\"select 1 from users where id = $1 and status = 'active'\", [ownerId]);
+  if (!activeOwner.rows.length) throw badRequest('A pessoa responsável não está ativa.');
   const priority = oneOf(req.body?.priority ?? 'normal', PRIORITIES, 'prioridade');
   if (projectId) {
     const exists = await req.db.query(
       'select 1 from personal_projects where id = $1 and owner_id = $2 and status <> $3',
-      [projectId, req.user.id, 'archived'],
+      [projectId, ownerId, 'archived'],
     );
     if (!exists.rows.length) throw badRequest('O projeto selecionado não está disponível.');
   }
   const { rows } = await req.db.query(`
-    insert into personal_tasks (owner_id, project_id, title, description, priority, due_date)
-    values ($1, $2, $3, $4, $5, $6) returning *
-  `, [req.user.id, projectId, title, description, priority, dueDate]);
+    insert into personal_tasks (owner_id, created_by, project_id, title, description, priority, due_date)
+    values ($1, $2, $3, $4, $5, $6, $7) returning *
+  `, [ownerId, req.user.id, projectId, title, description, priority, dueDate]);
   await audit(req.db, req.user, {
     action: 'personal_task.created', entity: 'personal_tasks',
-    entityId: rows[0].id, after: { title, project_id: projectId, priority, due_date: dueDate },
+    entityId: rows[0].id, after: { title, owner_id: ownerId, project_id: projectId, priority, due_date: dueDate },
     moduleKey: 'management',
   });
+  if (ownerId !== req.user.id) await notify(req.db, { userId: ownerId, title: 'Nova tarefa atribuída a você', body: title, link: '/gestao?tab=tarefas', moduleKey: 'management' });
   res.status(201).json({ task: rows[0] });
 }));
 
 router.patch('/tasks/:id', asyncHandler(async (req: any, res) => {
   const { rows: beforeRows } = await req.db.query(
-    'select * from personal_tasks where id = $1 and owner_id = $2 for update',
-    [req.params.id, req.user.id],
+    'select * from personal_tasks where id = $1 and (owner_id = $2 or $3::int >= 3) for update',
+    [req.params.id, req.user.id, req.user.level],
   );
   if (!beforeRows.length) throw notFound('Tarefa não encontrada.');
   const before = beforeRows[0];
+  if (before.owner_id !== req.user.id && req.user.level < 3) throw notFound('Tarefa não encontrada.');
+  if (before.created_by !== req.user.id && before.owner_id === req.user.id && req.user.level < 3 && Object.keys(req.body ?? {}).some((key) => key !== 'status')) throw badRequest('Você pode atualizar apenas a etapa da tarefa atribuída a você.');
   const title = req.body?.title !== undefined ? required(req.body.title, 'título da tarefa', 180) : before.title;
   const description = req.body?.description !== undefined ? optionalText(req.body.description, 3000) : before.description;
   const projectId = req.body?.project_id !== undefined ? (req.body.project_id || null) : before.project_id;
@@ -145,7 +160,7 @@ router.patch('/tasks/:id', asyncHandler(async (req: any, res) => {
   if (projectId) {
     const exists = await req.db.query(
       'select 1 from personal_projects where id = $1 and owner_id = $2 and status <> $3',
-      [projectId, req.user.id, 'archived'],
+      [projectId, before.owner_id, 'archived'],
     );
     if (!exists.rows.length) throw badRequest('O projeto selecionado não está disponível.');
   }

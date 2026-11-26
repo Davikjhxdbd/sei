@@ -2,6 +2,7 @@
 create table if not exists personal_projects (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null references users(id) on delete cascade,
+  created_by uuid not null references users(id) on delete restrict,
   name varchar(140) not null,
   description text,
   status varchar(16) not null default 'active'
@@ -20,6 +21,7 @@ create unique index if not exists personal_projects_id_owner_uq
 create table if not exists personal_tasks (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null references users(id) on delete cascade,
+  created_by uuid not null references users(id) on delete restrict,
   project_id uuid,
   title varchar(180) not null,
   description text,
