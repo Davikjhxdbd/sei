@@ -35,6 +35,7 @@ import {
 } from '../components/ui';
 import { useToast } from '../components/Toast';
 import { PushNotifications } from '../components/PushNotifications';
+import { PushNotifications } from '../components/PushNotifications';
 
 interface ProfilePayload {
   user: {
