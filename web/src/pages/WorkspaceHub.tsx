@@ -4,7 +4,7 @@ import {
   ArrowLeft, ArrowUpRight, BriefcaseBusiness, Camera, ChartNoAxesCombined,
   CheckSquare, Clapperboard, Clock3, FolderKanban, MessageSquareText,
   Palette, Presentation, RadioTower, Sparkles, Users, CalendarCheck,
-  Bot, LockKeyhole, CalendarDays, FileText, ShieldCheck, Settings2,
+  LockKeyhole, CalendarDays, FileText, ShieldCheck, Settings2,
   Film, Aperture, Layers3, Megaphone, ClipboardList, Video,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -78,7 +78,6 @@ const workspaces: Record<string, Workspace> = {
     cards: [
       { title: 'Comunicação', description: 'Comunicados internos, campanhas, calendário editorial e Social Media.', detail: 'AVISOS · CONTEÚDO · REDES SOCIAIS', icon: Megaphone, route: '/m/communication', state: 'active' },
       { title: 'Relatórios', description: 'Acompanhe eventos, entregas, pendências e indicadores operacionais.', detail: 'INDICADORES · ACOMPANHAMENTO', icon: ChartNoAxesCombined, route: '/m/studio/reports', state: 'active' },
-      { title: 'Assistente IA', description: 'Ajuda para organizar demandas, resumir informações e preparar briefings.', detail: 'ASSISTÊNCIA · SÍNTESE · ORGANIZAÇÃO', icon: Bot, state: 'planned' },
     ],
   },
   administracao: {
