@@ -53,17 +53,22 @@ export default function ManagementWorkspace() {
   const [projectAssignee,setProjectAssignee] = useState('');
   const [editingProject,setEditingProject] = useState<Project | null>(null);
   const [focusTaskId,setFocusTaskId] = useState('');
+  const [focusLoadedFor,setFocusLoadedFor] = useState<string | null>(null);
   useEffect(() => {
-    try { setFocusTaskId(localStorage.getItem(`mmv:management:focus:${user?.id ?? 'guest'}`) ?? ''); }
+    const owner = user?.id ?? 'guest';
+    try { setFocusTaskId(localStorage.getItem(`mmv:management:focus:${owner}`) ?? ''); }
     catch { setFocusTaskId(''); }
+    setFocusLoadedFor(owner);
   }, [user?.id]);
   useEffect(() => {
+    const owner = user?.id ?? 'guest';
+    if (focusLoadedFor !== owner) return;
     try {
-      const key = `mmv:management:focus:${user?.id ?? 'guest'}`;
+      const key = `mmv:management:focus:${owner}`;
       if (focusTaskId) localStorage.setItem(key, focusTaskId);
       else localStorage.removeItem(key);
     } catch { /* armazenamento local indisponível: foco continua nesta sessão */ }
-  }, [focusTaskId, user?.id]);
+  }, [focusTaskId, focusLoadedFor, user?.id]);
 
   const tasks = useMemo(() => (data?.tasks ?? []).filter(t => t.status !== 'archived').filter(t => {
     const q=query.trim().toLocaleLowerCase('pt-BR');
