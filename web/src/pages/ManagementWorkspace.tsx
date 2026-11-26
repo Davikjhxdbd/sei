@@ -32,7 +32,7 @@ export default function ManagementWorkspace() {
   const toast = useToast();
   const { data, loading, error, reload } = useApi<Overview>('/workspace/overview');
   const { level, user } = useAuth();
-  const people = useApi<{items:{id:string;full_name:string}[]}>('/catalog/people');
+  const people = useApi<{items:{id:string;full_name:string}[]}> (level >= 3 ? '/catalog/people' : null);
   const [query,setQuery] = useState('');
   const [showForm,setShowForm] = useState(false);
   const [saving,setSaving] = useState(false);

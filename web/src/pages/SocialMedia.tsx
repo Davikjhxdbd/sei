@@ -21,7 +21,7 @@ const formats=['Reel','Post','Story','Carrossel','Live','Short','Vídeo','Outro'
 export default function SocialMedia() {
  const {level,user}=useAuth(); const toast=useToast();
  const {data,loading,error,reload}=useApi<Payload>('/communication/content?limit=200');
- const people=useApi<{items:{id:string;full_name:string}[]}>('/catalog/people');
+ const people=useApi<{items:{id:string;full_name:string}[]}> (level >= 2 ? '/catalog/people' : null);
  const [query,setQuery]=useState(''); const [filter,setFilter]=useState('all');
  const [open,setOpen]=useState(false); const [editing,setEditing]=useState<Item|null>(null); const [saving,setSaving]=useState(false);
  const [title,setTitle]=useState(''); const [platform,setPlatform]=useState('Instagram'); const [format,setFormat]=useState('Reel');
