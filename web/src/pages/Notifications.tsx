@@ -66,12 +66,13 @@ export default function Notifications() {
         {loading ? (
           <LoadingBlock />
         ) : !data?.items.length ? (
-          <EmptyState
-            className="mmv-directory-state-card"
-            icon={BellRing}
-            title="Nenhuma notificação"
-            description="Quando algo exigir sua atenção — uma nova escala, uma autorização ou um relatório — o aviso aparecerá aqui."
-          />
+          <div className="mmv-directory-state-card">
+            <EmptyState
+              icon={BellRing}
+              title="Nenhuma notificação"
+              description="Quando algo exigir sua atenção — uma nova escala, uma autorização ou um relatório — o aviso aparecerá aqui."
+            />
+          </div>
         ) : (
           <ul className="divide-y divide-line">
             {data.items.map((item) => (
