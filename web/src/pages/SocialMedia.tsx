@@ -18,7 +18,7 @@ const statuses = [
 ] as const;
 const platforms=['Instagram','YouTube','Facebook','TikTok','Site'];
 const formats=['Reel','Post','Story','Carrossel','Live','Short','Vídeo','Outro'];
-const dateKey=(date:Date)=>\`\${date.getFullYear()}-\${String(date.getMonth()+1).padStart(2,'0')}-\${String(date.getDate()).padStart(2,'0')}\`;
+const dateKey=(date:Date)=>`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
 const weekdays=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
 export default function SocialMedia() {
  const {level,user}=useAuth(); const toast=useToast();
