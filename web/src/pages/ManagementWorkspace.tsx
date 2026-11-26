@@ -176,7 +176,7 @@ export default function ManagementWorkspace() {
               <h2 className="mt-2 text-base font-semibold">{focusedTask ? focusedTask.title : 'Escolha o que merece sua atenção primeiro.'}</h2>
               <p className="mt-1 text-xs leading-5 text-white/45">{focusedTask ? focusedTask.project_name ?? 'Tarefa pessoal' : 'Defina uma prioridade pessoal para manter o próximo passo sempre visível.'}{focusedTask ? ' · ' + priorityLabel[focusedTask.priority] + ' · ' + dateText(focusedTask.due_date) : ''}</p>
             </div>
-            {focusedTask && <button onClick={() => void updateTask(focusedTask,{status:'done'})} className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[#d7bd8d] px-3 py-2.5 text-xs font-bold text-[#17140e] hover:bg-[#e4cca0]"><Check size={14}/> Concluir foco</button>}
+            {focusedTask && <button onClick={() => { setFocusTaskId(''); void updateTask(focusedTask,{status:'done'}); }} className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[#d7bd8d] px-3 py-2.5 text-xs font-bold text-[#17140e] hover:bg-[#e4cca0]"><Check size={14}/> Concluir foco</button>}
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <select aria-label="Escolher meu foco de hoje" value={focusedTask?.id ?? ''} onChange={e=>setFocusTaskId(e.target.value)} className="min-w-0 flex-1 rounded-xl border border-white/10 bg-[#17191d] px-3 py-2.5 text-xs text-white">
