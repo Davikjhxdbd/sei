@@ -18,11 +18,11 @@ type DepartmentData = {
 };
 
 const departmentThemes: Record<string, { accent: string; glow: string; descriptor: string }> = {
-  transmissao: { accent: '#8CB8D5', glow: 'rgba(66,132,177,.20)', descriptor: 'OPERAÇÃO TÉCNICA · AO VIVO' },
-  slide: { accent: '#B7A6E5', glow: 'rgba(133,105,194,.20)', descriptor: 'CONTEÚDO VISUAL · PROJEÇÃO' },
-  audiovisual: { accent: '#9DBBD4', glow: 'rgba(88,135,174,.20)', descriptor: 'CAPTAÇÃO · EDIÇÃO · FINALIZAÇÃO' },
-  fotos: { accent: '#C8B48E', glow: 'rgba(176,145,92,.18)', descriptor: 'FOTOGRAFIA · TRATAMENTO · ENTREGA' },
-  design: { accent: '#D1A8C2', glow: 'rgba(166,104,147,.18)', descriptor: 'DIREÇÃO DE ARTE · CRIAÇÃO VISUAL' },
+  transmissao: { accent: '#B8CBE0', glow: 'rgba(96,132,174,.20)', descriptor: 'OPERAÇÃO TÉCNICA · AO VIVO' },
+  slide: { accent: '#B8CBE0', glow: 'rgba(96,132,174,.20)', descriptor: 'CONTEÚDO VISUAL · PROJEÇÃO' },
+  audiovisual: { accent: '#B8CBE0', glow: 'rgba(96,132,174,.20)', descriptor: 'CAPTAÇÃO · EDIÇÃO · FINALIZAÇÃO' },
+  fotos: { accent: '#B8CBE0', glow: 'rgba(96,132,174,.20)', descriptor: 'FOTOGRAFIA · TRATAMENTO · ENTREGA' },
+  design: { accent: '#B8CBE0', glow: 'rgba(96,132,174,.20)', descriptor: 'DIREÇÃO DE ARTE · CRIAÇÃO VISUAL' },
 };
 
 const statusLabels: Record<string, string> = {

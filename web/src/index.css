@@ -1059,3 +1059,57 @@ html, body, #root {
 @media(max-width:760px){.workspace-hero{min-height:360px}.workspace-hero-copy{max-width:100%}.workspace-office-art,.workspace-studio-art,.workspace-command-art,.workspace-admin-art{right:-15%;width:65%;opacity:.42}.workspace-hero-foot{display:none}}
 @media(max-width:480px){.workspace-hero{min-height:410px}.workspace-office-art,.workspace-studio-art,.workspace-command-art,.workspace-admin-art{right:-28%;width:78%;opacity:.28}.workspace-app-card{min-height:215px}}
 @media(prefers-reduced-motion:reduce){.workspace-app-card{transition:none}}
+
+
+/* MMV CREATIVE — sistema visual por ambiente, herdado em todas as rotas */
+.mmv-theme { min-height: 100vh; --mmv-theme-rgb: 196 166 106; }
+.mmv-theme--communication {
+  --mmv-brass: 169 208 196;
+  --mmv-brass-soft: 190 224 214;
+  --mmv-brass-deep: 112 171 154;
+  --mmv-studio: 169 208 196;
+  --mmv-focus: 169 208 196;
+  --mmv-selection-bg: #A9D0C4;
+  --mmv-theme-rgb: 169 208 196;
+}
+.mmv-theme--production {
+  --mmv-brass: 184 203 224;
+  --mmv-brass-soft: 207 220 235;
+  --mmv-brass-deep: 132 159 188;
+  --mmv-studio: 184 203 224;
+  --mmv-focus: 184 203 224;
+  --mmv-selection-bg: #B8CBE0;
+  --mmv-theme-rgb: 184 203 224;
+}
+.mmv-theme--management,
+.mmv-theme--administration {
+  --mmv-brass: 215 189 141;
+  --mmv-brass-soft: 230 211 175;
+  --mmv-brass-deep: 170 143 96;
+  --mmv-studio: 215 189 141;
+  --mmv-focus: 215 189 141;
+  --mmv-selection-bg: #D7BD8D;
+  --mmv-theme-rgb: 215 189 141;
+}
+.mmv-theme .mmv-app-topbar {
+  background: linear-gradient(105deg, rgba(12,14,16,.94), rgba(var(--mmv-brass) / .10) 58%, rgba(12,14,16,.94));
+  border-bottom-color: rgb(var(--mmv-brass) / .18);
+}
+.mmv-theme .mmv-app-sidebar nav a[aria-current="page"] {
+  background: linear-gradient(100deg, rgb(var(--mmv-brass) / .16), rgb(var(--mmv-brass) / .045));
+  box-shadow: inset 2px 0 0 rgb(var(--mmv-brass)), 0 5px 18px rgba(0,0,0,.10);
+}
+.mmv-theme .mmv-app-mobile-nav {
+  border-color: rgb(var(--mmv-brass) / .18);
+}
+.mmv-theme .mmv-app-shell [role="menu"],
+.mmv-theme .mmv-app-shell [role="dialog"] {
+  border-color: rgb(var(--mmv-brass) / .20);
+}
+.mmv-theme .mmv-page-header .mmv-label { color: rgb(var(--mmv-brass)); }
+.mmv-theme :focus-visible { outline-color: rgb(var(--mmv-brass)); }
+@media (prefers-reduced-motion: reduce) {
+  .mmv-theme *, .mmv-theme *::before, .mmv-theme *::after {
+    scroll-behavior: auto !important;
+  }
+}

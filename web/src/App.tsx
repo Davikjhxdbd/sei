@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from './lib/auth';
 import { Shell } from './components/layout/Shell';
-import { ADMIN_NAV, MODULE_NAV } from './modules/registry';
+import { MODULE_NAV } from './modules/registry';
 import { Spinner } from './components/ui';
 import { Link } from 'react-router-dom';
 import { ShieldAlert } from 'lucide-react';
@@ -68,7 +68,13 @@ function Protected() {
   if (!user) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
-  return <Outlet />;
+  const path = location.pathname;
+  const theme = path.startsWith('/m/communication') || path.startsWith('/ambiente/inteligencia') ? 'communication'
+    : path.startsWith('/m/studio') || path.startsWith('/ambiente/producao') ? 'production'
+    : path.startsWith('/gestao') || path.startsWith('/ambiente/gestao') ? 'management'
+    : path.startsWith('/admin') || path.startsWith('/ambiente/administracao') ? 'administration'
+    : 'default';
+  return <div className={`mmv-theme mmv-theme--${theme}`} data-mmv-theme={theme}><Outlet /></div>;
 }
 
 function Gate({ level, children }: { level: number; children: JSX.Element }) {
@@ -134,11 +140,7 @@ function ModuleLayout({ moduleKey }: { moduleKey: string }) {
 
 function AdminLayout() {
   const { level } = useAuth();
-  return (
-    <Shell nav={ADMIN_NAV} sidebarEyebrow="Plataforma">
-      {level >= 4 ? <Outlet /> : <Gate level={4}>{<Outlet />}</Gate>}
-    </Shell>
-  );
+  return level >= 4 ? <Outlet /> : <Gate level={4}>{<Outlet />}</Gate>;
 }
 
 export default function App() {

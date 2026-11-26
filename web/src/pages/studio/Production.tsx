@@ -146,7 +146,7 @@ export default function Production() {
         <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111] p-6 sm:p-9">
           <div className="pointer-events-none absolute -right-16 -top-24 h-72 w-72 rounded-full bg-[#C4A66A]/10 blur-3xl" />
           <div className="relative">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#C4A66A]">Núcleo audiovisual</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-brass">Núcleo audiovisual</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">{area.name}</h1>
             <p className="mt-2 max-w-xl text-sm text-white/55">{area.description}</p>
             <div className="mt-5 flex flex-wrap gap-4 text-xs text-white/50">
@@ -157,10 +157,10 @@ export default function Production() {
         </div>
 
         <section className="rounded-xl border border-line bg-surface p-5">
-          <div className="mb-4 flex items-center gap-2"><Users className="h-4 w-4 text-[#C4A66A]" /><h2 className="text-sm font-semibold text-ink">Equipe responsável</h2></div>
+          <div className="mb-4 flex items-center gap-2"><Users className="h-4 w-4 text-brass" /><h2 className="text-sm font-semibold text-ink">Equipe responsável</h2></div>
           {members.length ? <div className="flex flex-wrap gap-2">
             {members.map((person: any) => <div key={`${person.id}-${person.function}`} className="flex items-center gap-2 rounded-lg bg-ink/[0.04] px-3 py-2">
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-[#C4A66A]/10 text-[#C4A66A]"><UserRound className="h-4 w-4" /></span>
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-[#C4A66A]/10 text-brass"><UserRound className="h-4 w-4" /></span>
               <span><strong className="block text-xs text-ink">{person.full_name}</strong><small className="text-[10px] text-muted">{person.function}</small></span>
             </div>)}
           </div> : <p className="text-xs text-muted">Nenhum integrante vinculado a esta área.</p>}
@@ -205,9 +205,9 @@ export default function Production() {
         {[{ label: 'Áreas vinculadas', value: areas.length }, { label: 'Tarefas em aberto', value: open.length }, { label: 'Entregas concluídas', value: tasks.filter((t: any) => t.status === 'published').length }].map(item => <div key={item.label} className="rounded-xl border border-line bg-surface p-4"><p className="text-xs text-muted">{item.label}</p><p className="mt-2 text-2xl font-semibold text-ink">{item.value}</p></div>)}
       </div>
       <h2 className="mb-3 text-sm font-semibold text-ink">Minhas tarefas</h2>
-      {tasks.length ? <div className="mb-7 grid gap-3 md:grid-cols-2 xl:grid-cols-3">{tasks.map((task: any) => <div key={task.id}><p className="mb-1 text-[10px] uppercase tracking-wider text-[#C4A66A]">{task.area_name}</p><TaskCard task={task} onStatus={async (id, status) => { try { await patch(`/studio/production/tasks/${id}`, { status }); reload(); } catch (err: any) { window.alert(err.message); } }} /></div>)}</div> : <p className="mb-7 rounded-xl border border-dashed border-line p-6 text-center text-sm text-muted">Você ainda não tem tarefas atribuídas.</p>}
+      {tasks.length ? <div className="mb-7 grid gap-3 md:grid-cols-2 xl:grid-cols-3">{tasks.map((task: any) => <div key={task.id}><p className="mb-1 text-[10px] uppercase tracking-wider text-brass">{task.area_name}</p><TaskCard task={task} onStatus={async (id, status) => { try { await patch(`/studio/production/tasks/${id}`, { status }); reload(); } catch (err: any) { window.alert(err.message); } }} /></div>)}</div> : <p className="mb-7 rounded-xl border border-dashed border-line p-6 text-center text-sm text-muted">Você ainda não tem tarefas atribuídas.</p>}
       <h2 className="mb-3 text-sm font-semibold text-ink">Minhas áreas</h2>
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{areas.map((area: any) => { const Icon = AREAS.find(a => a.slug === area.slug)?.icon || FolderKanban; return <Link key={area.area_id} to={`/m/studio/production/${area.slug}`} className="rounded-xl border border-line bg-surface p-5 transition hover:border-[#C4A66A]/50"><Icon className="h-5 w-5 text-[#C4A66A]" /><h3 className="mt-3 text-sm font-semibold text-ink">{area.name}</h3><p className="mt-1 text-xs text-muted">{area.function}</p><span className="mt-4 flex items-center gap-1 text-xs text-[#C4A66A]">Acessar área <ArrowUpRight className="h-3.5 w-3.5" /></span></Link>; })}</div>
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{areas.map((area: any) => { const Icon = AREAS.find(a => a.slug === area.slug)?.icon || FolderKanban; return <Link key={area.area_id} to={`/m/studio/production/${area.slug}`} className="rounded-xl border border-line bg-surface p-5 transition hover:border-brass/50"><Icon className="h-5 w-5 text-brass" /><h3 className="mt-3 text-sm font-semibold text-ink">{area.name}</h3><p className="mt-1 text-xs text-muted">{area.function}</p><span className="mt-4 flex items-center gap-1 text-xs text-brass">Acessar área <ArrowUpRight className="h-3.5 w-3.5" /></span></Link>; })}</div>
       {!areas.length && <p className="mt-3 text-xs text-muted">Seu perfil ainda não está vinculado a uma equipe de produção.</p>}
     </div>;
   }
@@ -218,11 +218,11 @@ export default function Production() {
     <div className="mb-6 grid gap-3 sm:grid-cols-3">
       <div className="rounded-xl border border-line bg-surface p-4"><p className="text-xs text-muted">Áreas de produção</p><p className="mt-2 text-2xl font-semibold text-ink">{areas.length}</p></div>
       <div className="rounded-xl border border-line bg-surface p-4"><p className="text-xs text-muted">Tarefas em aberto</p><p className="mt-2 text-2xl font-semibold text-ink">{areas.reduce((sum: number, a: any) => sum + Number(a.open_tasks || 0), 0)}</p></div>
-      <Link to="/m/studio/my-space" className="group rounded-xl border border-[#C4A66A]/30 bg-[#C4A66A]/[0.06] p-4 transition hover:bg-[#C4A66A]/10"><p className="text-xs text-[#C4A66A]">Acesso pessoal</p><div className="mt-2 flex items-center justify-between"><p className="text-lg font-semibold text-ink">Meu espaço</p><ArrowUpRight className="h-5 w-5 text-[#C4A66A]" /></div></Link>
+      <Link to="/m/studio/my-space" className="group rounded-xl border border-[#C4A66A]/30 bg-[#C4A66A]/[0.06] p-4 transition hover:bg-[#C4A66A]/10"><p className="text-xs text-brass">Acesso pessoal</p><div className="mt-2 flex items-center justify-between"><p className="text-lg font-semibold text-ink">Meu espaço</p><ArrowUpRight className="h-5 w-5 text-brass" /></div></Link>
     </div>
     <h2 className="mb-3 text-sm font-semibold text-ink">Áreas de produção</h2>
     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-      {areas.map((area: any, index: number) => { const Icon = AREAS.find(a => a.slug === area.slug)?.icon || FolderKanban; return <Link key={area.id} to={`/m/studio/production/${area.slug}`} className="group rounded-xl border border-line bg-surface p-5 transition-all hover:-translate-y-1 hover:border-[#C4A66A]/50 hover:shadow-[0_12px_45px_rgba(196,166,106,0.08)]"><div className="flex items-start justify-between"><span className="grid h-10 w-10 place-items-center rounded-lg border border-[#C4A66A]/20 bg-[#C4A66A]/[0.07] text-[#C4A66A]"><Icon className="h-5 w-5" /></span><span className="font-mono text-[10px] text-muted">0{index + 1}</span></div><h3 className="mt-5 text-[15px] font-semibold text-ink">{area.name}</h3><p className="mt-1.5 min-h-10 text-xs leading-relaxed text-muted">{area.description}</p><div className="mt-5 flex items-center justify-between border-t border-line pt-4 text-[11px] text-muted"><span>{area.members_count} integrantes · {area.tasks_count} tarefas</span><span className="flex items-center gap-1 font-medium text-[#C4A66A]">Abrir <ArrowUpRight className="h-3.5 w-3.5" /></span></div></Link>; })}
+      {areas.map((area: any, index: number) => { const Icon = AREAS.find(a => a.slug === area.slug)?.icon || FolderKanban; return <Link key={area.id} to={`/m/studio/production/${area.slug}`} className="group rounded-xl border border-line bg-surface p-5 transition-all hover:-translate-y-1 hover:border-brass/50 hover:shadow-[0_12px_45px_rgba(196,166,106,0.08)]"><div className="flex items-start justify-between"><span className="grid h-10 w-10 place-items-center rounded-lg border border-[#C4A66A]/20 bg-[#C4A66A]/[0.07] text-brass"><Icon className="h-5 w-5" /></span><span className="font-mono text-[10px] text-muted">0{index + 1}</span></div><h3 className="mt-5 text-[15px] font-semibold text-ink">{area.name}</h3><p className="mt-1.5 min-h-10 text-xs leading-relaxed text-muted">{area.description}</p><div className="mt-5 flex items-center justify-between border-t border-line pt-4 text-[11px] text-muted"><span>{area.members_count} integrantes · {area.tasks_count} tarefas</span><span className="flex items-center gap-1 font-medium text-brass">Abrir <ArrowUpRight className="h-3.5 w-3.5" /></span></div></Link>; })}
     </div>
   </div>;
 }
