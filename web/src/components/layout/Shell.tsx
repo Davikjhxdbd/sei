@@ -3,8 +3,6 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   Bell,
   LogOut,
-  PanelLeftClose,
-  PanelLeftOpen,
   ShieldCheck,
   UserRound,
 } from 'lucide-react';
@@ -12,11 +10,7 @@ import { useAuth } from '../../lib/auth';
 import { ROLE_LABELS } from '../../lib/format';
 import type { ModuleRecord } from '../../lib/types';
 import { Avatar, cx } from '../ui';
-import { ThemeToggle } from '../ThemeToggle';
-import {
-  navGroups,
-  type NavGroup,
-} from '../../modules/registry';
+import type { NavGroup } from '../../modules/registry';
 
 function useOutside(open: boolean, onClose: () => void) {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -152,9 +146,8 @@ export function Shell({
 }) {
   const { user, level, state } = useAuth();
   const [profileMenu, setProfileMenu] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const location = useLocation();
-  const groups = navGroups(nav, level);
+  const groups: NavGroup[] = [];
   const unread = state?.notifications?.unread ?? 0;
   const productName = (module?.settings?.product_name as string | undefined) ?? undefined;
   const currentSection = sectionLabel ?? module?.name ?? (
@@ -180,19 +173,6 @@ export function Shell({
       <div className="relative z-10">
       <header className="mmv-app-topbar sticky top-0 z-40 border-b border-white/[0.07] bg-strong shadow-lg shadow-black/10">
         <div className="mx-auto flex h-14 max-w-[1500px] items-center gap-3 px-3 sm:px-5">
-          {groups.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setSidebarCollapsed((value) => !value)}
-              aria-label={sidebarCollapsed ? 'Expandir menu lateral' : 'Recolher menu lateral'}
-              title={sidebarCollapsed ? 'Expandir menu' : 'Recolher menu'}
-              className="hidden h-9 w-9 shrink-0 place-items-center rounded-lg text-white/65 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-soft focus-visible:ring-offset-2 focus-visible:ring-offset-strong lg:grid"
-            >
-              {sidebarCollapsed
-                ? <PanelLeftOpen className="h-[18px] w-[18px]" />
-                : <PanelLeftClose className="h-[18px] w-[18px]" />}
-            </button>
-          )}
           <Brand />
           <div className="mx-1 hidden h-6 w-px bg-white/10 sm:block" />
           <div className="hidden min-w-0 sm:block">
@@ -200,7 +180,6 @@ export function Shell({
             <span className="mt-0.5 block text-[9px] font-medium uppercase tracking-[.18em] text-brass-soft/60">MMV / CREATIVE</span>
           </div>
           <div className="flex-1" />
-          <ThemeToggle />
           <Link
             to="/notifications"
             aria-label={
