@@ -1,22 +1,16 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Bell,
   LogOut,
-  PanelLeftClose,
-  PanelLeftOpen,
   ShieldCheck,
   UserRound,
 } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { ROLE_LABELS } from '../../lib/format';
 import type { ModuleRecord } from '../../lib/types';
-import { Avatar, cx } from '../ui';
-import { ThemeToggle } from '../ThemeToggle';
-import {
-  navGroups,
-  type NavGroup,
-} from '../../modules/registry';
+import type { NavGroup } from '../../modules/registry';
+import { Avatar } from '../ui';
 
 function useOutside(open: boolean, onClose: () => void) {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -139,24 +133,20 @@ function ProfileMenu({ open, setOpen }: { open: boolean; setOpen: (v: boolean) =
 
 export function Shell({
   module,
-  nav,
   children,
-  sidebarEyebrow,
   sectionLabel,
 }: {
   module?: ModuleRecord;
   nav?: NavGroup[];
-  children: ReactNode;
   sidebarEyebrow?: string;
+  children: ReactNode;
   sectionLabel?: string;
 }) {
-  const { user, level, state } = useAuth();
+  const { user, state } = useAuth();
   const [profileMenu, setProfileMenu] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const location = useLocation();
-  const groups = navGroups(nav, level);
+
   const unread = state?.notifications?.unread ?? 0;
-  const productName = (module?.settings?.product_name as string | undefined) ?? undefined;
   const currentSection = sectionLabel ?? module?.name ?? (
     location.pathname.startsWith('/admin') ? 'Administração'
     : location.pathname.startsWith('/m/studio') ? 'Produção Criativa'
@@ -178,21 +168,8 @@ export function Shell({
         }}
       />
       <div className="relative z-10">
-      <header className="mmv-app-topbar sticky top-0 z-40 border-b border-white/[0.07] bg-strong shadow-lg shadow-black/10">
+      <header data-workspace-shell="true" className="mmv-app-topbar sticky top-0 z-40 border-b border-white/[0.07] bg-strong shadow-lg shadow-black/10">
         <div className="mx-auto flex h-14 max-w-[1500px] items-center gap-3 px-3 sm:px-5">
-          {groups.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setSidebarCollapsed((value) => !value)}
-              aria-label={sidebarCollapsed ? 'Expandir menu lateral' : 'Recolher menu lateral'}
-              title={sidebarCollapsed ? 'Expandir menu' : 'Recolher menu'}
-              className="hidden h-9 w-9 shrink-0 place-items-center rounded-lg text-white/65 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-soft focus-visible:ring-offset-2 focus-visible:ring-offset-strong lg:grid"
-            >
-              {sidebarCollapsed
-                ? <PanelLeftOpen className="h-[18px] w-[18px]" />
-                : <PanelLeftClose className="h-[18px] w-[18px]" />}
-            </button>
-          )}
           <Brand />
           <div className="mx-1 hidden h-6 w-px bg-white/10 sm:block" />
           <div className="hidden min-w-0 sm:block">
@@ -200,7 +177,6 @@ export function Shell({
             <span className="mt-0.5 block text-[9px] font-medium uppercase tracking-[.18em] text-brass-soft/60">MMV / CREATIVE</span>
           </div>
           <div className="flex-1" />
-          <ThemeToggle />
           <Link
             to="/notifications"
             aria-label={
@@ -228,94 +204,7 @@ export function Shell({
       </header>
 
       <div className="mx-auto flex w-full max-w-[1500px]">
-        {groups.length > 0 && (
-          <aside className={cx("mmv-app-sidebar mmv-scroll sticky top-14 hidden h-[calc(100vh-3.5rem)] shrink-0 overflow-y-auto border-r border-line bg-surface/70 py-5 transition-[width] duration-200 lg:block", sidebarCollapsed ? "w-[76px] px-2" : "w-[248px] px-3")}>
-            {!sidebarCollapsed && (
-              <div className="mb-4 px-2">
-                <p className="mmv-label">{sidebarEyebrow ?? 'Aplicativo'}</p>
-                <p className="mt-1 truncate text-[13.5px] font-semibold text-ink">
-                  {module?.name ?? 'Administração'}
-                </p>
-                {productName && (
-                  <p className="text-[11.5px] text-muted">{productName}</p>
-                )}
-              </div>
-            )}
-
-            {groups.map((group) => (
-              <div key={group.title} className="mb-5">
-                <p className={cx("mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-wider2 text-muted/80", sidebarCollapsed && "sr-only")}>
-                  {group.title}
-                </p>
-                <nav className="space-y-0.5">
-                  {group.items.map((item) => (
-                    <NavLink
-                      key={item.to}
-                      to={item.to}
-                      end={item.end}
-                      title={sidebarCollapsed ? item.label : undefined}
-                      className={({ isActive }) =>
-                        cx(
-                          'flex items-center rounded-lg py-2 text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-soft focus-visible:ring-inset',
-                          sidebarCollapsed ? 'justify-center px-2' : 'gap-2.5 px-2.5',
-                          isActive
-                            ? 'relative bg-brass/[0.10] font-medium text-ink shadow-[inset_2px_0_0_rgb(196_166_106)]'
-                            : 'text-ink/75 hover:bg-ink/[0.05] hover:text-ink',
-                        )
-                      }
-                    >
-                      {({ isActive }) => (
-                        <>
-                          <item.icon
-                            className={cx(
-                              'h-4 w-4 shrink-0',
-                              isActive ? 'text-brass-soft' : 'text-muted',
-                            )}
-                          />
-                          {!sidebarCollapsed && <span className="truncate">{item.label}</span>}
-                        </>
-                      )}
-                    </NavLink>
-                  ))}
-                </nav>
-              </div>
-            ))}
-
-            <div className={cx("mt-auto rounded-lg border border-line bg-canvas/70 p-3", sidebarCollapsed && "hidden")}>
-              <p className="text-[11px] leading-relaxed text-muted">
-                Todos os aplicativos compartilham o mesmo acesso, perfil e
-                permissões.
-              </p>
-            </div>
-          </aside>
-        )}
-
         <div className="min-w-0 flex-1">
-          {groups.length > 0 && (
-            <div className="mmv-app-mobile-nav mmv-scroll sticky top-14 z-30 flex gap-1.5 overflow-x-auto border-b border-line bg-surface px-3 py-2 lg:hidden">
-              {groups.flatMap((group) =>
-                group.items.map((item) => (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    end={item.end}
-                    className={({ isActive }) =>
-                      cx(
-                        'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-soft focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
-                        isActive
-                          ? 'border-brass/45 bg-brass/[0.10] text-brass-deep shadow-sm'
-                          : 'border-line bg-surface text-muted',
-                      )
-                    }
-                  >
-                    <item.icon className="h-3.5 w-3.5" />
-                    {item.label}
-                  </NavLink>
-                )),
-              )}
-            </div>
-          )}
-
           <main
             key={location.pathname}
             className="mmv-app-main mmv-fade-in mx-auto w-full px-4 py-6 sm:px-7 sm:py-8 lg:px-9"
