@@ -9,6 +9,7 @@
     "logs": "docker compose logs -f",
     "ps": "docker compose ps",
     "migrate": "docker compose run --rm migrate",
-    "test:api": "docker compose exec -T api node --test"
+    "test:api": "docker compose exec -T api node --test",
+    "build": "npm ci --prefix web && npm run build --prefix web && node -e \"require('node:fs').cpSync('web/dist','dist',{recursive:true})\""
   }
 }
