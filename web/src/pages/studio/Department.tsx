@@ -136,7 +136,6 @@ export default function Department() {
   );
 
   const { department, areas, members, totals } = data;
-  const areaMap = new Map(areas.map(area => [area.id, area]));
   const overdue = data.tasks.filter(task => task.status !== 'published' && task.due_date && new Date(`${task.due_date}T23:59:59`) < new Date()).length;
 
   return (
