@@ -5,7 +5,7 @@ import {
   CheckSquare, Clapperboard, Clock3, FolderKanban, MessageSquareText,
   Palette, Presentation, RadioTower, Sparkles, Users, CalendarCheck,
   LockKeyhole, CalendarDays, FileText, ShieldCheck, Settings2,
-  Film, Aperture, Layers3, Megaphone, ClipboardList, Video,
+  Film, Aperture, Layers3, Megaphone, ClipboardList, Video, Target,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useAuth } from '../lib/auth';
