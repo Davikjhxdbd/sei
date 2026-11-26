@@ -2,7 +2,6 @@ import { lazy, Suspense } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from './lib/auth';
 import { Shell } from './components/layout/Shell';
-import { MODULE_NAV } from './modules/registry';
 import { Spinner } from './components/ui';
 import { Link } from 'react-router-dom';
 import { ShieldAlert } from 'lucide-react';
@@ -33,7 +32,6 @@ const Communication = lazy(() => import('./pages/Communication'));
 const SocialMedia = lazy(() => import('./pages/SocialMedia'));
 const DesignLab = lazy(() => import('./pages/DesignLab'));
 const CalendarPage = lazy(() => import('./pages/Calendar'));
-const EscalasPage = lazy(() => import('./pages/Escalas'));
 const PersonalArea = lazy(() => import('./pages/PersonalArea'));
 const Notifications = lazy(() => import('./pages/Notifications'));
 const Profile = lazy(() => import('./pages/Profile'));
@@ -132,8 +130,8 @@ function ModuleLayout({ moduleKey }: { moduleKey: string }) {
   }
 
   return (
-    <Shell module={module} nav={MODULE_NAV[moduleKey]} sidebarEyebrow="Aplicativo">
-      <Outlet />
+    <Shell module={module} sectionLabel={module.name}>
+      <div className="mmv-workspace-content mmv-workspace-content--module"><Outlet /></div>
     </Shell>
   );
 }
@@ -177,7 +175,7 @@ export default function App() {
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/calendar" element={<CalendarPage />} />
-          <Route path="/escalas" element={<EscalasPage />} />
+          <Route path="/escalas" element={<Navigate to="/m/studio/schedules" replace />} />
           <Route path="/pessoal" element={<PersonalArea />} />
 
           <Route path="/m/people" element={<ModuleLayout moduleKey="people" />}>
