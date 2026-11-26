@@ -333,6 +333,7 @@ router.post(
   requireLevel(4),
   asyncHandler(async (req: any, res) => {
     const name = required(req.body?.name, 'nome', 80);
+    const active = typeof req.body?.active === 'boolean' ? req.body.active : true;
     const key =
       typeof req.body?.key === 'string' && req.body.key.trim()
         ? req.body.key.trim().toLowerCase().replace(/\s+/g, '_')
@@ -343,9 +344,9 @@ router.post(
 
     const sector = await tx(req.db, async () => {
       const { rows } = await req.db.query(
-        `insert into sectors (key, name, description)
-         values ($1, $2, $3) returning id, key, name, description, active`,
-        [key, name, req.body?.description?.toString().trim() || null],
+        `insert into sectors (key, name, description, active)
+         values ($1, $2, $3, $4) returning id, key, name, description, active`,
+        [key, name, req.body?.description?.toString().trim() || null, active],
       );
       await audit(req.db, req.user, {
         action: 'sector.created',
