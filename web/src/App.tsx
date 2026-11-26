@@ -186,6 +186,7 @@ export default function App() {
           </Route>
           <Route path="/m/communication" element={<ModuleLayout moduleKey="communication" />}>
             <Route index element={<Communication />} />
+            <Route path="social" element={<SocialMedia />} />
           </Route>
 
           <Route path="/admin" element={<AdminLayout />}>
