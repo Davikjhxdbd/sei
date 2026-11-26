@@ -90,6 +90,7 @@ router.post('/announcements/:id/read', asyncHandler(async (req: any, res) => {
 const CONTENT_PLATFORMS = ['Instagram', 'YouTube', 'Facebook', 'TikTok', 'Site'] as const;
 const CONTENT_FORMATS = ['Reel', 'Post', 'Story', 'Carrossel', 'Live', 'Short', 'Vídeo', 'Outro'] as const;
 const CONTENT_STATUSES = ['idea', 'draft', 'production', 'review', 'approved', 'scheduled', 'published', 'archived'] as const;
+const CONTENT_STATUS_LABELS: Record<string, string> = { idea: 'Ideia', draft: 'Rascunho', production: 'Em produção', review: 'Em revisão', approved: 'Aprovado', scheduled: 'Agendado', published: 'Publicado', archived: 'Arquivado' };
 
 function contentChoice(value: unknown, allowed: readonly string[], label: string) {
   if (typeof value !== 'string' || !allowed.includes(value)) throw badRequest(`Selecione uma opção válida para ${label}.`);
@@ -207,6 +208,18 @@ router.patch('/content/:id', asyncHandler(async (req: any, res) => {
         userId: assignedTo, title: 'Pauta atribuída a você',
         body: title, link: '/m/communication/social', moduleKey: 'communication',
       });
+    }
+    if (status !== before.status) {
+      const notifyUser = req.user.id === before.assigned_to ? before.created_by : assignedTo;
+      if (notifyUser && notifyUser !== req.user.id) {
+        await notify(req.db, {
+          userId: notifyUser,
+          title: status === 'published' ? 'Conteúdo publicado' : 'Pauta atualizada',
+          body: `${title} · ${CONTENT_STATUS_LABELS[status] ?? status}`,
+          link: '/m/communication/social',
+          moduleKey: 'communication',
+        });
+      }
     }
     return rows[0];
   });
