@@ -90,6 +90,11 @@ function ProfileMenu({ open, setOpen }: { open: boolean; setOpen: (v: boolean) =
               <p className="truncate text-[11.5px] text-muted">
                 {user.roles.map((role) => ROLE_LABELS[role] ?? role).join(' · ')}
               </p>
+              {user.profile_bio && (
+                <p className="mt-1 truncate text-[10.5px] italic text-brass-soft/75">
+                  “{user.profile_bio}”
+                </p>
+              )}
             </div>
           </div>
           <button
