@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
-  ArrowUpRight, BriefcaseBusiness, CalendarDays, Check,
+  ArrowUpRight, BriefcaseBusiness, CalendarDays, CalendarCheck, Check,
   CheckCircle2, Circle, Clock3, FolderKanban, ListTodo, Plus, Search,
   Sparkles, Target, X, Pause, Play, Archive,
 } from 'lucide-react';
@@ -35,6 +35,7 @@ export default function ManagementWorkspace() {
   const { data, loading, error, reload } = useApi<Overview>('/workspace/overview');
   const { level, user } = useAuth();
   const people = useApi<{items:{id:string;full_name:string}[]}> (level >= 3 ? '/catalog/people' : null);
+  const personalSchedules = useApi<{items:{id:string;role_title:string;event_name:string;starts_at:string;readiness:string|null;status:string}[]}>('/studio/schedules?mine=1');
   const [query,setQuery] = useState('');
   const [taskScope,setTaskScope] = useState<'mine'|'team'>('mine');
   const [taskStatusFilter,setTaskStatusFilter] = useState<'open'|'doing'|'waiting'|'done'|'all'>('open');
@@ -235,6 +236,12 @@ export default function ManagementWorkspace() {
                 {!myProjects.length && <p className="text-xs text-white/40">Seus projetos aparecerão aqui quando você participar de um.</p>}
               </div>
               <button onClick={()=>{setSearchParams({tab:'tarefas'});setQuery('');}} className="mt-4 text-xs font-semibold text-[#d7bd8d]">Ver todas as minhas tarefas <ArrowUpRight size={12} className="ml-1 inline"/></button>
+              <div className="mt-5 border-t border-white/[.08] pt-4">
+                <div className="flex items-center justify-between gap-2"><h3 className="text-xs font-semibold">Minhas escalas</h3><a href="/m/studio/schedules" className="text-[10px] text-[#d7bd8d]">Abrir escalas</a></div>
+                <div className="mt-3 space-y-2">{(personalSchedules.data?.items??[]).filter(item=>item.status!=='ended').slice(0,3).map(item=><div key={item.id} className="flex items-start gap-2 rounded-lg border border-white/[.06] bg-black/10 p-2.5"><CalendarCheck size={14} className="mt-0.5 shrink-0 text-[#d7bd8d]"/><div className="min-w-0"><p className="truncate text-[11px] font-medium">{item.role_title}</p><p className="mt-1 truncate text-[10px] text-white/35">{item.event_name} · {new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}).format(new Date(item.starts_at))}</p></div><span className="ml-auto shrink-0 text-[9px] text-white/35">{item.readiness==='ready'?'Confirmada':'Pendente'}</span></div>)}
+                  {!(personalSchedules.data?.items??[]).some(item=>item.status!=='ended') && <p className="text-[10px] text-white/35">Nenhuma escala atribuída no momento.</p>}
+                </div>
+              </div>
             </section>
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/[.08] bg-white/[.025] p-4">
