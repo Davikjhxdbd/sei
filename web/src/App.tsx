@@ -1,8 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from './lib/auth';
-import { Shell } from './components/layout/Shell';
-import { ADMIN_NAV, MODULE_NAV } from './modules/registry';
+import { MODULE_NAV } from './modules/registry';
 import { Spinner } from './components/ui';
 import { Link } from 'react-router-dom';
 import { ShieldAlert } from 'lucide-react';
@@ -140,11 +139,7 @@ function ModuleLayout({ moduleKey }: { moduleKey: string }) {
 
 function AdminLayout() {
   const { level } = useAuth();
-  return (
-    <Shell nav={ADMIN_NAV} sidebarEyebrow="Plataforma">
-      {level >= 4 ? <Outlet /> : <Gate level={4}>{<Outlet />}</Gate>}
-    </Shell>
-  );
+  return level >= 4 ? <Outlet /> : <Gate level={4}>{<Outlet />}</Gate>;
 }
 
 export default function App() {
