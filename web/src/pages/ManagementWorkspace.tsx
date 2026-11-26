@@ -150,14 +150,14 @@ export default function ManagementWorkspace() {
         <div className="pointer-events-none absolute -right-4 -bottom-16 hidden h-64 w-64 rounded-full border border-[#d7bd8d]/15 sm:block"><div className="absolute inset-7 rounded-full border border-[#d7bd8d]/15"/><div className="absolute inset-16 rounded-full border border-[#d7bd8d]/15"/><div className="absolute left-1/2 top-1/2 h-2 w-2 rounded-full bg-[#d7bd8d] shadow-[0_0_35px_12px_rgba(215,189,141,.25)]"/></div>
       </header>
 
-      <section className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {tab!=='espaco' && <section className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
           {label:'Tarefas abertas',value:data?.totals.open_tasks??0,icon:ListTodo},
           {label:'Em andamento',value:data?.totals.doing_tasks??0,icon:Play},
           {label:'Concluídas na semana',value:data?.totals.completed_this_week??0,icon:CheckCircle2},
           {label:'Atrasadas',value:overdue,icon:Clock3},
         ].map(item=><article key={item.label} className="rounded-2xl border border-white/[.08] bg-white/[.035] p-4"><div className="flex items-center justify-between text-white/40"><span className="text-[10px]">{item.label}</span><item.icon size={15}/></div><p className="mt-3 text-2xl font-semibold tabular-nums">{loading?'—':item.value}</p></article>)}
-      </section>
+      </section>}
 
       <section className="mt-7">
         <div className="flex flex-wrap items-center justify-between gap-3">
