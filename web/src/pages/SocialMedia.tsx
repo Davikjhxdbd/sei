@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CalendarDays, CheckCircle2, Clapperboard, Instagram, Plus, Search, Send, Youtube } from 'lucide-react';
+import { CalendarDays, CalendarRange, ChevronLeft, ChevronRight, Clapperboard, Instagram, LayoutGrid, Plus, Search, Send, Youtube } from 'lucide-react';
 import { useApi } from '../lib/useApi';
 import { patch, post } from '../lib/api';
 import { useAuth } from '../lib/auth';
@@ -18,6 +18,8 @@ const statuses = [
 ] as const;
 const platforms=['Instagram','YouTube','Facebook','TikTok','Site'];
 const formats=['Reel','Post','Story','Carrossel','Live','Short','Vídeo','Outro'];
+const dateKey=(date:Date)=>`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+const weekdays=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
 export default function SocialMedia() {
  const {level,user}=useAuth(); const toast=useToast();
  const {data,loading,error,reload}=useApi<Payload>('/communication/content?limit=200');
@@ -26,11 +28,15 @@ export default function SocialMedia() {
  const [open,setOpen]=useState(false); const [editing,setEditing]=useState<Item|null>(null); const [saving,setSaving]=useState(false);
  const [title,setTitle]=useState(''); const [platform,setPlatform]=useState('Instagram'); const [format,setFormat]=useState('Reel');
  const [campaign,setCampaign]=useState(''); const [caption,setCaption]=useState(''); const [scheduled,setScheduled]=useState(''); const [assigned,setAssigned]=useState('');
+ const [view,setView]=useState<'list'|'calendar'>('list');
+ const [calendarMonth,setCalendarMonth]=useState(()=>new Date(new Date().getFullYear(),new Date().getMonth(),1));
  const items=useMemo(()=> (data?.items??[]).filter(item=>{
    const q=query.trim().toLocaleLowerCase('pt-BR');
    return (!q||[item.title,item.campaign??'',item.caption??'',item.assignee_name??''].some(v=>v.toLocaleLowerCase('pt-BR').includes(q)))
      && (filter==='all'||item.status===filter);
  }),[data,query,filter]);
+ const calendarDays=useMemo(()=>{const first=new Date(calendarMonth.getFullYear(),calendarMonth.getMonth(),1);const offset=(first.getDay()+6)%7;const start=new Date(first);start.setDate(first.getDate()-offset);return Array.from({length:42},(_,i)=>{const day=new Date(start);day.setDate(start.getDate()+i);return day;});},[calendarMonth]);
+ const scheduledByDay=useMemo(()=>{const map=new Map<string,Item[]>();items.forEach(item=>{if(!item.scheduled_at)return;const key=dateKey(new Date(item.scheduled_at));map.set(key,[...(map.get(key)??[]),item]);});return map;},[items]);
  function start(item?:Item){setEditing(item??null);setTitle(item?.title??'');setPlatform(item?.platform??'Instagram');setFormat(item?.format??'Reel');setCampaign(item?.campaign??'');setCaption(item?.caption??'');setScheduled(item?.scheduled_at?new Date(item.scheduled_at).toISOString().slice(0,16):'');setAssigned(item ? (item.assigned_to ?? '') : (user?.id ?? ''));setOpen(true);}
  async function save(){if(!title.trim())return;setSaving(true);try{
    const body={title,platform,format,campaign,caption,scheduled_at:scheduled?new Date(scheduled).toISOString():null,assigned_to:assigned||null};
@@ -39,15 +45,24 @@ export default function SocialMedia() {
  }catch(e:any){toast.push(e?.message??'Não foi possível salvar a pauta.','error');}finally{setSaving(false);}}
  async function move(item:Item,status:string){try{await patch(`/communication/content/${item.id}`,{status});await reload();}catch(e:any){toast.push(e?.message??'Não foi possível atualizar a etapa.','error');}}
  return <div>
-  <PageHeader eyebrow="MMV CREATIVE · COMUNICAÇÃO" title="Social Media" description="Planeje campanhas, organize a produção e acompanhe o conteúdo até a publicação." actions={<div className="flex flex-wrap gap-2"><Link to="/m/communication" className="inline-flex h-10 items-center rounded-lg border border-line px-3 text-xs font-medium text-ink">Comunicados</Link>{level>=2&&<Button icon={Plus} onClick={()=>start()}>Nova pauta</Button>}</div>}/>
+  <PageHeader eyebrow="MMV CREATIVE · COMUNICAÇÃO" title="Social Media" description="Planeje campanhas, organize a produção e acompanhe o conteúdo até a publicação." actions={<div className="flex flex-wrap gap-2"><Link to="/m/communication" className="inline-flex h-10 items-center rounded-lg border border-line px-3 text-xs font-medium text-ink">Comunicados</Link><Link to="/m/communication/intelligence" className="inline-flex h-10 items-center rounded-lg border border-line px-3 text-xs font-medium text-ink">Inteligência</Link>{level>=2&&<Button icon={Plus} onClick={()=>start()}>Nova pauta</Button>}</div>}/>
   <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
    {[{label:'Pautas',value:data?.totals.total??0},{label:'Em andamento',value:data?.totals.in_progress??0},{label:'Agendadas',value:data?.totals.scheduled??0},{label:'Publicadas',value:data?.totals.published??0}].map(x=><Card key={x.label} className="p-4"><p className="text-[11px] text-muted">{x.label}</p><p className="mt-2 text-2xl font-semibold text-ink">{loading?'—':x.value}</p></Card>)}
   </div>
   <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
    <SearchInput value={query} onChange={setQuery} placeholder="Buscar pauta, campanha ou responsável…" className="w-full sm:max-w-sm"/>
-   <div className="flex flex-wrap gap-1.5">{[{value:'all',label:'Todas'},...statuses.filter(s=>s.value!=='archived')].map(s=><button key={s.value} onClick={()=>setFilter(s.value)} className={`rounded-full border px-3 py-1.5 text-[11px] ${filter===s.value?'border-strong bg-strong text-white':'border-line bg-surface text-muted'}`}>{s.label}</button>)}</div>
+   <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap gap-1.5">{[{value:'all',label:'Todas'},...statuses.filter(s=>s.value!=='archived')].map(s=><button key={s.value} onClick={()=>setFilter(s.value)} className={`rounded-full border px-3 py-1.5 text-[11px] ${filter===s.value?'border-strong bg-strong text-white':'border-line bg-surface text-muted'}`}>{s.label}</button>)}</div>
+    <div className="flex rounded-lg border border-line bg-surface p-1"><button type="button" onClick={()=>setView('list')} aria-label="Visualização em lista" className={`rounded-md p-2 ${view==='list'?'bg-strong text-white':'text-muted'}`}><LayoutGrid size={14}/></button><button type="button" onClick={()=>setView('calendar')} aria-label="Visualização em calendário" className={`rounded-md p-2 ${view==='calendar'?'bg-strong text-white':'text-muted'}`}><CalendarRange size={14}/></button></div>
+   </div>
   </div>
-  {loading?<LoadingBlock/>:error?<Card className="p-6 text-center"><p className="text-sm text-ink">{error}</p><Button className="mt-3" variant="secondary" onClick={reload}>Tentar novamente</Button></Card>:items.length?<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+  {loading?<LoadingBlock/>:error?<Card className="p-6 text-center"><p className="text-sm text-ink">{error}</p><Button className="mt-3" variant="secondary" onClick={reload}>Tentar novamente</Button></Card>:view==='calendar'?<Card className="overflow-hidden p-3 sm:p-5">
+   <div className="mb-4 flex items-center justify-between gap-3"><div><h2 className="text-sm font-semibold text-ink">Calendário editorial</h2><p className="mt-1 text-xs capitalize text-muted">{calendarMonth.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}</p></div><div className="flex gap-1"><button type="button" aria-label="Mês anterior" onClick={()=>setCalendarMonth(month=>new Date(month.getFullYear(),month.getMonth()-1,1))} className="rounded-lg border border-line p-2 text-muted hover:text-ink"><ChevronLeft size={16}/></button><button type="button" aria-label="Próximo mês" onClick={()=>setCalendarMonth(month=>new Date(month.getFullYear(),month.getMonth()+1,1))} className="rounded-lg border border-line p-2 text-muted hover:text-ink"><ChevronRight size={16}/></button></div></div>
+   <div className="grid grid-cols-7 gap-1">{weekdays.map(day=><div key={day} className="py-2 text-center text-[9px] font-semibold uppercase tracking-wider text-muted sm:text-[10px]">{day}</div>)}
+    {calendarDays.map(day=>{const key=dateKey(day);const dayItems=scheduledByDay.get(key)??[];const inMonth=day.getMonth()===calendarMonth.getMonth();return <div key={key} className={`min-h-[76px] rounded-lg border p-1.5 sm:min-h-[112px] sm:p-2 ${inMonth?'border-line bg-canvas/50':'border-transparent bg-canvas/20 opacity-45'}`}><p className={`text-[10px] font-semibold tabular-nums sm:text-xs ${inMonth?'text-ink':'text-muted'}`}>{day.getDate()}</p><div className="mt-1 space-y-1">{dayItems.slice(0,2).map(item=><div key={item.id} title={item.title} className="truncate rounded bg-brass/10 px-1 py-1 text-[8px] leading-tight text-brass-deep sm:text-[10px]">{item.title}</div>)}{dayItems.length>2&&<p className="px-1 text-[8px] text-muted sm:text-[9px]">+{dayItems.length-2} pautas</p>}</div></div>;})}
+   </div>
+   <p className="mt-3 text-[10px] text-muted">O calendário exibe pautas com data de publicação definida. Use a lista para editar os detalhes de cada pauta.</p>
+  </Card>:items.length?<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
    {items.map(item=>{const canEdit=level>=3||item.created_by===user?.id;const canChangeStatus=canEdit||item.assigned_to===user?.id;return <Card key={item.id} className="p-4">
     <div className="flex items-start justify-between gap-2"><div className="flex items-center gap-2 text-muted">{item.platform==='YouTube'?<Youtube size={16}/>:item.platform==='Instagram'?<Instagram size={16}/>:<Clapperboard size={16}/>}<span className="text-[10px] font-semibold uppercase tracking-wider">{item.platform} · {item.format}</span></div><Badge tone={statuses.find(s=>s.value===item.status)?.tone??'neutral'}>{statuses.find(s=>s.value===item.status)?.label??item.status}</Badge></div>
     <div className="mt-4">{canEdit?<button onClick={()=>start(item)} className="block w-full text-left"><h2 className="text-sm font-semibold text-ink">{item.title}</h2>{item.campaign&&<p className="mt-1 text-[11px] text-brass-deep">{item.campaign}</p>}{item.caption&&<p className="mt-2 line-clamp-3 whitespace-pre-wrap text-xs leading-5 text-muted">{item.caption}</p>}</button>:<><h2 className="text-sm font-semibold text-ink">{item.title}</h2>{item.campaign&&<p className="mt-1 text-[11px] text-brass-deep">{item.campaign}</p>}{item.caption&&<p className="mt-2 line-clamp-3 whitespace-pre-wrap text-xs leading-5 text-muted">{item.caption}</p>}</>}</div>

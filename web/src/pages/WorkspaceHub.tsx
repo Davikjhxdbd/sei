@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 import type { CSSProperties } from 'react';
 import {
-  ArrowLeft, ArrowUpRight, BriefcaseBusiness, Camera, ChartNoAxesCombined,
+  ArrowLeft, ArrowUpRight, BriefcaseBusiness, Camera, ChartNoAxesCombined, Activity,
   CheckSquare, Clapperboard, Clock3, FolderKanban, MessageSquareText,
   Palette, Presentation, RadioTower, Sparkles, Users, CalendarCheck,
   LockKeyhole, CalendarDays, FileText, ShieldCheck, Settings2,
@@ -79,6 +79,7 @@ const workspaces: Record<string, Workspace> = {
     cards: [
       { title: 'Comunicação', description: 'Comunicados internos, campanhas, calendário editorial e Social Media.', detail: 'AVISOS · CONTEÚDO · REDES SOCIAIS', icon: Megaphone, route: '/m/communication', state: 'active' },
       { title: 'Relatórios', description: 'Acompanhe eventos, entregas, pendências e indicadores operacionais.', detail: 'INDICADORES · ACOMPANHAMENTO', icon: ChartNoAxesCombined, route: '/m/studio/reports', state: 'active' },
+      { title: 'Inteligência', description: 'Tenha uma leitura consolidada da comunicação, da produção e das próximas entregas.', detail: 'VISÃO GERAL · INDICADORES · ALERTAS', icon: Activity, route: '/m/communication/intelligence', state: 'active' },
     ],
   },
   administracao: {
