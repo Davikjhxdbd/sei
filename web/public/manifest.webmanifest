@@ -7,11 +7,17 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#090A0C",
-  "theme_color": "#111111",
+  "background_color": "#090a0b",
+  "theme_color": "#090a0b",
   "icons": [
     {
-      "src": "/icons/apple-touch-icon.png?v=4",
+      "src": "/icons/mmv-mark.svg?v=5",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/apple-touch-icon.png?v=5",
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
