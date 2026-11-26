@@ -255,9 +255,9 @@ export default function Schedules() {
   return (
     <div>
       <PageHeader
-        eyebrow="Gestão do Estúdio"
-        title="Escalas de serviço"
-        description="Designações por posto de trabalho, publicação, histórico de alterações e confirmação de prontidão."
+        eyebrow="PRODUÇÃO CRIATIVA · SUA MESA DE TRABALHO"
+        title="Escalas"
+        description="Organize responsabilidades, acompanhe confirmações e mantenha cada equipe preparada para suas atividades."
         actions={
           can('schedules.manage') && (
             <Button icon={Plus} onClick={openCreate}>
