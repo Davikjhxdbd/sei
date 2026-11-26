@@ -168,7 +168,7 @@ export function Shell({
         }}
       />
       <div className="relative z-10">
-      <header className="mmv-app-topbar sticky top-0 z-40 border-b border-white/[0.07] bg-strong shadow-lg shadow-black/10">
+      <header data-workspace-shell="true" className="mmv-app-topbar sticky top-0 z-40 border-b border-white/[0.07] bg-strong shadow-lg shadow-black/10">
         <div className="mx-auto flex h-14 max-w-[1500px] items-center gap-3 px-3 sm:px-5">
           <Brand />
           <div className="mx-1 hidden h-6 w-px bg-white/10 sm:block" />
