@@ -45,13 +45,13 @@ function ProductionShowcase({ tasks }: { tasks: any[] }) {
   const active = tasks.filter((task) => task.status !== 'published');
   const delivered = tasks.filter((task) => task.status === 'published');
   const stages = [
-    { id: 'planning', label: 'Planejamento', width: '20%' },
-    { id: 'recording', label: 'Captação', width: '40%' },
-    { id: 'editing', label: 'Edição', width: '60%' },
-    { id: 'review', label: 'Revisão', width: '80%' },
-    { id: 'published', label: 'Entregue', width: '100%' },
+    { id: 'planning', label: 'Planejamento' },
+    { id: 'recording', label: 'Captação' },
+    { id: 'editing', label: 'Edição' },
+    { id: 'review', label: 'Revisão' },
+    { id: 'published', label: 'Entregue' },
   ];
-  const stageFor = (status: string) => stages.find((stage) => stage.id === status) || stages[0];
+  const stageFor = (status: string) => Math.max(0, stages.findIndex((stage) => stage.id === status));
 
   return (
     <section className="space-y-4">
@@ -70,7 +70,8 @@ function ProductionShowcase({ tasks }: { tasks: any[] }) {
       {active.length ? (
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {active.slice(0, 6).map((task) => {
-            const stage = stageFor(task.status);
+            const stageIndex = stageFor(task.status);
+            const stage = stages[stageIndex];
             return (
               <article key={task.id} className="group overflow-hidden rounded-2xl border border-line bg-surface transition-colors hover:border-brass/40">
                 <div className="relative flex aspect-[16/8] items-end overflow-hidden bg-[#15191e] p-4">
@@ -90,8 +91,8 @@ function ProductionShowcase({ tasks }: { tasks: any[] }) {
                     <span className="text-[10px] font-medium text-brass">{stage.label}</span>
                     <span className="text-[10px] text-muted">{task.assignee_name || 'Responsável a definir'}</span>
                   </div>
-                  <div className="mt-2 h-1 overflow-hidden rounded-full bg-ink/[.07]">
-                    <div className="h-full rounded-full bg-[#C4A66A]" style={{ width: stage.width }} />
+                  <div className="mt-2 grid grid-cols-5 gap-1" aria-label={`Etapa ${stage.label}`}>
+                    {stages.map((item, index) => <span key={item.id} title={item.label} className={`h-1 rounded-full ${index <= stageIndex ? "bg-[#C4A66A]" : "bg-ink/[.08]"}`} />)}
                   </div>
                   <div className="mt-3 flex items-center justify-between text-[10px] text-muted">
                     <span>{task.recording_date ? `Captação · ${dateLabel(task.recording_date)}` : 'Produção em andamento'}</span>
