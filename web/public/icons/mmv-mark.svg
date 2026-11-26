@@ -1,9 +1,40 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#252525"/><stop offset="1" stop-color="#090A0C"/></linearGradient><linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#F0E3C4"/><stop offset="1" stop-color="#C4A66A"/></linearGradient></defs>
-<rect width="512" height="512" rx="112" fill="url(#bg)"/>
-<rect x="16" y="16" width="480" height="480" rx="100" fill="none" stroke="#C4A66A" stroke-opacity=".45" stroke-width="3"/>
-<path d="M104 354V158l152 143 152-143v196" fill="none" stroke="url(#gold)" stroke-width="25" stroke-linecap="square" stroke-linejoin="round"/>
-<path d="M256 301V83" stroke="#C4A66A" stroke-width="25" stroke-linecap="square"/>
-<circle cx="256" cy="77" r="17" fill="#F4F2ED"/>
-<circle cx="104" cy="158" r="12" fill="#C4A66A"/><circle cx="408" cy="158" r="12" fill="#C4A66A"/>
+  <defs>
+    <radialGradient id="bg" cx="38%" cy="28%" r="85%"><stop stop-color="#24201A"/><stop offset=".48" stop-color="#10100F"/><stop offset="1" stop-color="#050505"/></radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FFF0CB"/><stop offset=".34" stop-color="#D9B978"/><stop offset=".68" stop-color="#A77D3D"/><stop offset="1" stop-color="#F2D69A"/></linearGradient>
+    <linearGradient id="lens" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#F6D99D"/><stop offset=".28" stop-color="#4B3A23"/><stop offset=".56" stop-color="#090909"/><stop offset=".82" stop-color="#B68B4C"/><stop offset="1" stop-color="#21180E"/></linearGradient>
+    <radialGradient id="glass"><stop stop-color="#08090B"/><stop offset=".58" stop-color="#1B1A17"/><stop offset=".82" stop-color="#8F6937"/><stop offset="1" stop-color="#17120C"/></radialGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <clipPath id="globe"><circle cx="207" cy="226" r="139"/></clipPath>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <rect x="14" y="14" width="484" height="484" rx="101" fill="none" stroke="url(#gold)" stroke-opacity=".78" stroke-width="3"/>
+  <circle cx="207" cy="226" r="143" fill="#0A0A09" stroke="url(#gold)" stroke-width="5"/>
+  <g clip-path="url(#globe)" fill="none" stroke="#C6A267" stroke-opacity=".45" stroke-width="2">
+    <ellipse cx="207" cy="226" rx="61" ry="139"/><ellipse cx="207" cy="226" rx="112" ry="139"/>
+    <path d="M64 226h286M80 164q127 54 254 0M80 288q127-54 254 0"/>
+  </g>
+  <g clip-path="url(#globe)" fill="url(#gold)" opacity=".9">
+    <path d="M114 112l31-17 24 8 12 22-10 18 18 11-9 20-25 9-13 24-17-7-13-24-23-9-7-29z"/>
+    <path d="M179 222l28 7 17 22-5 28-18 24-3 34-18 31-12-25-5-32-17-24 4-29z"/>
+    <path d="M260 117l27-14 35 13 17 28-15 16-26-7-16 14-20-14z"/>
+  </g>
+  <path d="M68 270C99 355 290 383 423 245" fill="none" stroke="url(#gold)" stroke-width="7" stroke-linecap="round" filter="url(#glow)"/>
+  <path d="M83 185C168 118 323 119 430 187" fill="none" stroke="#D2AD6D" stroke-opacity=".5" stroke-width="2"/>
+  <g filter="url(#glow)">
+    <path d="M357 91v238M300 150h114" stroke="url(#gold)" stroke-width="23" stroke-linecap="square"/>
+    <path d="M357 91v238M300 150h114" stroke="#FFF1CF" stroke-opacity=".7" stroke-width="3"/>
+  </g>
+  <g>
+    <circle cx="233" cy="259" r="105" fill="#080808" stroke="url(#gold)" stroke-width="8"/>
+    <circle cx="233" cy="259" r="91" fill="url(#lens)" stroke="#6F542E" stroke-width="3"/>
+    <circle cx="233" cy="259" r="75" fill="#090909" stroke="#D3AF70" stroke-width="4"/>
+    <circle cx="233" cy="259" r="62" fill="url(#glass)" stroke="#5F4828" stroke-width="5"/>
+    <circle cx="233" cy="259" r="39" fill="#070707" stroke="#B68B4C" stroke-width="3"/>
+    <circle cx="233" cy="259" r="20" fill="#020202" stroke="#E4C486" stroke-opacity=".65" stroke-width="2"/>
+    <ellipse cx="215" cy="236" rx="18" ry="8" fill="#FFF0CB" opacity=".2" transform="rotate(-35 215 236)"/>
+  </g>
+  <path d="M111 397h290" stroke="#C4A66A" stroke-opacity=".75" stroke-width="2"/>
+  <text x="256" y="440" text-anchor="middle" fill="url(#gold)" font-family="Arial,Helvetica,sans-serif" font-size="35" font-weight="700" letter-spacing="8">MMV</text>
+  <text x="256" y="467" text-anchor="middle" fill="#D8B879" font-family="Arial,Helvetica,sans-serif" font-size="15" letter-spacing="7">CREATIVE</text>
 </svg>
