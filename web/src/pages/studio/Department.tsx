@@ -13,7 +13,6 @@ type DepartmentData = {
   department: { name: string; description: string | null };
   areas: { id: string; name: string; slug: string; tasks_count: number; open_tasks: number }[];
   members: { id: string; full_name: string; function: string | null }[];
-  managedMembers: { id: string; full_name: string; function: string | null }[];
   tasks: {
     id: string; title: string; status: string; due_date: string | null;
     area_name: string; area_slug: string; assignee_name: string | null;
@@ -187,7 +186,7 @@ export default function Department() {
                   <p className="truncate text-sm text-white">{member.full_name}</p>
                   <p className="text-[11px] text-white/40">{member.function || 'Integrante'}</p>
                 </div>
-                {canManageTeam && (data.managedMembers || []).some(person => person.id === member.id) && <button type="button" onClick={() => void removeMember(member.id)} aria-label={`Remover ${member.full_name} da equipe`} className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-white/35 transition hover:bg-red-400/10 hover:text-red-300"><X size={14} /></button>}
+                {canManageTeam && <button type="button" onClick={() => void removeMember(member.id)} aria-label={`Remover ${member.full_name} da equipe`} className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-white/35 transition hover:bg-red-400/10 hover:text-red-300"><X size={14} /></button>}
               </div>)}
             </div>
           }

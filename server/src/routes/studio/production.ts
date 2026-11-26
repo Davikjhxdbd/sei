@@ -21,7 +21,7 @@ router.get('/departments/:slug', asyncHandler(async (req: any, res) => {
   if (!departments.length) throw notFound('Departamento não encontrado.');
 
   const department = departments[0];
-  const [areas, members, managedMembers, tasks, totals] = await Promise.all([
+  const [areas, members, tasks, totals] = await Promise.all([
     req.db.query(`
       select a.id, a.name, a.slug, a.description,
         count(t.id)::int as tasks_count,
@@ -33,23 +33,18 @@ router.get('/departments/:slug', asyncHandler(async (req: any, res) => {
       order by a.created_at
     `, [department.id]),
     req.db.query(`
-      select distinct u.id, u.full_name, m.function
-      from studio_department_members m
+      select u.id, u.full_name,
+        string_agg(distinct coalesce(m.function, 'Integrante'), ' · ' order by coalesce(m.function, 'Integrante')) as function
+      from (
+        select user_id, function from studio_department_members where department_id = $1
+        union all
+        select pm.user_id, pm.function
+        from production_members pm
+        join production_areas a on a.id = pm.area_id
+        where a.studio_department_id = $1
+      ) m
       join users u on u.id = m.user_id
-      where m.department_id = $1
-      union
-      select distinct u.id, u.full_name, pm.function
-      from production_members pm
-      join production_areas a on a.id = pm.area_id
-      join users u on u.id = pm.user_id
-      where a.studio_department_id = $1
-      order by full_name
-    `, [department.id]),
-    req.db.query(`
-      select u.id, u.full_name, m.function
-      from studio_department_members m
-      join users u on u.id = m.user_id
-      where m.department_id = $1
+      group by u.id, u.full_name
       order by u.full_name
     `, [department.id]),
     req.db.query(`
@@ -80,7 +75,6 @@ router.get('/departments/:slug', asyncHandler(async (req: any, res) => {
     department,
     areas: areas.rows,
     members: members.rows,
-    managedMembers: managedMembers.rows,
     tasks: tasks.rows,
     totals: totals.rows[0]
   });
