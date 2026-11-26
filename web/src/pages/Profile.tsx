@@ -1,6 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import {
   CalendarClock,
+  Camera,
+  Sparkles,
   CheckCircle2,
   ClipboardList,
   Film,
@@ -39,6 +41,9 @@ interface ProfilePayload {
     full_name: string;
     username: string;
     email: string | null;
+    avatar_url: string | null;
+    profile_emoji: string | null;
+    profile_bio: string | null;
     status: string;
     roles: string[];
     sectors: { id: string; name: string; is_lead: boolean }[];
@@ -71,6 +76,9 @@ export default function Profile() {
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [profileEmoji, setProfileEmoji] = useState('');
+  const [profileBio, setProfileBio] = useState('');
   const [saving, setSaving] = useState(false);
 
   const [current, setCurrent] = useState('');
@@ -82,6 +90,9 @@ export default function Profile() {
     if (data?.user) {
       setFullName(data.user.full_name);
       setEmail(data.user.email ?? '');
+      setAvatarUrl(data.user.avatar_url ?? '');
+      setProfileEmoji(data.user.profile_emoji ?? '');
+      setProfileBio(data.user.profile_bio ?? '');
     }
   }, [data?.user.id, data?.user.full_name, data?.user.email]);
 
@@ -89,7 +100,7 @@ export default function Profile() {
     event.preventDefault();
     setSaving(true);
     try {
-      await patch('/auth/profile', { full_name: fullName, email: email || null });
+      await patch('/auth/profile', { full_name: fullName, email: email || null, avatar_url: avatarUrl || null, profile_emoji: profileEmoji || null, profile_bio: profileBio || null });
       await reload();
       await refresh();
       toast.push('Perfil atualizado.');
@@ -97,6 +108,41 @@ export default function Profile() {
       toast.push(error?.message ?? 'Não foi possível salvar.', 'error');
     } finally {
       setSaving(false);
+    }
+  }
+
+
+  async function chooseAvatar(file?: File) {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.push('Escolha um arquivo de imagem.', 'error');
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast.push('A imagem precisa ter até 8 MB.', 'error');
+      return;
+    }
+    try {
+      const bitmap = await createImageBitmap(file);
+      const scale = Math.min(1, 512 / Math.max(bitmap.width, bitmap.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+      canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('Não foi possível processar a imagem.');
+      context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      bitmap.close();
+      let imageData = canvas.toDataURL('image/jpeg', 0.78);
+      if (imageData.length > 440000) imageData = canvas.toDataURL('image/jpeg', 0.62);
+      if (imageData.length > 450000) {
+        toast.push('Essa imagem ficou muito pesada. Escolha outra foto.', 'error');
+        return;
+      }
+      setAvatarUrl(imageData);
+      setProfileEmoji('');
+      toast.push('Foto pronta. Salve as alterações para publicar no seu perfil.');
+    } catch (error: any) {
+      toast.push(error?.message ?? 'Não foi possível carregar essa foto.', 'error');
     }
   }
 
@@ -145,7 +191,7 @@ export default function Profile() {
         <div className="space-y-5">
           <Card>
             <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
-              <Avatar name={user.full_name} size="lg" className="bg-brass" />
+              <Avatar name={user.full_name} size="lg" className="bg-brass" avatarUrl={user.avatar_url} emoji={user.profile_emoji} />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="text-[18px] font-semibold text-ink">
@@ -197,12 +243,40 @@ export default function Profile() {
               icon={UserRound}
             />
             <form onSubmit={saveProfile} className="space-y-4 p-5">
-              <Field label="Nome completo" required>
+
+              <div className="rounded-xl border border-line bg-canvas/60 p-4">
+                <div className="flex items-center gap-3">
+                  <Avatar name={fullName || user.full_name} size="lg" className="bg-brass" avatarUrl={avatarUrl || null} emoji={profileEmoji || null} />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[13px] font-medium text-ink">Sua identidade</p>
+                    <p className="text-[11.5px] text-muted">Escolha uma foto ou um avatar que tenha a sua cara.</p>
+                  </div>
+                  <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-brass/30 bg-surface px-3 text-[12px] font-medium text-ink transition-colors hover:bg-brass/[0.08]">
+                    <Camera className="h-4 w-4" /> Foto
+                    <input type="file" accept="image/*" className="sr-only" onChange={(event) => { void chooseAvatar(event.target.files?.[0]); event.currentTarget.value = ''; }} />
+                  </label>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2" aria-label="Escolher avatar">
+                  {['🎬','📸','🎨','🎧','🎛️','✨','🌟','🚀','🦁','🎮','💡','🤍'].map((emoji) => (
+                    <button key={emoji} type="button" onClick={() => { setProfileEmoji(emoji); setAvatarUrl(''); }} aria-label={'Usar avatar ' + emoji} aria-pressed={profileEmoji === emoji && !avatarUrl} className={'grid h-9 w-9 place-items-center rounded-full border text-lg transition-colors ' + (profileEmoji === emoji && !avatarUrl ? 'border-brass bg-brass/15 ring-2 ring-brass/20' : 'border-line bg-surface hover:border-brass/50')}>
+                      {emoji}
+                    </button>
+                  ))}
+                  {(avatarUrl || profileEmoji) && (
+                    <button type="button" onClick={() => { setAvatarUrl(''); setProfileEmoji(''); }} className="rounded-full px-3 text-[11px] text-muted hover:bg-ink/5 hover:text-ink">Remover</button>
+                  )}
+                </div>
+                <p className="mt-2 flex items-center gap-1 text-[10.5px] text-muted"><Sparkles className="h-3 w-3" /> A foto e o avatar aparecem no menu e nas áreas da plataforma.</p>
+              </div>
+              <Field label="Nome de exibição" required>
                 <Input
                   value={fullName}
                   onChange={(event) => setFullName(event.target.value)}
                   required
                 />
+              </Field>
+              <Field label="Sua frase" hint="Opcional · até 80 caracteres">
+                <Input value={profileBio} onChange={(event) => setProfileBio(event.target.value.slice(0, 80))} maxLength={80} placeholder="Ex.: Criando com propósito ✨" />
               </Field>
               <Field label="E-mail" hint="Opcional">
                 <Input
@@ -212,6 +286,7 @@ export default function Profile() {
                   placeholder="nome@exemplo.com"
                 />
               </Field>
+              <p className="text-[11px] text-muted">Seu identificador de acesso é @{user.username} e não muda ao editar o nome de exibição.</p>
               <div className="flex justify-end">
                 <Button type="submit" loading={saving} size="sm">
                   Salvar alterações

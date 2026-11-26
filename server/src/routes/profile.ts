@@ -21,7 +21,7 @@ async function stats(db: any, userId: string) {
 
 async function profilePayload(db: any, req: any) {
   const { rows } = await db.query(
-    `select u.id, u.full_name, u.username, u.email, u.status, u.created_at,
+    `select u.id, u.full_name, u.username, u.email, u.avatar_url, u.profile_emoji, u.profile_bio, u.status, u.created_at,
             u.updated_at, u.last_login_at,
             coalesce((select array_agg(ur.role::text order by ur.role::text)
                         from user_roles ur where ur.user_id = u.id), '{}') as roles,
@@ -66,7 +66,7 @@ router.get(
       throw forbidden('Você não tem autorização para consultar outro perfil.');
     }
     const { rows } = await req.db.query(
-      `select u.id, u.full_name,
+      `select u.id, u.full_name, u.avatar_url, u.profile_emoji, u.profile_bio,
               case when $2::int >= 5 then u.username else null end as username,
               case when $2::int >= 5 then u.email else null end as email,
               u.status, u.created_at, u.updated_at,

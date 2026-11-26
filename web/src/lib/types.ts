@@ -10,6 +10,9 @@ export interface User {
   full_name: string;
   username: string;
   email: string | null;
+  avatar_url: string | null;
+  profile_emoji: string | null;
+  profile_bio: string | null;
   status: string;
   roles: string[];
   level: number;

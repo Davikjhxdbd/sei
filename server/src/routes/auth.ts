@@ -373,17 +373,42 @@ router.patch(
       throw badRequest('Informe um e-mail válido.', { field: 'email' });
     }
 
+    const avatarUrl = req.body?.avatar_url === null || req.body?.avatar_url === ''
+      ? null
+      : typeof req.body?.avatar_url === 'string' ? req.body.avatar_url : before!.avatar_url;
+    if (avatarUrl && (
+      avatarUrl.length > 450000 ||
+      !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(avatarUrl)
+    )) {
+      throw badRequest('A foto precisa ser JPG, PNG ou WebP e ter até 450 KB após a otimização.', { field: 'avatar_url' });
+    }
+
+    const allowedEmojis = ['🎬','📸','🎨','🎧','🎛️','✨','🌟','🚀','🦁','🎮','💡','🤍'];
+    const profileEmoji = req.body?.profile_emoji === null || req.body?.profile_emoji === ''
+      ? null
+      : typeof req.body?.profile_emoji === 'string' && allowedEmojis.includes(req.body.profile_emoji)
+        ? req.body.profile_emoji
+        : before!.profile_emoji;
+    const profileBio = req.body?.profile_bio === null || req.body?.profile_bio === ''
+      ? null
+      : typeof req.body?.profile_bio === 'string'
+        ? req.body.profile_bio.trim().slice(0, 80)
+        : before!.profile_bio;
+
     const { rows } = await db.query(
-      `update users set full_name = $1, email = $2, updated_at = now()
-        where id = $3 returning id, full_name, email`,
-      [fullName.slice(0, 160), email, req.user.id],
+      `update users
+          set full_name = $1, email = $2, avatar_url = $3, profile_emoji = $4,
+              profile_bio = $5, updated_at = now()
+        where id = $6
+        returning id, full_name, email, avatar_url, profile_emoji, profile_bio`,
+      [fullName.slice(0, 160), email, avatarUrl, profileEmoji, profileBio, req.user.id],
     );
 
     await audit(db, req.user, {
       action: 'user.profile_updated',
       entity: 'users',
       entityId: req.user.id,
-      before: { full_name: before!.full_name, email: before!.email },
+      before: { full_name: before!.full_name, email: before!.email, avatar_url: before!.avatar_url, profile_emoji: before!.profile_emoji, profile_bio: before!.profile_bio },
       after: rows[0],
       moduleKey: 'platform',
     });
