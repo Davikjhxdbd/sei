@@ -4,6 +4,7 @@ import { requireLevel } from '../auth';
 import { audit, notify } from '../audit';
 import { can } from '../permissions';
 import { tx } from '../db';
+import { sendPushToUsers } from '../push';
 
 const router = Router();
 
@@ -40,7 +41,7 @@ router.post('/announcements', requireLevel(4), asyncHandler(async (req: any, res
   const priority = ['normal', 'important', 'urgent'].includes(req.body?.priority)
     ? req.body.priority : 'normal';
 
-  const announcement = await tx(req.db, async () => {
+  const published = await tx(req.db, async () => {
     const { rows } = await req.db.query(
       `insert into announcements (author_id, title, body, priority, status, published_at)
        values ($1, $2, $3, $4, 'published', now())
@@ -48,10 +49,11 @@ router.post('/announcements', requireLevel(4), asyncHandler(async (req: any, res
       [req.user.id, title, body, priority],
     );
     const item = rows[0];
-    await req.db.query(
+    const { rows: notificationRows } = await req.db.query(
       `insert into notifications (user_id, title, body, link, module_key)
        select u.id, $1, $2, '/m/communication', 'communication'
-         from users u where u.status = 'active' and u.id <> $3`,
+         from users u where u.status = 'active' and u.id <> $3
+       returning user_id`,
       [`Comunicado: ${title}`, body.slice(0, 240), req.user.id],
     );
     await audit(req.db, req.user, {
@@ -61,9 +63,14 @@ router.post('/announcements', requireLevel(4), asyncHandler(async (req: any, res
       after: { title, priority },
       moduleKey: 'communication',
     });
-    return item;
+    return { item, recipientIds: notificationRows.map((row: { user_id: string }) => row.user_id) };
   });
-  res.status(201).json({ announcement });
+  await sendPushToUsers(req.db, published.recipientIds, {
+    title: `Comunicado: ${title}`,
+    body: body.slice(0, 240),
+    url: '/m/communication',
+  });
+  res.status(201).json({ announcement: published.item });
 }));
 
 router.post('/announcements/:id/read', asyncHandler(async (req: any, res) => {
