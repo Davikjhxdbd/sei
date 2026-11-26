@@ -49,7 +49,7 @@ function dateLabel(value?: string | null) {
 
 
 function DepartmentShowcase({ slug, tasks, theme }: { slug: string; tasks: Task[]; theme: typeof THEMES[string] }) {
-  const active = tasks.filter(task => FLOW.some(stage => stage.id === task.status));
+  const active = tasks.filter(task => FLOW.some(stage => stage.id === task.status && stage.id !== 'published'));
   const delivered = tasks.filter(task => task.status === 'published');
   const iconFor = slug === 'transmissao' ? Radio : slug === 'fotos' ? Camera : slug === 'design' ? Palette : slug === 'slide' ? Layers : Clapperboard;
   const CraftIcon = iconFor;
