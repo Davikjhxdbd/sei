@@ -68,7 +68,7 @@ export default function Schedules() {
   const toast = useToast();
   const [eventId, setEventId] = useState('');
   const [status, setStatus] = useState('all');
-  const [mine, setMine] = useState(false);
+  const [mine, setMine] = useState(() => !can('schedules.manage'));
 
   const events = useApi<{ items: { id: string; name: string; starts_at: string }[] }>(
     '/studio/events?limit=100',

@@ -220,8 +220,14 @@ export default function Dashboard() {
               {dateLabel}
             </p>
             <div className="flex flex-wrap gap-2">
+              <GlassLink to="/ambiente/producao" icon={Film}>
+                Departamentos
+              </GlassLink>
+              <GlassLink to="/m/studio/production/my-space" icon={CheckCircle2} subtle>
+                Minhas demandas
+              </GlassLink>
               {can('events.create') && (
-                <GlassLink to="/m/studio/events" icon={CalendarDays}>
+                <GlassLink to="/m/studio/events" icon={CalendarDays} subtle>
                   Eventos
                 </GlassLink>
               )}

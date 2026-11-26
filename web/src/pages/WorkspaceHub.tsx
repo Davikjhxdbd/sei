@@ -4,8 +4,8 @@ import {
   ArrowLeft, ArrowUpRight, BriefcaseBusiness, Camera, ChartNoAxesCombined,
   CheckSquare, Clapperboard, Clock3, FolderKanban, MessageSquareText,
   Palette, Presentation, RadioTower, Sparkles, Users, CalendarCheck,
-  Bot, LockKeyhole, CalendarDays, FileText, ShieldCheck, Settings2,
-  Film, Aperture, Layers3, Megaphone, ClipboardList, Video,
+  LockKeyhole, CalendarDays, FileText, ShieldCheck, Settings2,
+  Film, Aperture, Layers3, Megaphone, ClipboardList, Video, Target,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useAuth } from '../lib/auth';
@@ -47,6 +47,7 @@ const workspaces: Record<string, Workspace> = {
       { title: 'Projetos', description: 'Tire ideias do papel, organize etapas e acompanhe cada entrega.', detail: 'PLANEJAMENTO · PROGRESSO · ENTREGAS', icon: FolderKanban, route: '/gestao?tab=projetos', state: 'active' },
       { title: 'Tarefas', description: 'Uma mesa de trabalho pessoal para prioridades, prazos e próximos passos.', detail: 'HOJE · PRÓXIMAS · CONCLUÍDAS', icon: CheckSquare, route: '/gestao?tab=tarefas', state: 'active' },
       { title: 'Escalas', description: 'Consulte suas responsabilidades e os compromissos das equipes.', detail: 'RESPONSABILIDADES · CONFIRMAÇÕES', icon: CalendarCheck, route: '/m/studio/schedules', state: 'active' },
+      { title: 'Meu espaço', description: 'Veja sua rotina, prioridades, entregas recentes e participação nos projetos.', detail: 'MINHA ROTINA · MINHA EVOLUÇÃO', icon: Target, route: '/gestao?tab=espaco', state: 'active' },
     ],
   },
   producao: {
@@ -78,7 +79,6 @@ const workspaces: Record<string, Workspace> = {
     cards: [
       { title: 'Comunicação', description: 'Comunicados internos, campanhas, calendário editorial e Social Media.', detail: 'AVISOS · CONTEÚDO · REDES SOCIAIS', icon: Megaphone, route: '/m/communication', state: 'active' },
       { title: 'Relatórios', description: 'Acompanhe eventos, entregas, pendências e indicadores operacionais.', detail: 'INDICADORES · ACOMPANHAMENTO', icon: ChartNoAxesCombined, route: '/m/studio/reports', state: 'active' },
-      { title: 'Assistente IA', description: 'Ajuda para organizar demandas, resumir informações e preparar briefings.', detail: 'ASSISTÊNCIA · SÍNTESE · ORGANIZAÇÃO', icon: Bot, state: 'planned' },
     ],
   },
   administracao: {

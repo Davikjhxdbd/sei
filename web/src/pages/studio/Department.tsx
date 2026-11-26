@@ -1,26 +1,39 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
-  ArrowLeft, ArrowUpRight, CalendarDays, CheckCircle2,
-  CircleDashed, Clock3, FolderKanban, Users, Plus, X
+  ArrowLeft, ArrowUpRight, CalendarDays, CheckCircle2, Clock3,
+  FolderKanban, Users, Plus, X, Search, Video, UserRound,
 } from 'lucide-react';
 import { useApi } from '../../lib/useApi';
 import { useAuth } from '../../lib/auth';
-import { post, del } from '../../lib/api';
-import type { CSSProperties } from 'react';
+import { post, patch, del } from '../../lib/api';
+import type { CSSProperties, FormEvent } from 'react';
 
+type Area = { id: string; name: string; slug: string; description?: string | null; tasks_count: number; open_tasks: number };
+type Member = { id: string; full_name: string; function: string | null };
+type Task = {
+  id: string; title: string; description?: string | null; status: string;
+  due_date: string | null; recording_date?: string | null;
+  area_id?: string; area_name: string; area_slug: string;
+  assignee_name: string | null; assigned_to?: string | null; created_by?: string;
+};
 type DepartmentData = {
   department: { name: string; description: string | null };
-  areas: { id: string; name: string; slug: string; tasks_count: number; open_tasks: number }[];
-  members: { id: string; full_name: string; function: string | null }[];
-  tasks: {
-    id: string; title: string; status: string; due_date: string | null;
-    area_name: string; area_slug: string; assignee_name: string | null;
-  }[];
+  areas: Area[];
+  members: Member[];
+  tasks: Task[];
   totals: { tasks: number; open: number; published: number };
 };
 
-const departmentThemes: Record<string, { accent: string; glow: string; descriptor: string }> = {
+const FLOW = [
+  { id: 'planning', label: 'Planejamento' },
+  { id: 'recording', label: 'Captação' },
+  { id: 'editing', label: 'Em execução' },
+  { id: 'review', label: 'Revisão e aprovação' },
+  { id: 'published', label: 'Entregue' },
+] as const;
+
+const THEMES: Record<string, { accent: string; glow: string; descriptor: string }> = {
   transmissao: { accent: '#B8CBE0', glow: 'rgba(96,132,174,.20)', descriptor: 'OPERAÇÃO TÉCNICA · AO VIVO' },
   slide: { accent: '#B8CBE0', glow: 'rgba(96,132,174,.20)', descriptor: 'CONTEÚDO VISUAL · PROJEÇÃO' },
   audiovisual: { accent: '#B8CBE0', glow: 'rgba(96,132,174,.20)', descriptor: 'CAPTAÇÃO · EDIÇÃO · FINALIZAÇÃO' },
@@ -28,184 +41,186 @@ const departmentThemes: Record<string, { accent: string; glow: string; descripto
   design: { accent: '#B8CBE0', glow: 'rgba(96,132,174,.20)', descriptor: 'DIREÇÃO DE ARTE · CRIAÇÃO VISUAL' },
 };
 
-const statusLabels: Record<string, string> = {
-  planning: 'Planejamento',
-  recording: 'Captação',
-  editing: 'Em execução',
-  review: 'Em revisão',
-  published: 'Concluída'
-};
+function dateLabel(value?: string | null) {
+  if (!value) return 'Sem prazo definido';
+  return new Date(`${String(value).slice(0, 10)}T12:00:00`).toLocaleDateString('pt-BR');
+}
 
 export default function Department() {
   const { slug = '' } = useParams();
-  const { level } = useAuth();
+  const { level, user } = useAuth();
   const canManageTeam = level >= 4;
+  const canManageTasks = level >= 3;
   const [showMemberForm, setShowMemberForm] = useState(false);
+  const [showTaskForm, setShowTaskForm] = useState(false);
   const [selectedUser, setSelectedUser] = useState('');
   const [memberFunction, setMemberFunction] = useState('Integrante');
   const [memberSaving, setMemberSaving] = useState(false);
   const [memberError, setMemberError] = useState('');
-  const { data, loading, error, reload } = useApi<DepartmentData>(
-    slug ? `/studio/departments/${slug}` : null,
-    [slug]
-  );
+  const [taskSaving, setTaskSaving] = useState(false);
+  const [taskError, setTaskError] = useState('');
+  const [taskArea, setTaskArea] = useState('');
+  const [taskTitle, setTaskTitle] = useState('');
+  const [taskDescription, setTaskDescription] = useState('');
+  const [taskAssignee, setTaskAssignee] = useState('');
+  const [taskDue, setTaskDue] = useState('');
+  const [taskRecording, setTaskRecording] = useState('');
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
-  const { data: memberOptions, reload: reloadMemberOptions } = useApi<{ items: { id: string; full_name: string }[] }>(
+  const { data, loading, error, reload } = useApi<DepartmentData>(
+    slug ? `/studio/departments/${slug}` : null, [slug]
+  );
+  const { data: memberOptions, reload: reloadMemberOptions } = useApi<{ items: Member[] }>(
     canManageTeam && slug ? `/studio/departments/${slug}/member-options` : null,
     [slug, canManageTeam]
   );
 
-  async function addMember(e: React.FormEvent<HTMLFormElement>) {
+  async function addMember(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!selectedUser) return;
     setMemberSaving(true);
     setMemberError('');
     try {
       await post(`/studio/departments/${slug}/members`, { user_id: selectedUser, function: memberFunction });
-      setSelectedUser('');
-      setMemberFunction('Integrante');
-      setShowMemberForm(false);
-      reload();
-      reloadMemberOptions();
+      setSelectedUser(''); setMemberFunction('Integrante'); setShowMemberForm(false);
+      await Promise.all([reload(), reloadMemberOptions()]);
     } catch (err: any) {
       setMemberError(err.message || 'Não foi possível adicionar o participante.');
-    } finally {
-      setMemberSaving(false);
-    }
+    } finally { setMemberSaving(false); }
   }
 
   async function removeMember(userId: string) {
     if (!window.confirm('Remover esta pessoa da equipe do departamento?')) return;
     try {
       await del(`/studio/departments/${slug}/members/${userId}`);
-      reload();
-      reloadMemberOptions();
-    } catch (err: any) {
-      window.alert(err.message || 'Não foi possível remover o participante.');
-    }
+      await Promise.all([reload(), reloadMemberOptions()]);
+    } catch (err: any) { window.alert(err.message || 'Não foi possível remover o participante.'); }
   }
 
-  if (loading) return <div className="p-8 text-sm text-white/50">Carregando departamento...</div>;
+  async function createTask(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!taskArea || !taskTitle.trim()) return;
+    setTaskSaving(true); setTaskError('');
+    try {
+      await post('/studio/production/tasks', {
+        area_id: taskArea, title: taskTitle.trim(), description: taskDescription,
+        assigned_to: taskAssignee || null, due_date: taskDue || null,
+        recording_date: taskRecording || null,
+      });
+      setTaskTitle(''); setTaskDescription(''); setTaskAssignee('');
+      setTaskDue(''); setTaskRecording(''); setShowTaskForm(false);
+      await reload();
+    } catch (err: any) { setTaskError(err.message || 'Não foi possível criar a demanda.'); }
+    finally { setTaskSaving(false); }
+  }
+
+  async function updateTask(id: string, values: Record<string, unknown>) {
+    try { await patch(`/studio/production/tasks/${id}`, values); await reload(); }
+    catch (err: any) { window.alert(err.message || 'Não foi possível atualizar a demanda.'); }
+  }
+
+  const theme = THEMES[slug] ?? THEMES.audiovisual;
+  const themeStyle = { '--department-accent': theme.accent, '--department-glow': theme.glow } as CSSProperties;
+  const visibleTasks = useMemo(() => (data?.tasks ?? []).filter(task => {
+    const matchesSearch = !search.trim() || [task.title, task.area_name, task.assignee_name ?? ''].some(value => value.toLowerCase().includes(search.toLowerCase()));
+    return matchesSearch && (statusFilter === 'all' || task.status === statusFilter);
+  }), [data?.tasks, search, statusFilter]);
+
+  if (loading) return <div className="flex items-center justify-center gap-3 py-20 text-sm text-muted"><span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" />Carregando departamento...</div>;
   if (error || !data) return (
-    <div className="space-y-4 p-8">
-      <p className="text-sm text-red-300">{error || 'Departamento não encontrado.'}</p>
-      <Link to="/ambiente/producao" className="text-sm text-[#C4A66A]">Voltar à Produção Criativa</Link>
+    <div className="mx-auto max-w-xl space-y-4 rounded-2xl border border-line bg-surface p-8">
+      <p className="text-sm text-red-400">{error || 'Departamento não encontrado.'}</p>
+      <Link to="/ambiente/producao" className="text-sm text-brass">Voltar à Produção Criativa</Link>
     </div>
   );
 
-  const { department, areas, members, tasks, totals } = data;
-  const theme = departmentThemes[slug] ?? departmentThemes.audiovisual;
-  const themeStyle = { '--department-accent': theme.accent, '--department-glow': theme.glow } as CSSProperties;
+  const { department, areas, members, totals } = data;
+  const overdue = data.tasks.filter(task => task.status !== 'published' && task.due_date && new Date(`${task.due_date}T23:59:59`) < new Date()).length;
 
   return (
-    <div className="mx-auto max-w-[1450px] space-y-7 p-5 pb-12 sm:p-8" style={themeStyle}>
-      <Link to="/ambiente/producao" className="inline-flex items-center gap-2 text-xs text-white/45 transition hover:text-white">
-        <ArrowLeft size={15} /> Produção Criativa
-      </Link>
+    <div className="mx-auto max-w-[1450px] space-y-6 pb-12" style={themeStyle}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Link to="/ambiente/producao" className="inline-flex items-center gap-2 text-xs text-muted transition hover:text-ink"><ArrowLeft size={15} /> Produção Criativa</Link>
+        <Link to="/m/studio" className="inline-flex items-center gap-1.5 text-xs text-muted hover:text-ink">Visão geral do estúdio <ArrowUpRight size={13}/></Link>
+      </div>
 
-      <header className="rounded-2xl border p-6 sm:p-9" style={{ borderColor: `${theme.accent}35`, background: `radial-gradient(ellipse at 88% 0%, ${theme.glow}, transparent 44%), linear-gradient(135deg,#1c1b18,#101010)` }}>
-        <p className="text-[10px] font-semibold uppercase tracking-[.28em]" style={{ color: theme.accent }}>MMV CREATIVE / {theme.descriptor}</p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">{department.name}</h1>
-        <p className="mt-2 max-w-2xl text-sm text-white/45">{department.description || 'Ambiente de trabalho do departamento.'}</p>
-        <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[
-            { label: 'Tarefas totais', value: totals?.tasks ?? 0, icon: FolderKanban },
-            { label: 'Em andamento', value: totals?.open ?? 0, icon: Clock3 },
-            { label: 'Concluídas', value: totals?.published ?? 0, icon: CheckCircle2 },
-            { label: 'Pessoas', value: members.length, icon: Users }
-          ].map(item => {
-            const Icon = item.icon;
-            return <div key={item.label} className="rounded-xl border border-white/[.07] bg-black/20 p-4">
-              <Icon size={17} style={{ color: theme.accent }} />
-              <p className="mt-3 text-2xl font-semibold text-white">{item.value}</p>
-              <p className="mt-1 text-[10px] text-white/40">{item.label}</p>
-            </div>;
-          })}
+      <header className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111316] p-6 sm:p-8">
+        <div className="pointer-events-none absolute -right-20 -top-28 h-80 w-80 rounded-full blur-3xl" style={{ background: theme.glow }} />
+        <div className="relative">
+          <p className="text-[10px] font-semibold uppercase tracking-[.28em]" style={{ color: theme.accent }}>MMV CREATIVE / {theme.descriptor}</p>
+          <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
+            <div><h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">{department.name}</h1><p className="mt-2 max-w-2xl text-sm text-white/55">{department.description || 'Ambiente de trabalho do departamento.'}</p></div>
+            <button type="button" onClick={() => { setTaskArea(areas[0]?.id ?? ''); setShowTaskForm(value => !value); }} disabled={!areas.length || level < 2} className="inline-flex h-10 items-center gap-2 rounded-lg px-4 text-xs font-semibold text-[#111] transition disabled:cursor-not-allowed disabled:opacity-40" style={{ background: theme.accent }}><Plus size={15}/> Nova demanda</button>
+          </div>
+          <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              { label: 'Demandas totais', value: totals?.tasks ?? 0, icon: FolderKanban },
+              { label: 'Em aberto', value: totals?.open ?? 0, icon: Clock3 },
+              { label: 'Concluídas', value: totals?.published ?? 0, icon: CheckCircle2 },
+              { label: 'Atrasadas', value: overdue, icon: CalendarDays },
+            ].map(item => { const Icon = item.icon; return <div key={item.label} className="rounded-xl border border-white/[.08] bg-black/20 p-4"><Icon size={17} style={{ color: theme.accent }}/><p className="mt-3 text-2xl font-semibold text-white">{item.value}</p><p className="mt-1 text-[10px] text-white/45">{item.label}</p></div>; })}
+          </div>
         </div>
       </header>
 
-      <section className="grid gap-6 lg:grid-cols-[1.35fr_.65fr]">
-        <div className="space-y-6">
-          <div className="rounded-2xl border border-white/[.08] bg-white/[.02] p-5">
-            <div className="mb-5 flex items-center justify-between">
-              <div>
-                <h2 className="font-semibold text-white">Fluxo de trabalho</h2>
-                <p className="mt-1 text-xs text-white/40">Demandas vinculadas a este departamento</p>
-              </div>
-              <Link to="/m/studio/production" className="text-xs hover:text-white" style={{ color: theme.accent }}>Central de produção <ArrowUpRight className="inline" size={13} /></Link>
-            </div>
-            {tasks.length === 0 ? <p className="py-8 text-center text-sm text-white/35">Nenhuma tarefa cadastrada neste departamento.</p> :
-              <div className="space-y-2">
-                {tasks.map(task => (
-                  <div key={task.id} className="rounded-xl border border-white/[.07] bg-black/20 p-4">
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div>
-                        <p className="text-sm font-medium text-white">{task.title}</p>
-                        <p className="mt-1 text-[11px] text-white/40">{task.area_name}{task.assignee_name ? ` · ${task.assignee_name}` : ''}</p>
-                      </div>
-                      <span className="rounded-full border border-white/10 px-2.5 py-1 text-[10px]" style={{ color: theme.accent }}>{statusLabels[task.status] || task.status}</span>
-                    </div>
-                    {task.due_date && <p className="mt-3 flex items-center gap-1.5 text-[10px] text-white/35"><CalendarDays size={12} /> Prazo: {new Date(`${task.due_date}T12:00:00`).toLocaleDateString('pt-BR')}</p>}
-                  </div>
-                ))}
-              </div>
-            }
-          </div>
+      {showTaskForm && <form onSubmit={createTask} className="rounded-2xl border border-line bg-surface p-5">
+        <div className="mb-4 flex items-center justify-between"><div><h2 className="text-sm font-semibold text-ink">Nova demanda de produção</h2><p className="mt-1 text-xs text-muted">Defina a frente, a responsabilidade e os prazos.</p></div><button type="button" onClick={() => setShowTaskForm(false)} className="rounded-lg p-2 text-muted hover:bg-ink/5" aria-label="Fechar"><X size={16}/></button></div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="text-xs text-muted sm:col-span-2">Título *<input required maxLength={180} value={taskTitle} onChange={e=>setTaskTitle(e.target.value)} placeholder="Ex.: Finalizar vídeo do culto de domingo" className="mt-1.5 h-10 w-full rounded-lg border border-line bg-canvas px-3 text-sm text-ink"/></label>
+          <label className="text-xs text-muted sm:col-span-2">Briefing / descrição<textarea value={taskDescription} onChange={e=>setTaskDescription(e.target.value)} rows={3} placeholder="Objetivo, formato, referências e orientações da entrega..." className="mt-1.5 w-full rounded-lg border border-line bg-canvas p-3 text-sm text-ink"/></label>
+          <label className="text-xs text-muted">Área de trabalho<select required value={taskArea} onChange={e=>setTaskArea(e.target.value)} className="mt-1.5 h-10 w-full rounded-lg border border-line bg-canvas px-3 text-xs text-ink">{areas.map(area=><option key={area.id} value={area.id}>{area.name}</option>)}</select></label>
+          <label className="text-xs text-muted">Responsável<select value={taskAssignee} onChange={e=>setTaskAssignee(e.target.value)} className="mt-1.5 h-10 w-full rounded-lg border border-line bg-canvas px-3 text-xs text-ink"><option value="">Definir depois</option>{members.map(member=><option key={member.id} value={member.id}>{member.full_name} · {member.function || 'Integrante'}</option>)}</select></label>
+          <label className="text-xs text-muted">Prazo de entrega<input type="date" value={taskDue} onChange={e=>setTaskDue(e.target.value)} className="mt-1.5 h-10 w-full rounded-lg border border-line bg-canvas px-3 text-xs text-ink"/></label>
+          <label className="text-xs text-muted">Data de captação / execução<input type="date" value={taskRecording} onChange={e=>setTaskRecording(e.target.value)} className="mt-1.5 h-10 w-full rounded-lg border border-line bg-canvas px-3 text-xs text-ink"/></label>
+        </div>
+        {taskError && <p className="mt-3 text-xs text-red-500">{taskError}</p>}
+        <div className="mt-4 flex justify-end gap-2"><button type="button" onClick={()=>setShowTaskForm(false)} className="rounded-lg border border-line px-4 py-2 text-xs text-muted">Cancelar</button><button disabled={taskSaving || !taskTitle.trim() || !taskArea} className="rounded-lg px-4 py-2 text-xs font-semibold text-[#111] disabled:opacity-50" style={{background:theme.accent}}>{taskSaving?'Criando...':'Criar demanda'}</button></div>
+      </form>}
 
-          <div className="rounded-2xl border border-white/[.08] bg-white/[.02] p-5">
-            <h2 className="font-semibold text-white">Áreas e projetos</h2>
-            <p className="mb-4 mt-1 text-xs text-white/40">Frentes de trabalho deste departamento</p>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {areas.map(area => <Link key={area.id} to={`/m/studio/production/${area.slug}`} className="rounded-xl border bg-black/20 p-4 transition" style={{ borderColor: `${theme.accent}25` }}>
-                <p className="text-sm font-medium text-white">{area.name}</p>
-                <p className="mt-2 text-[11px] text-white/40">{area.tasks_count} tarefas · {area.open_tasks} em aberto</p>
-                <span className="mt-3 inline-flex items-center gap-1 text-[10px]" style={{ color: theme.accent }}>Abrir área <ArrowUpRight size={12} /></span>
-              </Link>)}
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="min-w-0 space-y-5">
+          <section className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div><h2 className="text-sm font-semibold text-ink">Fluxo de produção</h2><p className="mt-1 text-xs text-muted">Acompanhe cada demanda da entrada à entrega.</p></div>
+              <div className="relative"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted"/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar demanda..." className="h-9 w-full rounded-lg border border-line bg-canvas pl-8 pr-3 text-xs text-ink sm:w-52"/></div>
             </div>
-          </div>
+            <div className="mb-4 flex flex-wrap gap-1.5">{[{id:'all',label:'Todas'},...FLOW.map(s=>({id:s.id,label:s.label}))].map(item=><button key={item.id} type="button" onClick={()=>setStatusFilter(item.id)} className={`rounded-full border px-3 py-1.5 text-[10px] transition ${statusFilter===item.id?'border-transparent bg-ink text-white':'border-line text-muted hover:text-ink'}`}>{item.label}</button>)}</div>
+            <div className="space-y-2">
+              {visibleTasks.map(task=>{
+                const canEdit = canManageTasks || task.created_by === user?.id;
+                const canUpdateStatus = canEdit || task.assigned_to === user?.id;
+                return <article key={task.id} className="rounded-xl border border-line bg-canvas/60 p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h3 className="text-sm font-semibold text-ink">{task.title}</h3><span className="rounded-full border px-2 py-0.5 text-[9px]" style={{borderColor:`${theme.accent}55`,color:theme.accent}}>{FLOW.find(s=>s.id===task.status)?.label || task.status}</span></div><p className="mt-1.5 text-[11px] text-muted">{task.area_name} · {task.assignee_name || 'Sem responsável'}</p>{task.description && <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted">{task.description}</p>}</div>
+                    <div className="flex flex-wrap items-center gap-2 text-[10px] text-muted">{task.due_date && <span className="inline-flex items-center gap-1"><CalendarDays size={12}/>Entrega: {dateLabel(task.due_date)}</span>}{task.recording_date && <span className="inline-flex items-center gap-1"><Video size={12}/>Execução: {dateLabel(task.recording_date)}</span>}</div>
+                  </div>
+                  {(canUpdateStatus || (canManageTasks && members.length>0)) && <div className="mt-3 flex flex-wrap gap-2 border-t border-line pt-3">
+                    {canUpdateStatus && <label className="flex items-center gap-2 text-[10px] text-muted">Etapa<select value={task.status} onChange={e=>void updateTask(task.id,{status:e.target.value})} className="h-8 rounded-lg border border-line bg-surface px-2 text-[10px] text-ink">{FLOW.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}</select></label>}
+                    {canManageTasks && <label className="flex items-center gap-2 text-[10px] text-muted">Responsável<select value={task.assigned_to || ''} onChange={e=>void updateTask(task.id,{assigned_to:e.target.value||null})} className="h-8 max-w-[190px] rounded-lg border border-line bg-surface px-2 text-[10px] text-ink"><option value="">Sem responsável</option>{members.map(m=><option key={m.id} value={m.id}>{m.full_name}</option>)}</select></label>}
+                  </div>}
+                </article>;
+              })}
+              {!visibleTasks.length && <div className="rounded-xl border border-dashed border-line py-10 text-center"><FolderKanban className="mx-auto h-6 w-6 text-muted/50"/><p className="mt-2 text-xs text-muted">{search || statusFilter!=='all'?'Nenhuma demanda corresponde a este filtro.':'Nenhuma demanda cadastrada neste departamento.'}</p></div>}
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
+            <div className="mb-4"><h2 className="text-sm font-semibold text-ink">Frentes de trabalho</h2><p className="mt-1 text-xs text-muted">Áreas e projetos vinculados ao departamento.</p></div>
+            <div className="grid gap-3 sm:grid-cols-2">{areas.map(area=><Link key={area.id} to={`/m/studio/production/${area.slug}`} className="group rounded-xl border border-line bg-canvas/60 p-4 transition hover:border-brass/50"><div className="flex items-start justify-between"><FolderKanban size={17} className="text-brass"/><ArrowUpRight size={14} className="text-muted transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5"/></div><h3 className="mt-3 text-sm font-semibold text-ink">{area.name}</h3><p className="mt-1 text-[11px] text-muted">{area.description || 'Frente de produção do departamento.'}</p><div className="mt-4 flex gap-3 border-t border-line pt-3 text-[10px] text-muted"><span>{area.tasks_count} demandas</span><span>{area.open_tasks} em aberto</span></div></Link>)}</div>
+            {!areas.length && <p className="py-6 text-center text-xs text-muted">Nenhuma frente de trabalho cadastrada.</p>}
+          </section>
         </div>
 
-        <aside className="rounded-2xl border border-white/[.08] bg-white/[.02] p-5">
-          <div className="mb-5 flex items-center justify-between">
-            <div>
-              <h2 className="font-semibold text-white">Equipe</h2>
-              <p className="mt-1 text-xs text-white/40">Pessoas vinculadas ao departamento</p>
-            </div>
-            <div className="flex items-center gap-2">
-              {canManageTeam && <button type="button" onClick={() => setShowMemberForm(value => !value)} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-white/10 px-2.5 text-[11px] text-white/70 transition hover:border-white/25 hover:text-white"><Plus size={13} /> Gerenciar</button>}
-              <Users size={18} style={{ color: theme.accent }} />
-            </div>
-          </div>
-          {members.length === 0 ? <p className="py-8 text-center text-sm text-white/35">Equipe ainda não cadastrada.</p> :
-            <div className="space-y-3">
-              {members.map(member => <div key={member.id} className="flex items-center gap-3 border-b border-white/[.06] pb-3 last:border-0">
-                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-semibold" style={{ background: `${theme.accent}18`, color: theme.accent }}>
-                  {member.full_name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm text-white">{member.full_name}</p>
-                  <p className="text-[11px] text-white/40">{member.function || 'Integrante'}</p>
-                </div>
-                {canManageTeam && <button type="button" onClick={() => void removeMember(member.id)} aria-label={`Remover ${member.full_name} da equipe`} className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-white/35 transition hover:bg-red-400/10 hover:text-red-300"><X size={14} /></button>}
-              </div>)}
-            </div>
-          }
-          {canManageTeam && showMemberForm && <form onSubmit={addMember} className="mb-5 space-y-3 rounded-xl border border-white/10 bg-black/20 p-3">
-            <label className="block text-[10px] uppercase tracking-wider text-white/45">Adicionar participante</label>
-            <select required value={selectedUser} onChange={e => setSelectedUser(e.target.value)} className="h-9 w-full rounded-lg border border-white/10 bg-[#171717] px-2 text-xs text-white">
-              <option value="">Selecionar pessoa</option>
-              {(memberOptions?.items || []).map(person => <option key={person.id} value={person.id}>{person.full_name}</option>)}
-            </select>
-            <input value={memberFunction} onChange={e => setMemberFunction(e.target.value)} maxLength={80} placeholder="Função na equipe" className="h-9 w-full rounded-lg border border-white/10 bg-[#171717] px-3 text-xs text-white placeholder:text-white/30" />
-            {memberError && <p className="text-[11px] text-red-300">{memberError}</p>}
-            <div className="flex justify-end gap-2">
-              <button type="button" onClick={() => setShowMemberForm(false)} className="rounded-lg px-3 py-2 text-[11px] text-white/50">Cancelar</button>
-              <button disabled={memberSaving || !selectedUser} className="rounded-lg bg-[#C4A66A] px-3 py-2 text-[11px] font-semibold text-[#111] disabled:opacity-50">{memberSaving ? 'Salvando...' : 'Adicionar à equipe'}</button>
-            </div>
-          </form>}
-          <div className="mt-6 border-t border-white/[.07] pt-5">
-            <Link to="/m/studio/schedules" className="flex items-center justify-between text-xs text-white/55 hover:text-[#D8BD86]">Consultar escalas <ArrowUpRight size={14} /></Link>
-          </div>
+        <aside className="space-y-5">
+          <section className="rounded-2xl border border-line bg-surface p-5">
+            <div className="mb-4 flex items-center justify-between gap-2"><div><h2 className="text-sm font-semibold text-ink">Equipe responsável</h2><p className="mt-1 text-[11px] text-muted">{members.length} integrantes vinculados</p></div><Users size={17} className="text-brass"/></div>
+            {members.length ? <div className="space-y-3">{members.map(member=><div key={member.id} className="flex items-center gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ink/[.05] text-[10px] font-semibold text-ink">{member.full_name.split(/\s+/).slice(0,2).map(n=>n[0]).join('').toUpperCase()}</span><div className="min-w-0 flex-1"><p className="truncate text-xs font-medium text-ink">{member.full_name}</p><p className="text-[10px] text-muted">{member.function || 'Integrante'}</p></div>{canManageTeam && <button type="button" onClick={()=>void removeMember(member.id)} aria-label={`Remover ${member.full_name}`} className="rounded-lg p-1.5 text-muted hover:bg-red-500/10 hover:text-red-500"><X size={13}/></button>}</div>)}</div> : <p className="py-5 text-center text-xs text-muted">Equipe ainda não cadastrada.</p>}
+            {canManageTeam && <button type="button" onClick={()=>setShowMemberForm(v=>!v)} className="mt-4 inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-line text-xs text-ink transition hover:border-brass/50"><Plus size={14}/> Gerenciar participantes</button>}
+            {canManageTeam && showMemberForm && <form onSubmit={addMember} className="mt-3 space-y-2 rounded-xl border border-line bg-canvas p-3"><select required value={selectedUser} onChange={e=>setSelectedUser(e.target.value)} className="h-9 w-full rounded-lg border border-line bg-surface px-2 text-xs text-ink"><option value="">Selecionar pessoa</option>{(memberOptions?.items||[]).map(person=><option key={person.id} value={person.id}>{person.full_name}</option>)}</select><input value={memberFunction} onChange={e=>setMemberFunction(e.target.value)} maxLength={80} placeholder="Função na equipe" className="h-9 w-full rounded-lg border border-line bg-surface px-3 text-xs text-ink"/>{memberError&&<p className="text-[11px] text-red-500">{memberError}</p>}<div className="flex justify-end gap-2"><button type="button" onClick={()=>setShowMemberForm(false)} className="px-3 py-2 text-[11px] text-muted">Cancelar</button><button disabled={memberSaving||!selectedUser} className="rounded-lg bg-ink px-3 py-2 text-[11px] font-semibold text-white disabled:opacity-50">{memberSaving?'Salvando...':'Adicionar'}</button></div></form>}
+          </section>
+          <section className="rounded-2xl border border-line bg-surface p-5"><div className="flex items-center gap-2"><CalendarDays size={16} className="text-brass"/><h2 className="text-sm font-semibold text-ink">Organização da equipe</h2></div><p className="mt-2 text-xs leading-relaxed text-muted">Consulte as escalas publicadas e confirme sua disponibilidade para os próximos compromissos.</p><Link to="/m/studio/schedules" className="mt-4 flex items-center justify-between border-t border-line pt-3 text-xs font-medium text-ink hover:text-brass">Abrir escalas <ArrowUpRight size={14}/></Link></section>
+          <section className="rounded-2xl border border-line bg-surface p-5"><div className="flex items-center gap-2"><UserRound size={16} className="text-brass"/><h2 className="text-sm font-semibold text-ink">Meu espaço</h2></div><p className="mt-2 text-xs leading-relaxed text-muted">Veja suas tarefas atribuídas e acompanhe suas entregas pessoais.</p><Link to="/m/studio/production/my-space" className="mt-4 flex items-center justify-between border-t border-line pt-3 text-xs font-medium text-ink hover:text-brass">Ver minhas demandas <ArrowUpRight size={14}/></Link></section>
         </aside>
       </section>
     </div>
