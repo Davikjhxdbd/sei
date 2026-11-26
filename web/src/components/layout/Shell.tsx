@@ -162,6 +162,9 @@ export function Shell({
     : location.pathname.startsWith('/m/studio') ? 'Produção Criativa'
     : location.pathname.startsWith('/m/communication') ? 'Comunicação'
     : location.pathname.startsWith('/gestao') ? 'Gestão'
+    : location.pathname.startsWith('/calendar') ? 'Agenda'
+    : location.pathname.startsWith('/notifications') ? 'Notificações'
+    : location.pathname.startsWith('/profile') ? 'Meu perfil'
     : 'Meu Espaço'
   );
 
