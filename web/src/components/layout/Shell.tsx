@@ -9,6 +9,7 @@ import {
 import { useAuth } from '../../lib/auth';
 import { ROLE_LABELS } from '../../lib/format';
 import type { ModuleRecord } from '../../lib/types';
+import type { NavGroup } from '../../modules/registry';
 import { Avatar } from '../ui';
 
 function useOutside(open: boolean, onClose: () => void) {
@@ -136,6 +137,8 @@ export function Shell({
   sectionLabel,
 }: {
   module?: ModuleRecord;
+  nav?: NavGroup[];
+  sidebarEyebrow?: string;
   children: ReactNode;
   sectionLabel?: string;
 }) {
