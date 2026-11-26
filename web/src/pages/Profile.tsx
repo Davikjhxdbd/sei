@@ -34,6 +34,7 @@ import {
   StatusBadge,
 } from '../components/ui';
 import { useToast } from '../components/Toast';
+import { PushNotifications } from '../components/PushNotifications';
 
 interface ProfilePayload {
   user: {
@@ -342,6 +343,7 @@ export default function Profile() {
         </div>
 
         <div className="space-y-5">
+          <PushNotifications />
           <div className="grid grid-cols-2 gap-3">
             <StatCard
               label="Tarefas concluídas"
