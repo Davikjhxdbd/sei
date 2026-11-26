@@ -1,7 +1,7 @@
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import type { CSSProperties } from 'react';
 import {
-  ArrowLeft, ArrowUpRight, BriefcaseBusiness, Camera, ChartNoAxesCombined,
+  ArrowUpRight, BriefcaseBusiness, Camera, ChartNoAxesCombined,
   CheckSquare, Clapperboard, Clock3, FolderKanban, MessageSquareText,
   Palette, Presentation, RadioTower, Sparkles, Users, CalendarCheck,
   Bot, LockKeyhole, CalendarDays, FileText, ShieldCheck, Settings2,
@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useAuth } from '../lib/auth';
+import { Shell } from '../components/layout/Shell';
 
 type AppCard = {
   title: string;
@@ -173,7 +174,6 @@ function CardContent({ card, mode }: { card: AppCard; mode: Workspace['mode'] })
 
 export default function WorkspaceHub() {
   const { slug = '' } = useParams();
-  const navigate = useNavigate();
   const { level, user } = useAuth();
   const workspace = workspaces[slug];
   const firstName = user?.full_name?.trim().split(/\s+/)[0] ?? 'equipe';
@@ -183,10 +183,9 @@ export default function WorkspaceHub() {
   const HeroIcon = workspace.icon;
   const Artwork = workspace.mode === 'office' ? OfficeArtwork : workspace.mode === 'studio' ? StudioArtwork : workspace.mode === 'command' ? CommandArtwork : AdminArtwork;
   const visibleCards = workspace.cards.filter((card) => level >= (card.access ?? 1));
-  return <main className={`workspace-page workspace-${workspace.mode} min-h-[calc(100vh-3.5rem)] overflow-hidden text-white`} style={{ '--workspace-accent': workspace.accent, '--workspace-glow': workspace.tint } as CSSProperties}>
+  return <Shell sectionLabel={workspace.title.replace(/\\.$/, '')}><main className={`workspace-page workspace-${workspace.mode} min-h-[calc(100vh-3.5rem)] overflow-hidden text-white`} style={{ '--workspace-accent': workspace.accent, '--workspace-glow': workspace.tint } as CSSProperties}>
     <div className="workspace-atmosphere" aria-hidden="true"/>
     <div className="relative mx-auto w-full max-w-[1360px] px-4 py-5 sm:px-7 sm:py-8 lg:px-10">
-      <button onClick={() => navigate('/')} className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[.035] px-3.5 py-2 text-[11px] font-semibold text-white/55 transition hover:border-white/20 hover:text-white"><ArrowLeft size={14}/>Central de aplicativos</button>
       <section className="workspace-hero relative overflow-hidden rounded-[28px] border border-white/10">
         <div className="workspace-hero-copy relative z-10 p-6 sm:p-9 lg:p-11">
           <p className="mb-4 flex items-center gap-2 text-[9px] font-bold tracking-[.25em]" style={{color:workspace.accent}}><span className="h-1.5 w-1.5 rounded-full" style={{background:workspace.accent}}/>{workspace.eyebrow}</p>
@@ -213,5 +212,5 @@ export default function WorkspaceHub() {
       </section>
       <footer className="mt-9 flex flex-wrap items-center justify-between gap-3 border-t border-white/[.08] pt-5 text-[9px] tracking-[.15em] text-white/25"><span className="flex items-center gap-2"><Sparkles size={12} style={{color:workspace.accent}}/>UM AMBIENTE FEITO PARA O SEU TRABALHO</span><span>MMV CREATIVE · {workspace.mode.toUpperCase()}</span></footer>
     </div>
-  </main>;
+  </main></Shell>;
 }
