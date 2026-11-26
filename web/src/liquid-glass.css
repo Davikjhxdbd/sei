@@ -1,0 +1,195 @@
+/* MMV CREATIVE — Liquid Glass equilibrado
+   Camada visual global: preserva layout, cores, contraste e comportamento.
+*/
+:root {
+  --mmv-glass-edge: rgba(255,255,255,.105);
+  --mmv-glass-highlight: rgba(255,255,255,.085);
+  --mmv-glass-fill: rgba(27,28,29,.70);
+  --mmv-glass-shadow: 0 18px 48px rgba(0,0,0,.24);
+  --mmv-glass-blur: 20px;
+}
+
+.light {
+  --mmv-glass-edge: rgba(164,134,78,.18);
+  --mmv-glass-highlight: rgba(255,255,255,.82);
+  --mmv-glass-fill: rgba(250,249,246,.76);
+  --mmv-glass-shadow: 0 16px 40px rgba(45,38,25,.09);
+}
+
+.mmv-app-shell {
+  background:
+    radial-gradient(ellipse at 84% 0%, rgba(196,166,106,.075), transparent 38%),
+    radial-gradient(ellipse at 0% 65%, rgba(255,255,255,.018), transparent 34%),
+    rgb(var(--mmv-canvas));
+}
+
+.mmv-app-topbar {
+  background: linear-gradient(110deg, rgba(13,14,15,.82), rgba(27,26,23,.76) 56%, rgba(13,14,15,.82));
+  border-bottom: 1px solid rgba(255,255,255,.105);
+  -webkit-backdrop-filter: saturate(165%) blur(24px);
+  backdrop-filter: saturate(165%) blur(24px);
+  box-shadow: 0 12px 34px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.055);
+}
+
+.mmv-app-sidebar {
+  background: linear-gradient(160deg, rgba(34,34,34,.76), rgba(15,16,17,.84));
+  border-right: 1px solid rgba(255,255,255,.075);
+  -webkit-backdrop-filter: saturate(145%) blur(22px);
+  backdrop-filter: saturate(145%) blur(22px);
+}
+
+.mmv-app-mobile-nav {
+  background: rgba(24,25,26,.78);
+  border-color: rgba(255,255,255,.10);
+  box-shadow: 0 14px 38px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.075);
+  -webkit-backdrop-filter: saturate(165%) blur(22px);
+  backdrop-filter: saturate(165%) blur(22px);
+}
+
+.mmv-app-shell .mmv-surface {
+  position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(132deg, rgba(255,255,255,.052), transparent 38%),
+    linear-gradient(145deg, rgba(43,44,44,.76), rgba(24,25,26,.72));
+  border-color: var(--mmv-glass-edge);
+  box-shadow:
+    var(--mmv-glass-shadow),
+    inset 0 1px 0 var(--mmv-glass-highlight),
+    inset 0 -1px 0 rgba(196,166,106,.035);
+  -webkit-backdrop-filter: saturate(140%) blur(var(--mmv-glass-blur));
+  backdrop-filter: saturate(140%) blur(var(--mmv-glass-blur));
+  transition: border-color 240ms ease, box-shadow 240ms ease, transform 240ms ease;
+}
+
+.mmv-app-shell .mmv-surface::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.018);
+  background: linear-gradient(118deg, rgba(255,255,255,.035), transparent 25%, transparent 76%, rgba(196,166,106,.025));
+  opacity: .9;
+}
+
+.mmv-app-shell .mmv-directory-toolbar,
+.mmv-app-shell .mmv-announcement-card {
+  background:
+    linear-gradient(130deg, rgba(255,255,255,.055), transparent 42%),
+    rgba(29,30,30,.68);
+  border-color: var(--mmv-glass-edge);
+  box-shadow: 0 12px 34px rgba(0,0,0,.16), inset 0 1px 0 var(--mmv-glass-highlight);
+  -webkit-backdrop-filter: saturate(145%) blur(18px);
+  backdrop-filter: saturate(145%) blur(18px);
+}
+
+.mmv-app-shell [role="menu"],
+.mmv-app-shell [role="dialog"],
+.mmv-app-shell .mmv-glass-modal {
+  background:
+    radial-gradient(ellipse at 92% 0%, rgba(196,166,106,.085), transparent 40%),
+    linear-gradient(145deg, rgba(38,39,39,.94), rgba(19,20,21,.94));
+  border-color: rgba(255,255,255,.14);
+  box-shadow: 0 26px 76px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.09);
+  -webkit-backdrop-filter: saturate(160%) blur(26px);
+  backdrop-filter: saturate(160%) blur(26px);
+}
+
+.mmv-app-topbar [aria-haspopup="menu"] {
+  background: linear-gradient(125deg, rgba(255,255,255,.085), rgba(255,255,255,.025));
+  border-color: rgba(255,255,255,.13);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+.mmv-app-shell input,
+.mmv-app-shell textarea,
+.mmv-app-shell select {
+  background-color: rgba(255,255,255,.045);
+  border-color: rgba(255,255,255,.13);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.mmv-app-shell input:focus,
+.mmv-app-shell textarea:focus,
+.mmv-app-shell select:focus {
+  border-color: rgba(216,189,134,.48);
+  box-shadow: 0 0 0 3px rgba(196,166,106,.10), inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .mmv-app-shell .mmv-surface:hover {
+    border-color: rgba(216,189,134,.24);
+    box-shadow: 0 22px 54px rgba(0,0,0,.27), inset 0 1px 0 rgba(255,255,255,.10);
+  }
+}
+
+.light .mmv-app-topbar {
+  background: rgba(248,247,243,.78);
+  border-bottom-color: rgba(164,134,78,.17);
+  box-shadow: 0 10px 28px rgba(45,38,25,.07), inset 0 1px 0 rgba(255,255,255,.92);
+}
+
+.light .mmv-app-sidebar {
+  background: rgba(249,248,244,.78);
+  border-right-color: rgba(164,134,78,.14);
+}
+
+.light .mmv-app-mobile-nav {
+  background: rgba(250,249,246,.78);
+  border-color: rgba(164,134,78,.17);
+  box-shadow: 0 12px 30px rgba(45,38,25,.08), inset 0 1px 0 rgba(255,255,255,.95);
+}
+
+.light .mmv-app-shell .mmv-surface,
+.light .mmv-app-shell .mmv-directory-toolbar,
+.light .mmv-app-shell .mmv-announcement-card {
+  background:
+    linear-gradient(132deg, rgba(255,255,255,.88), rgba(255,255,255,.52)),
+    rgba(250,249,246,.78);
+  border-color: rgba(164,134,78,.17);
+  box-shadow: 0 14px 34px rgba(45,38,25,.075), inset 0 1px 0 rgba(255,255,255,.92);
+}
+
+.light .mmv-app-shell [role="menu"],
+.light .mmv-app-shell [role="dialog"],
+.light .mmv-app-shell .mmv-glass-modal {
+  background:
+    radial-gradient(ellipse at 92% 0%, rgba(196,166,106,.10), transparent 42%),
+    rgba(250,249,246,.92);
+  border-color: rgba(164,134,78,.20);
+  box-shadow: 0 24px 64px rgba(45,38,25,.16), inset 0 1px 0 rgba(255,255,255,.96);
+}
+
+.light .mmv-app-shell input,
+.light .mmv-app-shell textarea,
+.light .mmv-app-shell select {
+  background-color: rgba(255,255,255,.66);
+  border-color: rgba(164,134,78,.20);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .mmv-app-topbar { background: #151515; }
+  .mmv-app-sidebar { background: #202020; }
+  .mmv-app-mobile-nav,
+  .mmv-app-shell .mmv-surface,
+  .mmv-app-shell [role="menu"],
+  .mmv-app-shell [role="dialog"] { background-color: rgb(var(--mmv-surface)); }
+  .light .mmv-app-topbar,
+  .light .mmv-app-sidebar,
+  .light .mmv-app-mobile-nav,
+  .light .mmv-app-shell .mmv-surface { background-color: rgb(var(--mmv-surface)); }
+}
+
+@media (max-width: 640px) {
+  .mmv-app-shell .mmv-surface { --mmv-glass-blur: 14px; }
+  .mmv-app-topbar,
+  .mmv-app-mobile-nav { -webkit-backdrop-filter: saturate(150%) blur(18px); backdrop-filter: saturate(150%) blur(18px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mmv-app-shell .mmv-surface,
+  .mmv-app-topbar [aria-haspopup="menu"] { transition: none; }
+}
