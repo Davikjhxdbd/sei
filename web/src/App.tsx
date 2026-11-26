@@ -10,7 +10,7 @@ import Login from './pages/Login';
 import ResetPassword from './pages/ResetPassword';
 import AppCentral from './pages/AppCentral';
 import People from './pages/People';
-import Departments from './pages/Departments';
+import ProductionAudiovisual from './pages/ProductionAudiovisual';
 import Communication from './pages/Communication';
 import DesignLab from './pages/DesignLab';
 import CalendarPage from './pages/Calendar';
@@ -147,8 +147,9 @@ export default function App() {
         <Route path="/m/people" element={<ModuleLayout moduleKey="people" />}>
           <Route index element={<People />} />
         </Route>
-        <Route path="/m/departments" element={<ModuleLayout moduleKey="departments" />}>
-          <Route index element={<Departments />} />
+        <Route path="/m/production" element={<ModuleLayout moduleKey="production" />}>
+          <Route index element={<ProductionAudiovisual />} />
+          <Route path=":slug" element={<ProductionAudiovisual />} />
         </Route>
         <Route path="/m/communication" element={<ModuleLayout moduleKey="communication" />}>
           <Route index element={<Communication />} />
