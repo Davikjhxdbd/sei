@@ -274,29 +274,13 @@ router.patch('/production/tasks/:id', asyncHandler(async (req: any, res) => {
   const description = req.body?.description !== undefined ? optionalText(req.body.description) : before.description;
   const dueDate = req.body?.due_date !== undefined ? req.body.due_date : before.due_date;
   const recordingDate = req.body?.recording_date !== undefined ? req.body.recording_date : before.recording_date;
-  const assigneeProvided = Object.prototype.hasOwnProperty.call(req.body ?? {}, 'assigned_to');
-  const assignedTo = assigneeProvided ? (req.body.assigned_to || null) : before.assigned_to;
-
-  if (assigneeProvided && assignedTo) {
-    const member = await req.db.query(
-      `select 1
-         from production_members pm
-         join users u on u.id = pm.user_id
-        where pm.area_id = $1 and pm.user_id = $2 and u.status = 'active'
-        for share of pm, u`,
-      [before.area_id, assignedTo]
-    );
-    if (!member.rows.length) {
-      throw badRequest('O responsável precisa ser membro ativo desta equipe.');
-    }
-  }
 
   const { rows } = await req.db.query(`
     update production_tasks
        set title = $1, description = $2, due_date = $3, recording_date = $4,
-           status = coalesce($5, status), assigned_to = $6, updated_at = now()
-     where id = $7 returning *
-  `, [title, description, dueDate, recordingDate, status || null, assignedTo, req.params.id]);
+           status = coalesce($5, status), updated_at = now()
+     where id = $6 returning *
+  `, [title, description, dueDate, recordingDate, status || null, req.params.id]);
 
   await req.db.query(`
     insert into production_task_history (task_id, user_id, action, details)
@@ -311,29 +295,6 @@ router.patch('/production/tasks/:id', asyncHandler(async (req: any, res) => {
     after: rows[0],
     moduleKey: 'studio'
   });
-
-  if (before.assigned_to !== rows[0].assigned_to && rows[0].assigned_to !== req.user.id) {
-    await notify(req.db, {
-      userId: rows[0].assigned_to,
-      title: 'Tarefa de produção atribuída a você',
-      body: rows[0].title,
-      link: '/m/studio/my-space',
-      moduleKey: 'studio'
-    });
-  }
-
-  if (before.status !== rows[0].status) {
-    const recipients = new Set([before.created_by, rows[0].assigned_to].filter((id) => id && id !== req.user.id));
-    for (const userId of recipients) {
-      await notify(req.db, {
-        userId,
-        title: 'Atualização na produção',
-        body: `${rows[0].title}: ${rows[0].status}`,
-        link: '/m/studio/my-space',
-        moduleKey: 'studio'
-      });
-    }
-  }
   return rows[0];
   });
 

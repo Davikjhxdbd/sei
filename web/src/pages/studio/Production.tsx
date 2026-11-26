@@ -41,7 +41,7 @@ function dateLabel(value?: string | null) {
   return date.toLocaleDateString('pt-BR');
 }
 
-function TaskCard({ task, onStatus }: { task: any; onStatus: (id: string, status: string) => void }) {
+function TaskCard({ task, onStatus, members = [], canAssign = false, onAssignee }: { task: any; onStatus: (id: string, status: string) => void; members?: any[]; canAssign?: boolean; onAssignee?: (id: string, userId: string) => void }) {
   return (
     <article className="rounded-xl border border-line bg-surface p-4">
       <div className="flex items-start justify-between gap-3">
@@ -53,6 +53,7 @@ function TaskCard({ task, onStatus }: { task: any; onStatus: (id: string, status
       {task.description && <p className="mt-2 text-xs leading-relaxed text-muted">{task.description}</p>}
       <div className="mt-4 space-y-2 text-[11px] text-muted">
         <div className="flex items-center gap-2"><UserRound className="h-3.5 w-3.5" />{task.assignee_name || 'Sem responsável'}</div>
+        {canAssign && onAssignee && <label className="block"><span className="sr-only">Alterar responsável</span><select aria-label="Alterar responsável" value={task.assigned_to || ''} onChange={(e) => onAssignee(task.id, e.target.value)} className="h-8 w-full rounded-lg border border-line bg-canvas px-2 text-[11px] text-ink"><option value="">Sem responsável</option>{members.map((person: any) => <option key={person.id} value={person.id}>{person.full_name}</option>)}</select></label>}
         <div className="flex items-center gap-2"><CalendarDays className="h-3.5 w-3.5" />Prazo: {dateLabel(task.due_date)}</div>
         {task.recording_date && <div className="flex items-center gap-2"><Video className="h-3.5 w-3.5" />Gravação: {dateLabel(task.recording_date)}</div>}
       </div>
@@ -125,6 +126,15 @@ export default function Production() {
     }
   }
 
+  async function updateAssignee(id: string, assigned_to: string) {
+    try {
+      await patch(`/studio/production/tasks/${id}`, { assigned_to: assigned_to || null });
+      reload();
+    } catch (err: any) {
+      window.alert(err.message || 'Não foi possível alterar o responsável.');
+    }
+  }
+
   if (loading) {
     return <div className="flex items-center justify-center gap-3 py-20 text-sm text-muted"><Loader2 className="h-5 w-5 animate-spin" />Carregando produção...</div>;
   }
@@ -186,7 +196,7 @@ export default function Production() {
             const items = tasks.filter((task: any) => task.status === step.id);
             return <section key={step.id} className="min-w-0 rounded-xl border border-line bg-ink/[0.02] p-3">
               <div className="mb-3 flex items-center justify-between gap-2"><h3 className="text-xs font-semibold text-ink">{step.label}</h3><span className="rounded-full bg-ink/[0.06] px-2 py-0.5 text-[10px] text-muted">{items.length}</span></div>
-              <div className="space-y-2">{items.map((task: any) => <TaskCard key={task.id} task={task} onStatus={updateStatus} />)}</div>
+              <div className="space-y-2">{items.map((task: any) => <TaskCard key={task.id} task={task} onStatus={updateStatus} members={members} canAssign={level >= 3} onAssignee={updateAssignee} />)}</div>
               {!items.length && <p className="rounded-lg border border-dashed border-line p-4 text-center text-[10px] text-muted">Nenhuma tarefa</p>}
             </section>;
           })}
