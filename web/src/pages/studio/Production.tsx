@@ -42,7 +42,7 @@ function dateLabel(value?: string | null) {
 }
 
 function ProductionShowcase({ tasks }: { tasks: any[] }) {
-  const active = tasks.filter((task) => task.status !== 'published');
+  const active = tasks.filter((task) => STATUS.some((stage) => stage.id === task.status && stage.id !== 'published'));
   const delivered = tasks.filter((task) => task.status === 'published');
   const stages = [
     { id: 'planning', label: 'Planejamento' },
