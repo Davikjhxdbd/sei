@@ -1,4 +1,4 @@
-import { createECDH, createPrivateKey, createSign, createCipheriv, createHmac } from 'node:crypto';
+import { createECDH, createPrivateKey, createSign, createCipheriv, createHmac, randomBytes } from 'node:crypto';
 import type { Db } from './db';
 
 type PushSubscriptionRow = {
@@ -76,7 +76,7 @@ function encryptPayload(payload: Buffer, clientPublicKey: Buffer, authSecret: Bu
     serverPublicKey,
   ]);
   const inputKeyMaterial = hkdfExpand(authPrk, keyInfo, 32);
-  const salt = Buffer.from(Array.from({ length: 16 }, () => Math.floor(Math.random() * 256)));
+  const salt = randomBytes(16);
   const prk = hmac(salt, inputKeyMaterial);
   const cek = hkdfExpand(prk, Buffer.from('Content-Encoding: aes128gcm\0', 'utf8'), 16);
   const nonce = hkdfExpand(prk, Buffer.from('Content-Encoding: nonce\0', 'utf8'), 12);
