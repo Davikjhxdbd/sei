@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 import type { CSSProperties } from 'react';
 import {
-  ArrowUpRight, BriefcaseBusiness, Camera, ChartNoAxesCombined,
+  ArrowLeft, ArrowUpRight, BriefcaseBusiness, Camera, ChartNoAxesCombined,
   CheckSquare, Clapperboard, Clock3, FolderKanban, MessageSquareText,
   Palette, Presentation, RadioTower, Sparkles, Users, CalendarCheck,
   Bot, LockKeyhole, CalendarDays, FileText, ShieldCheck, Settings2,
