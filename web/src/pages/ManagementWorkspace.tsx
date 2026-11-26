@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
-  ArrowLeft, ArrowUpRight, BriefcaseBusiness, CalendarDays, Check,
+  ArrowUpRight, BriefcaseBusiness, CalendarDays, Check,
   CheckCircle2, Circle, Clock3, FolderKanban, ListTodo, Plus, Search,
   Sparkles, Target, X, Pause, Play, Archive,
 } from 'lucide-react';
@@ -9,6 +9,7 @@ import { get, patch, post } from '../lib/api';
 import { useApi } from '../lib/useApi';
 import { useToast } from '../components/Toast';
 import { useAuth } from '../lib/auth';
+import { Shell } from '../components/layout/Shell';
 
 type Project = {
   id: string; owner_id: string; owner_name: string; name: string; description: string | null; status: 'active'|'paused'|'completed'|'archived';
@@ -105,9 +106,8 @@ export default function ManagementWorkspace() {
 
   const activeProjects=(data?.projects??[]).filter(p=>p.status==='active').length;
   const overdue=(data?.totals?.overdue_tasks??0);
-  return <main className="min-h-screen bg-[#0b0d10] px-4 py-5 text-white sm:px-7 sm:py-8">
+  return <Shell sectionLabel="Gestão"><main className="min-h-screen bg-[#0b0d10] px-4 py-5 text-white sm:px-7 sm:py-8">
     <div className="mx-auto max-w-6xl">
-      <Link to="/ambiente/gestao" className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[.035] px-3.5 py-2 text-[11px] font-semibold text-white/55 hover:text-white"><ArrowLeft size={14}/>Seu escritório</Link>
       <header className="relative overflow-hidden rounded-[26px] border border-[#d7bd8d]/20 bg-[radial-gradient(ellipse_at_90%_10%,rgba(196,166,106,.17),transparent_42%),linear-gradient(120deg,#25221c,#151719_72%)] p-6 sm:p-9">
         <div className="relative z-10 max-w-2xl">
           <p className="flex items-center gap-2 text-[9px] font-bold tracking-[.24em] text-[#d7bd8d]"><BriefcaseBusiness size={13}/> GESTÃO · SUA MESA DE TRABALHO</p>
@@ -176,5 +176,5 @@ export default function ManagementWorkspace() {
       </section>
       <footer className="mt-10 flex items-center justify-between border-t border-white/[.08] pt-5 text-[9px] tracking-[.15em] text-white/25"><span>MMV CREATIVE · GESTÃO PESSOAL</span><span>{activeProjects} projetos ativos</span></footer>
     </div>
-  </main>;
+  </main></Shell>;
 }
