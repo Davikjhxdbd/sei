@@ -159,7 +159,7 @@ export default function ManagementWorkspace() {
             <button onClick={()=>{setSearchParams({tab:'projetos'});setShowForm(false);}} className={`rounded-lg px-4 py-2 text-xs font-semibold ${tab==='projetos'?'bg-[#d7bd8d] text-[#17140e]':'text-white/55'}`}><FolderKanban size={13} className="mr-1.5 inline"/>Projetos</button>
             <button onClick={()=>{setSearchParams({tab:'espaco'});setShowForm(false);}} className={`rounded-lg px-4 py-2 text-xs font-semibold ${tab==='espaco'?'bg-[#d7bd8d] text-[#17140e]':'text-white/55'}`}><Target size={13} className="mr-1.5 inline"/>Meu espaço</button>
           </div>
-          <button onClick={()=>tab==='tarefas'?newTask():newProject()} className="inline-flex items-center gap-2 rounded-xl bg-[#d7bd8d] px-4 py-2.5 text-xs font-bold text-[#17140e] hover:bg-[#e4cca0]"><Plus size={15}/>{tab==='tarefas'?'Nova tarefa':'Novo projeto'}</button>
+          {tab!=='espaco' && <button onClick={()=>tab==='tarefas'?newTask():newProject()} className="inline-flex items-center gap-2 rounded-xl bg-[#d7bd8d] px-4 py-2.5 text-xs font-bold text-[#17140e] hover:bg-[#e4cca0]"><Plus size={15}/>{tab==='tarefas'?'Nova tarefa':'Novo projeto'}</button>}
         </div>
 
         {showForm && tab!=='espaco' && <form onSubmit={tab==='tarefas'?saveTask:saveProject} className="mt-4 rounded-2xl border border-[#d7bd8d]/25 bg-[#1b1c1b] p-5">
@@ -205,7 +205,7 @@ export default function ManagementWorkspace() {
             <article className="rounded-2xl border border-white/[.08] bg-white/[.035] p-4"><p className="text-[10px] text-white/40">Minhas tarefas abertas</p><p className="mt-2 text-2xl font-semibold tabular-nums">{personalTasks.filter(task=>['todo','doing','waiting'].includes(task.status)).length}</p></article>
             <article className="rounded-2xl border border-white/[.08] bg-white/[.035] p-4"><p className="text-[10px] text-white/40">Em andamento</p><p className="mt-2 text-2xl font-semibold tabular-nums">{personalTasks.filter(task=>task.status==='doing').length}</p></article>
             <article className="rounded-2xl border border-white/[.08] bg-white/[.035] p-4"><p className="text-[10px] text-white/40">Meus projetos ativos</p><p className="mt-2 text-2xl font-semibold tabular-nums">{myProjects.filter(project=>project.status==='active').length}</p></article>
-            <article className="rounded-2xl border border-white/[.08] bg-white/[.035] p-4"><p className="text-[10px] text-white/40">Concluídas esta semana</p><p className="mt-2 text-2xl font-semibold tabular-nums">{personalTasks.filter(task=>task.status==='done').length}</p></article>
+            <article className="rounded-2xl border border-white/[.08] bg-white/[.035] p-4"><p className="text-[10px] text-white/40">Tarefas concluídas</p><p className="mt-2 text-2xl font-semibold tabular-nums">{personalTasks.filter(task=>task.status==='done').length}</p></article>
           </div>
           <div className="grid gap-4 lg:grid-cols-[1.15fr_.85fr]">
             <section className="rounded-2xl border border-[#d7bd8d]/20 bg-[linear-gradient(120deg,rgba(215,189,141,.09),rgba(255,255,255,.025))] p-5">
@@ -221,8 +221,8 @@ export default function ManagementWorkspace() {
               </div>
             </section>
             <section className="rounded-2xl border border-white/[.08] bg-white/[.025] p-5">
-              <p className="text-[9px] font-bold tracking-[.2em] text-[#d7bd8d]">MINHA PARTICIPAÇÃO</p>
-              <h2 className="mt-2 text-lg font-semibold">Projetos em andamento</h2>
+              <p className="text-[9px] font-bold tracking-[.2em] text-[#d7bd8d]">MEUS PROJETOS</p>
+              <h2 className="mt-2 text-lg font-semibold">Projetos sob minha responsabilidade</h2>
               <div className="mt-4 space-y-2">
                 {myProjects.filter(project=>project.status==='active').slice(0,5).map(project=><button key={project.id} onClick={()=>{setSearchParams({tab:'projetos'});setQuery(project.name);}} className="flex w-full items-center justify-between gap-3 rounded-xl border border-white/[.07] bg-black/10 p-3 text-left hover:border-[#d7bd8d]/25"><span className="min-w-0"><span className="block truncate text-xs font-semibold">{project.name}</span><span className="mt-1 block text-[10px] text-white/35">{project.completed_tasks} de {project.task_count} entregas</span></span><ArrowUpRight size={14} className="shrink-0 text-[#d7bd8d]"/></button>)}
                 {!myProjects.length && <p className="text-xs text-white/40">Seus projetos aparecerão aqui quando você participar de um.</p>}
@@ -236,9 +236,10 @@ export default function ManagementWorkspace() {
           </div>
         </section>}
         
-        <div className="relative mt-4 max-w-sm"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30"/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder={tab==='tarefas'?'Buscar tarefas ou projetos…':'Buscar projetos…'} className="h-10 w-full rounded-xl border border-white/10 bg-white/[.035] pl-9 pr-3 text-xs text-white outline-none focus:border-[#d7bd8d]/40"/></div>
+        {tab!=='espaco' && <div className="relative mt-4 max-w-sm"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30"/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder={tab==='tarefas'?'Buscar tarefas ou projetos…':'Buscar projetos…'} className="h-10 w-full rounded-xl border border-white/10 bg-white/[.035] pl-9 pr-3 text-xs text-white outline-none focus:border-[#d7bd8d]/40"/></div>}
 
         {tab!=='espaco' && <>{loading?<div className="mt-5 rounded-2xl border border-white/10 p-8 text-center text-sm text-white/45">Preparando sua mesa…</div>:error?<div className="mt-5 rounded-2xl border border-red-400/20 bg-red-400/5 p-6 text-center text-sm text-white/65">{error}<button onClick={reload} className="ml-2 text-[#d7bd8d] underline">Tentar novamente</button></div>:tab==='tarefas'?(
+          <>
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <div className="flex rounded-lg border border-white/10 bg-white/[.025] p-1">
               <button onClick={()=>setTaskScope('mine')} className={`rounded-md px-3 py-1.5 text-[10px] font-semibold ${taskScope==='mine'?'bg-white/10 text-white':'text-white/40'}`}>Minhas</button>
@@ -253,6 +254,7 @@ export default function ManagementWorkspace() {
             {(level>=3||task.created_by===user?.id)?<button onClick={()=>editTask(task)} className="min-w-0 flex-1 text-left"><p className={`text-sm font-semibold ${task.status==='done'?'text-white/35 line-through':'text-white/90'}`}>{task.title}</p><p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-white/35"><span>{task.project_name??'Pessoal'}</span><span>{task.assignee_name}</span><span>{dateText(task.due_date)}</span><span>{priorityLabel[task.priority]}</span></p></button>:<div className="min-w-0 flex-1 text-left"><p className={`text-sm font-semibold ${task.status==='done'?'text-white/35 line-through':'text-white/90'}`}>{task.title}</p><p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-white/35"><span>{task.project_name??'Pessoal'}</span><span>{task.assignee_name}</span><span>{dateText(task.due_date)}</span></p></div>}
             <select aria-label={`Situação da tarefa ${task.title}`} value={task.status} onChange={e=>void updateTask(task,{status:e.target.value as Task['status']})} className="rounded-lg border border-white/10 bg-[#17191d] px-2 py-2 text-[10px] text-white/65">{Object.entries(taskStatus).filter(([v])=>v!=='archived').map(([v,l])=><option key={v} value={v}>{l}</option>)}</select>
           </article>):<div className="rounded-2xl border border-dashed border-white/15 px-5 py-12 text-center"><Target size={24} className="mx-auto text-[#d7bd8d]/60"/><h3 className="mt-3 text-sm font-semibold">Sua mesa está livre.</h3><p className="mt-1 text-xs text-white/40">Adicione a primeira tarefa e transforme intenção em próximo passo.</p></div>}</div>
+          </>
         ):(
           <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{projects.length?projects.map(project=>{
             const progress=project.task_count?Math.round(project.completed_tasks/project.task_count*100):0;
