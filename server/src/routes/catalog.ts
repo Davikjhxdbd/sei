@@ -48,6 +48,14 @@ router.get(
 );
 
 router.get(
+  '/departments',
+  asyncHandler(async (req: any, res) => {
+    const { rows } = await req.db.query(`select d.id, d.slug, d.name, d.description, (select count(*)::int from studio_department_members m join users u on u.id = m.user_id where m.department_id = d.id and u.status = 'active') as member_count from studio_departments d where d.active = true order by d.sort_order, d.name`);
+    res.json({ items: rows });
+  }),
+);
+
+router.get(
   '/sectors',
   asyncHandler(async (req: any, res) => {
     const { rows } = await req.db.query(
