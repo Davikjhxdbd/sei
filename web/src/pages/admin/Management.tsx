@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../lib/auth';
 import { useApi } from '../../lib/useApi';
 import { formatDateTime } from '../../lib/format';
+import { Shell } from '../../components/layout/Shell';
 import { Badge, Card, LoadingBlock, PageHeader, StatCard } from '../../components/ui';
 
 interface Person { id: string }
@@ -26,6 +27,7 @@ export default function Management() {
   const activeSectors = sectors.data?.items.filter((item) => item.active).length ?? 0;
 
   return (
+    <Shell sectionLabel="Administração">
     <>
       <PageHeader
         eyebrow="MMV CREATIVE · GESTÃO"
@@ -90,5 +92,6 @@ export default function Management() {
         </Card>
       </div>
     </>
+    </Shell>
   );
 }
