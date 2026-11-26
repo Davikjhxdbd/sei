@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
   ArrowLeft, ArrowUpRight, CalendarDays, CheckCircle2,
-  CircleDashed, Clock3, FolderKanban, Users
+  CircleDashed, Clock3, FolderKanban, Users, Plus, X
 } from 'lucide-react';
 import { useApi } from '../../lib/useApi';
+import { useAuth } from '../../lib/auth';
+import { post, del } from '../../lib/api';
 import type { CSSProperties } from 'react';
 
 type DepartmentData = {
@@ -35,10 +38,52 @@ const statusLabels: Record<string, string> = {
 
 export default function Department() {
   const { slug = '' } = useParams();
-  const { data, loading, error } = useApi<DepartmentData>(
+  const { level } = useAuth();
+  const canManageTeam = level >= 4;
+  const [showMemberForm, setShowMemberForm] = useState(false);
+  const [selectedUser, setSelectedUser] = useState('');
+  const [memberFunction, setMemberFunction] = useState('Integrante');
+  const [memberSaving, setMemberSaving] = useState(false);
+  const [memberError, setMemberError] = useState('');
+  const { data, loading, error, reload } = useApi<DepartmentData>(
     slug ? `/studio/departments/${slug}` : null,
     [slug]
   );
+
+  const { data: memberOptions, reload: reloadMemberOptions } = useApi<{ items: { id: string; full_name: string }[] }>(
+    canManageTeam && slug ? `/studio/departments/${slug}/member-options` : null,
+    [slug, canManageTeam]
+  );
+
+  async function addMember(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!selectedUser) return;
+    setMemberSaving(true);
+    setMemberError('');
+    try {
+      await post(`/studio/departments/${slug}/members`, { user_id: selectedUser, function: memberFunction });
+      setSelectedUser('');
+      setMemberFunction('Integrante');
+      setShowMemberForm(false);
+      reload();
+      reloadMemberOptions();
+    } catch (err: any) {
+      setMemberError(err.message || 'Não foi possível adicionar o participante.');
+    } finally {
+      setMemberSaving(false);
+    }
+  }
+
+  async function removeMember(userId: string) {
+    if (!window.confirm('Remover esta pessoa da equipe do departamento?')) return;
+    try {
+      await del(`/studio/departments/${slug}/members/${userId}`);
+      reload();
+      reloadMemberOptions();
+    } catch (err: any) {
+      window.alert(err.message || 'Não foi possível remover o participante.');
+    }
+  }
 
   if (loading) return <div className="p-8 text-sm text-white/50">Carregando departamento...</div>;
   if (error || !data) return (
@@ -126,7 +171,10 @@ export default function Department() {
               <h2 className="font-semibold text-white">Equipe</h2>
               <p className="mt-1 text-xs text-white/40">Pessoas vinculadas ao departamento</p>
             </div>
-            <Users size={18} style={{ color: theme.accent }} />
+            <div className="flex items-center gap-2">
+              {canManageTeam && <button type="button" onClick={() => setShowMemberForm(value => !value)} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-white/10 px-2.5 text-[11px] text-white/70 transition hover:border-white/25 hover:text-white"><Plus size={13} /> Gerenciar</button>}
+              <Users size={18} style={{ color: theme.accent }} />
+            </div>
           </div>
           {members.length === 0 ? <p className="py-8 text-center text-sm text-white/35">Equipe ainda não cadastrada.</p> :
             <div className="space-y-3">
@@ -134,13 +182,27 @@ export default function Department() {
                 <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-semibold" style={{ background: `${theme.accent}18`, color: theme.accent }}>
                   {member.full_name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="truncate text-sm text-white">{member.full_name}</p>
                   <p className="text-[11px] text-white/40">{member.function || 'Integrante'}</p>
                 </div>
+                {canManageTeam && <button type="button" onClick={() => void removeMember(member.id)} aria-label={`Remover ${member.full_name} da equipe`} className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-white/35 transition hover:bg-red-400/10 hover:text-red-300"><X size={14} /></button>}
               </div>)}
             </div>
           }
+          {canManageTeam && showMemberForm && <form onSubmit={addMember} className="mb-5 space-y-3 rounded-xl border border-white/10 bg-black/20 p-3">
+            <label className="block text-[10px] uppercase tracking-wider text-white/45">Adicionar participante</label>
+            <select required value={selectedUser} onChange={e => setSelectedUser(e.target.value)} className="h-9 w-full rounded-lg border border-white/10 bg-[#171717] px-2 text-xs text-white">
+              <option value="">Selecionar pessoa</option>
+              {(memberOptions?.items || []).map(person => <option key={person.id} value={person.id}>{person.full_name}</option>)}
+            </select>
+            <input value={memberFunction} onChange={e => setMemberFunction(e.target.value)} maxLength={80} placeholder="Função na equipe" className="h-9 w-full rounded-lg border border-white/10 bg-[#171717] px-3 text-xs text-white placeholder:text-white/30" />
+            {memberError && <p className="text-[11px] text-red-300">{memberError}</p>}
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setShowMemberForm(false)} className="rounded-lg px-3 py-2 text-[11px] text-white/50">Cancelar</button>
+              <button disabled={memberSaving || !selectedUser} className="rounded-lg bg-[#C4A66A] px-3 py-2 text-[11px] font-semibold text-[#111] disabled:opacity-50">{memberSaving ? 'Salvando...' : 'Adicionar à equipe'}</button>
+            </div>
+          </form>}
           <div className="mt-6 border-t border-white/[.07] pt-5">
             <Link to="/m/studio/schedules" className="flex items-center justify-between text-xs text-white/55 hover:text-[#D8BD86]">Consultar escalas <ArrowUpRight size={14} /></Link>
           </div>

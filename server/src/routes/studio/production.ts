@@ -33,17 +33,19 @@ router.get('/departments/:slug', asyncHandler(async (req: any, res) => {
       order by a.created_at
     `, [department.id]),
     req.db.query(`
-      select distinct u.id, u.full_name, m.function
-      from studio_department_members m
+      select u.id, u.full_name,
+        string_agg(distinct coalesce(m.function, 'Integrante'), ' · ' order by coalesce(m.function, 'Integrante')) as function
+      from (
+        select user_id, function from studio_department_members where department_id = $1
+        union all
+        select pm.user_id, pm.function
+        from production_members pm
+        join production_areas a on a.id = pm.area_id
+        where a.studio_department_id = $1
+      ) m
       join users u on u.id = m.user_id
-      where m.department_id = $1
-      union
-      select distinct u.id, u.full_name, pm.function
-      from production_members pm
-      join production_areas a on a.id = pm.area_id
-      join users u on u.id = pm.user_id
-      where a.studio_department_id = $1
-      order by full_name
+      group by u.id, u.full_name
+      order by u.full_name
     `, [department.id]),
     req.db.query(`
       select t.*, a.name as area_name, a.slug as area_slug,
@@ -76,6 +78,105 @@ router.get('/departments/:slug', asyncHandler(async (req: any, res) => {
     tasks: tasks.rows,
     totals: totals.rows[0]
   });
+}));
+
+router.get('/departments/:slug/member-options', asyncHandler(async (req: any, res) => {
+  if (req.user.level < 4) throw forbidden('Somente administradores podem gerenciar participantes.');
+  const { rows: departments } = await req.db.query(
+    'select id from studio_departments where slug = $1 and active = true',
+    [req.params.slug]
+  );
+  if (!departments.length) throw notFound('Departamento não encontrado.');
+  const { rows } = await req.db.query(`
+    select u.id, u.full_name
+    from users u
+    where u.status = 'active'
+      and not exists (
+        select 1 from studio_department_members m
+        where m.department_id = $1 and m.user_id = u.id
+      )
+    order by u.full_name
+  `, [departments[0].id]);
+  res.json({ items: rows });
+}));
+
+router.post('/departments/:slug/members', asyncHandler(async (req: any, res) => {
+  if (req.user.level < 4) throw forbidden('Somente administradores podem gerenciar participantes.');
+  const userId = required(req.body?.user_id, 'participante', 64);
+  const functionName = optionalText(req.body?.function) || 'Integrante';
+  const { rows: departments } = await req.db.query(
+    'select id, name from studio_departments where slug = $1 and active = true',
+    [req.params.slug]
+  );
+  if (!departments.length) throw notFound('Departamento não encontrado.');
+  const department = departments[0];
+  const { rows: users } = await req.db.query(
+    "select id, full_name from users where id = $1 and status = 'active'",
+    [userId]
+  );
+  if (!users.length) throw badRequest('Selecione um usuário ativo.');
+
+  await tx(req.db, async () => {
+    await req.db.query(`
+      insert into studio_department_members (department_id, user_id, function)
+      values ($1, $2, $3)
+      on conflict (department_id, user_id)
+      do update set function = excluded.function
+    `, [department.id, userId, functionName]);
+    await req.db.query(`
+      insert into production_members (area_id, user_id, function)
+      select id, $2, $3
+      from production_areas
+      where studio_department_id = $1 and active = true
+      on conflict do nothing
+    `, [department.id, userId, functionName]);
+    await audit(req.db, req.user, {
+      action: 'studio.department_member_added',
+      entity: 'studio_department_members',
+      entityId: `${department.id}:${userId}`,
+      after: { department_id: department.id, user_id: userId, function: functionName },
+      moduleKey: 'studio'
+    });
+    await notify(req.db, {
+      userId,
+      title: 'Você foi adicionado a uma equipe',
+      body: department.name,
+      link: '/m/studio',
+      moduleKey: 'studio'
+    });
+  });
+  res.status(201).json({ success: true });
+}));
+
+router.delete('/departments/:slug/members/:userId', asyncHandler(async (req: any, res) => {
+  if (req.user.level < 4) throw forbidden('Somente administradores podem gerenciar participantes.');
+  const { rows: departments } = await req.db.query(
+    'select id, name from studio_departments where slug = $1 and active = true',
+    [req.params.slug]
+  );
+  if (!departments.length) throw notFound('Departamento não encontrado.');
+  const department = departments[0];
+  const { rows: removed } = await req.db.query(`
+    delete from studio_department_members
+    where department_id = $1 and user_id = $2
+    returning user_id
+  `, [department.id, req.params.userId]);
+  const { rowCount: areaMembershipsRemoved } = await req.db.query(`
+    delete from production_members pm
+    using production_areas a
+    where pm.area_id = a.id
+      and a.studio_department_id = $1
+      and pm.user_id = $2
+  `, [department.id, req.params.userId]);
+  if (!removed.length && !areaMembershipsRemoved) throw notFound('Participante não encontrado nesta equipe.');
+  await audit(req.db, req.user, {
+    action: 'studio.department_member_removed',
+    entity: 'studio_department_members',
+    entityId: `${department.id}:${req.params.userId}`,
+    before: { department_id: department.id, user_id: req.params.userId },
+    moduleKey: 'studio'
+  });
+  res.json({ success: true });
 }));
 
 router.get('/production/summary', asyncHandler(async (req: any, res) => {
@@ -164,9 +265,18 @@ router.get('/production/areas/:slug', asyncHandler(async (req: any, res) => {
   const area = rows[0];
   const [members, tasks] = await Promise.all([
     req.db.query(`
-      select u.id, u.full_name, m.function
-        from production_members m join users u on u.id = m.user_id
-       where m.area_id = $1 order by u.full_name
+      select distinct member.id, member.full_name, member.function
+      from (
+        select u.id, u.full_name, m.function
+          from production_members m join users u on u.id = m.user_id
+         where m.area_id = $1
+        union
+        select u.id, u.full_name, coalesce(dm.function, 'Integrante') as function
+          from studio_department_members dm
+          join users u on u.id = dm.user_id
+         where dm.department_id = (select studio_department_id from production_areas where id = $1)
+      ) member
+      order by member.full_name
     `, [area.id]),
     req.db.query(`
       select t.*, u.full_name as assignee_name
@@ -198,10 +308,14 @@ router.post('/production/tasks', asyncHandler(async (req: any, res) => {
     if (assignedTo) {
       const member = await req.db.query(
         `select 1
-           from production_members pm
-           join users u on u.id = pm.user_id
-          where pm.area_id = $1 and pm.user_id = $2 and u.status = 'active'
-          for share of pm, u`,
+           from production_areas a
+           join users u on u.id = $2 and u.status = 'active'
+          where a.id = $1
+            and (
+              exists (select 1 from production_members pm where pm.area_id = a.id and pm.user_id = u.id)
+              or exists (select 1 from studio_department_members dm where dm.department_id = a.studio_department_id and dm.user_id = u.id)
+            )
+          for share of a, u`,
         [areaId, assignedTo]
       );
       if (!member.rows.length) {
@@ -280,10 +394,14 @@ router.patch('/production/tasks/:id', asyncHandler(async (req: any, res) => {
   if (assigneeProvided && assignedTo) {
     const member = await req.db.query(
       `select 1
-         from production_members pm
-         join users u on u.id = pm.user_id
-        where pm.area_id = $1 and pm.user_id = $2 and u.status = 'active'
-        for share of pm, u`,
+         from production_areas a
+         join users u on u.id = $2 and u.status = 'active'
+        where a.id = $1
+          and (
+            exists (select 1 from production_members pm where pm.area_id = a.id and pm.user_id = u.id)
+            or exists (select 1 from studio_department_members dm where dm.department_id = a.studio_department_id and dm.user_id = u.id)
+          )
+        for share of a, u`,
       [before.area_id, assignedTo]
     );
     if (!member.rows.length) {
