@@ -8,6 +8,7 @@ import {
 import { get, patch, post } from '../lib/api';
 import { useApi } from '../lib/useApi';
 import { useToast } from '../components/Toast';
+import { useAuth } from '../lib/auth';
 
 type Project = {
   id: string; owner_id: string; owner_name: string; name: string; description: string | null; status: 'active'|'paused'|'completed'|'archived';
@@ -148,7 +149,7 @@ export default function ManagementWorkspace() {
             <label className="text-xs text-white/60 sm:col-span-2">Nome do projeto<input required maxLength={140} value={projectName} onChange={e=>setProjectName(e.target.value)} className="mt-1.5 h-11 w-full rounded-xl border border-white/10 bg-black/20 px-3 text-sm text-white outline-none focus:border-[#d7bd8d]/60"/></label>
             <label className="text-xs text-white/60 sm:col-span-2">Objetivo / descrição<textarea value={projectDescription} onChange={e=>setProjectDescription(e.target.value)} rows={3} maxLength={3000} className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-white outline-none focus:border-[#d7bd8d]/60"/></label>
             <label className="text-xs text-white/60">Prazo<input type="date" value={projectDue} onChange={e=>setProjectDue(e.target.value)} className="mt-1.5 h-11 w-full rounded-xl border border-white/10 bg-black/20 px-3 text-sm text-white"/></label>
-            {level>=3&&<label className="text-xs text-white/60">Responsável<select value={projectAssignee} onChange={e=>setProjectAssignee(e.target.value)} className="mt-1.5 h-11 w-full rounded-xl border border-white/10 bg-[#17191d] px-3 text-sm text-white">{(people.data?.items??[]).map(p=><option key={p.id} value={p.id}>{p.full_name}</option>)}</select></label>}
+            {level>=3&&<label className="text-xs text-white/60">Responsável<select disabled={Boolean(editingProject)} value={projectAssignee} onChange={e=>setProjectAssignee(e.target.value)} className="mt-1.5 h-11 w-full rounded-xl border border-white/10 bg-[#17191d] px-3 text-sm text-white">{(people.data?.items??[]).map(p=><option key={p.id} value={p.id}>{p.full_name}</option>)}</select></label>}
           </div>}
           <div className="mt-4 flex justify-end gap-2"><button type="button" onClick={()=>setShowForm(false)} className="rounded-xl border border-white/10 px-4 py-2.5 text-xs text-white/60">Cancelar</button><button disabled={saving} className="rounded-xl bg-[#d7bd8d] px-4 py-2.5 text-xs font-bold text-[#17140e] disabled:opacity-50">{saving?'Salvando…':'Salvar'}</button></div>
         </form>}
@@ -166,7 +167,7 @@ export default function ManagementWorkspace() {
             const progress=project.task_count?Math.round(project.completed_tasks/project.task_count*100):0;
             return <article key={project.id} className="rounded-2xl border border-white/[.08] bg-white/[.035] p-5">
               <div className="flex items-start justify-between gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl border border-[#d7bd8d]/20 bg-[#d7bd8d]/10 text-[#d7bd8d]"><FolderKanban size={18}/></span><span className="text-[9px] text-white/40">{projectStatus[project.status]}</span></div>
-              <button onClick={()=>editProject(project)} className="mt-4 block text-left"><h3 className="text-base font-semibold">{project.name}</h3><p className="mt-1 line-clamp-2 min-h-9 text-xs leading-5 text-white/45">{project.description||'Projeto sem descrição definida.'}</p></button>
+              <button onClick={()=>editProject(project)} className="mt-4 block text-left"><h3 className="text-base font-semibold">{project.name}</h3><p className="mt-1 line-clamp-2 min-h-9 text-xs leading-5 text-white/45">{project.description||'Projeto sem descrição definida.'}</p><p className="mt-2 text-[10px] text-white/35">Responsável: {project.owner_name}</p></button>
               <div className="mt-4"><div className="mb-2 flex justify-between text-[10px] text-white/40"><span>{project.completed_tasks} de {project.task_count} tarefas</span><span>{progress}%</span></div><div className="h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-[#d7bd8d]" style={{width:`${progress}%`}}/></div></div>
               <div className="mt-4 flex items-center justify-between border-t border-white/[.08] pt-3"><span className="text-[10px] text-white/35"><CalendarDays size={11} className="mr-1 inline"/>{dateText(project.due_date)}</span><div className="flex gap-1"><button title="Pausar projeto" onClick={()=>void updateProject(project,project.status==='paused'?'active':'paused')} className="rounded-lg p-2 text-white/40 hover:bg-white/5 hover:text-white">{project.status==='paused'?<Play size={14}/>:<Pause size={14}/>}</button><button title="Concluir projeto" onClick={()=>void updateProject(project,'completed')} className="rounded-lg p-2 text-white/40 hover:bg-white/5 hover:text-[#d7bd8d]"><CheckCircle2 size={14}/></button><button title="Arquivar projeto" onClick={()=>void updateProject(project,'archived')} className="rounded-lg p-2 text-white/40 hover:bg-white/5 hover:text-white"><Archive size={14}/></button></div></div>
             </article>;
