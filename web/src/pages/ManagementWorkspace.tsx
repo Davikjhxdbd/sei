@@ -52,6 +52,7 @@ export default function ManagementWorkspace() {
   const [projectDue,setProjectDue] = useState('');
   const [projectAssignee,setProjectAssignee] = useState('');
   const [editingProject,setEditingProject] = useState<Project | null>(null);
+  const [selectedProject,setSelectedProject] = useState<Project | null>(null);
   const [focusTaskId,setFocusTaskId] = useState('');
   const [focusLoadedFor,setFocusLoadedFor] = useState<string | null>(null);
   useEffect(() => {
@@ -95,6 +96,12 @@ export default function ManagementWorkspace() {
   }
   function newProject() {
     setEditingProject(null); setProjectName(''); setProjectDescription(''); setProjectDue(''); setProjectAssignee(user?.id ?? ''); setShowForm(true);
+  }
+  function newTaskInProject(project:Project) {
+    newTask();
+    setTaskProject(project.id);
+    setTaskAssignee(project.owner_id);
+    setSearchParams({tab:'tarefas'});
   }
   function editProject(project:Project) {
     setEditingProject(project); setProjectName(project.name); setProjectDescription(project.description ?? '');
@@ -238,6 +245,17 @@ export default function ManagementWorkspace() {
         
         {tab!=='espaco' && <div className="relative mt-4 max-w-sm"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30"/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder={tab==='tarefas'?'Buscar tarefas ou projetos…':'Buscar projetos…'} className="h-10 w-full rounded-xl border border-white/10 bg-white/[.035] pl-9 pr-3 text-xs text-white outline-none focus:border-[#d7bd8d]/40"/></div>}
 
+        {tab==='projetos' && selectedProject && <section className="mt-5 rounded-2xl border border-[#d7bd8d]/25 bg-[linear-gradient(120deg,rgba(215,189,141,.09),rgba(255,255,255,.025))] p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0 flex-1"><p className="text-[9px] font-bold tracking-[.2em] text-[#d7bd8d]">ESPAÇO DO PROJETO</p><h2 className="mt-2 text-xl font-semibold">{selectedProject.name}</h2><p className="mt-2 max-w-2xl whitespace-pre-wrap text-xs leading-5 text-white/50">{selectedProject.description || 'Este projeto ainda não tem um objetivo descrito.'}</p><p className="mt-2 text-[10px] text-white/35">Responsável: {selectedProject.owner_name} · Prazo: {dateText(selectedProject.due_date)} · {projectStatus[selectedProject.status]}</p></div>
+            <div className="flex shrink-0 gap-2"><button onClick={()=>editProject(selectedProject)} className="rounded-xl border border-white/10 px-3 py-2 text-xs text-white/65 hover:text-white">Editar</button><button onClick={()=>setSelectedProject(null)} className="rounded-xl border border-white/10 px-3 py-2 text-xs text-white/65 hover:text-white">Fechar</button></div>
+          </div>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-white/[.08] pt-4"><div><p className="text-xs font-semibold">Entregas deste projeto</p><p className="mt-1 text-[10px] text-white/35">{(data?.tasks??[]).filter(task=>task.project_id===selectedProject.id).length} tarefas vinculadas</p></div><button onClick={()=>newTaskInProject(selectedProject)} className="inline-flex items-center gap-2 rounded-xl bg-[#d7bd8d] px-3 py-2 text-xs font-bold text-[#17140e]"><Plus size={13}/> Nova tarefa neste projeto</button></div>
+          <div className="mt-3 space-y-2">{(data?.tasks??[]).filter(task=>task.project_id===selectedProject.id && task.status!=='archived').map(task=><div key={task.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-white/[.07] bg-black/10 p-3"><button onClick={()=>void updateTask(task,{status:task.status==='done'?'todo':'done'})} className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-white/10 text-white/45 hover:text-[#d7bd8d]">{task.status==='done'?<Check size={14}/>:<Circle size={14}/>}</button><div className="min-w-0 flex-1"><p className={`text-xs font-semibold ${task.status==='done'?'text-white/35 line-through':'text-white/85'}`}>{task.title}</p><p className="mt-1 text-[10px] text-white/35">{task.assignee_name} · {dateText(task.due_date)} · {priorityLabel[task.priority]}</p></div><span className="text-[10px] text-white/40">{taskStatus[task.status]}</span></div>)}
+            {!(data?.tasks??[]).some(task=>task.project_id===selectedProject.id && task.status!=='archived') && <p className="rounded-xl border border-dashed border-white/10 p-5 text-center text-xs text-white/40">Nenhuma entrega vinculada ainda. Crie a primeira tarefa deste projeto.</p>}
+          </div>
+        </section>}
+        
         {tab!=='espaco' && <>{loading?<div className="mt-5 rounded-2xl border border-white/10 p-8 text-center text-sm text-white/45">Preparando sua mesa…</div>:error?<div className="mt-5 rounded-2xl border border-red-400/20 bg-red-400/5 p-6 text-center text-sm text-white/65">{error}<button onClick={reload} className="ml-2 text-[#d7bd8d] underline">Tentar novamente</button></div>:tab==='tarefas'?(
           <>
           <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -260,7 +278,7 @@ export default function ManagementWorkspace() {
             const progress=project.task_count?Math.round(project.completed_tasks/project.task_count*100):0;
             return <article key={project.id} className="rounded-2xl border border-white/[.08] bg-white/[.035] p-5">
               <div className="flex items-start justify-between gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl border border-[#d7bd8d]/20 bg-[#d7bd8d]/10 text-[#d7bd8d]"><FolderKanban size={18}/></span><span className="text-[9px] text-white/40">{projectStatus[project.status]}</span></div>
-              <button onClick={()=>editProject(project)} className="mt-4 block text-left"><h3 className="text-base font-semibold">{project.name}</h3><p className="mt-1 line-clamp-2 min-h-9 text-xs leading-5 text-white/45">{project.description||'Projeto sem descrição definida.'}</p><p className="mt-2 text-[10px] text-white/35">Responsável: {project.owner_name}</p></button>
+              <button onClick={()=>setSelectedProject(project)} className="mt-4 block text-left"><h3 className="text-base font-semibold">{project.name}</h3><p className="mt-1 line-clamp-2 min-h-9 text-xs leading-5 text-white/45">{project.description||'Projeto sem descrição definida.'}</p><p className="mt-2 text-[10px] text-white/35">Responsável: {project.owner_name}</p></button>
               <div className="mt-4"><div className="mb-2 flex justify-between text-[10px] text-white/40"><span>{project.completed_tasks} de {project.task_count} tarefas</span><span>{progress}%</span></div><div className="h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-[#d7bd8d]" style={{width:`${progress}%`}}/></div></div>
               <div className="mt-4 flex items-center justify-between border-t border-white/[.08] pt-3"><span className="text-[10px] text-white/35"><CalendarDays size={11} className="mr-1 inline"/>{dateText(project.due_date)}</span><div className="flex gap-1"><button title="Pausar projeto" onClick={()=>void updateProject(project,project.status==='paused'?'active':'paused')} className="rounded-lg p-2 text-white/40 hover:bg-white/5 hover:text-white">{project.status==='paused'?<Play size={14}/>:<Pause size={14}/>}</button><button title="Concluir projeto" onClick={()=>void updateProject(project,'completed')} className="rounded-lg p-2 text-white/40 hover:bg-white/5 hover:text-[#d7bd8d]"><CheckCircle2 size={14}/></button><button title="Arquivar projeto" onClick={()=>void updateProject(project,'archived')} className="rounded-lg p-2 text-white/40 hover:bg-white/5 hover:text-white"><Archive size={14}/></button></div></div>
             </article>;
