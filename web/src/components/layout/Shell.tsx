@@ -73,7 +73,7 @@ function ProfileMenu({ open, setOpen }: { open: boolean; setOpen: (v: boolean) =
         aria-label="Menu do perfil"
         className="flex items-center gap-2 rounded-full p-0.5 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-soft focus-visible:ring-offset-2 focus-visible:ring-offset-strong"
       >
-        <Avatar name={user.full_name} size="sm" className="bg-brass" />
+        <Avatar name={user.full_name} size="sm" className="bg-brass" avatarUrl={user.avatar_url} emoji={user.profile_emoji} />
       </button>
 
       {open && (
@@ -82,7 +82,7 @@ function ProfileMenu({ open, setOpen }: { open: boolean; setOpen: (v: boolean) =
           role="menu"
         >
           <div className="flex items-center gap-2.5 border-b border-line px-3.5 py-3">
-            <Avatar name={user.full_name} size="md" />
+            <Avatar name={user.full_name} size="md" avatarUrl={user.avatar_url} emoji={user.profile_emoji} />
             <div className="min-w-0">
               <p className="truncate text-[13px] font-medium text-ink">
                 {user.full_name}

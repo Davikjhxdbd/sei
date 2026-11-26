@@ -555,10 +555,14 @@ export function Avatar({
   name,
   size = 'md',
   className,
+  avatarUrl,
+  emoji,
 }: {
   name?: string | null;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  avatarUrl?: string | null;
+  emoji?: string | null;
 }) {
   const initials = (name ?? '')
     .split(' ')
@@ -579,7 +583,11 @@ export function Avatar({
         className,
       )}
     >
-      {initials || '?'}
+      {avatarUrl ? (
+        <img src={avatarUrl} alt={name ? 'Foto de ' + name : 'Foto de perfil'} className="h-full w-full rounded-full object-cover" />
+      ) : emoji ? (
+        <span aria-hidden="true" className="text-[1.25em] leading-none">{emoji}</span>
+      ) : (initials || '?')}
     </span>
   );
 }
