@@ -29,7 +29,7 @@ router.get('/overview', asyncHandler(async (req: any, res) => {
   const [projects, tasks, totals] = await Promise.all([
     req.db.query(`
       select p.*, u.full_name as owner_name,
-        count(t.id)::int as task_count,
+        count(t.id) filter (where t.status <> 'archived')::int as task_count,
         count(t.id) filter (where t.status = 'done')::int as completed_tasks
       from personal_projects p
       join users u on u.id = p.owner_id
