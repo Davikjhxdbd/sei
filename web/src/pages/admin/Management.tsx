@@ -39,7 +39,7 @@ export default function Management() {
         actions={<Badge tone="accent"><ShieldCheck className="h-3 w-3" /> Área restrita</Badge>}
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className={`grid gap-3 sm:grid-cols-2 ${level >= 5 ? "xl:grid-cols-4" : "xl:grid-cols-3"}`}>
         <StatCard label="Pessoas ativas" value={people.loading ? '—' : people.data?.items.length ?? 0} hint="Integrantes cadastrados" icon={Users} />
         <StatCard label="Departamentos ativos" value={sectors.loading ? '—' : activeSectors} hint="Estrutura institucional" icon={Building2} />
         <StatCard label="Registros de auditoria" value={audit.loading ? '—' : audit.data?.total ?? 0} hint="Eventos registrados" icon={ClipboardList} />
