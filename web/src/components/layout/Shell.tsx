@@ -41,12 +41,12 @@ function useOutside(open: boolean, onClose: () => void) {
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
     <Link to="/" className="flex items-center gap-2.5" aria-label="MMV CREATIVE — central">
-      <span className="grid h-8 w-8 place-items-center rounded-lg border border-brass/45 bg-[#171612]">
+      <span className="grid h-8 w-8 place-items-center rounded-lg border border-brass/45 bg-[#171612] text-brass">
         <svg viewBox="0 0 64 64" className="h-7 w-7" fill="none" aria-hidden="true">
           <path d="M12 47V18L32 37L52 18V47" stroke="#F0E3C4" strokeWidth="3.2" strokeLinecap="square" strokeLinejoin="round" />
-          <path d="M32 37V10" stroke="#C4A66A" strokeWidth="3.2" strokeLinecap="square" />
+          <path d="M32 37V10" stroke="currentColor" strokeWidth="3.2" strokeLinecap="square" />
           <circle cx="32" cy="9" r="3.2" fill="#F4F2ED" />
-          <circle cx="12" cy="18" r="2.3" fill="#C4A66A" />
+          <circle cx="12" cy="18" r="2.3" fill="currentColor" />
           <circle cx="52" cy="18" r="2.3" fill="#C4A66A" />
         </svg>
       </span>
@@ -171,7 +171,7 @@ export function Shell({
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-0"
         style={{
-          background: 'radial-gradient(760px circle at 82% 0%, rgba(196,166,106,0.075), transparent 68%)',
+          background: 'radial-gradient(760px circle at 82% 0%, rgb(var(--mmv-brass) / 0.075), transparent 68%)',
         }}
       />
       <div className="relative z-10">
