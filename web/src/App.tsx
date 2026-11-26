@@ -1,8 +1,7 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from './lib/auth';
 import { Shell } from './components/layout/Shell';
-import { Spinner } from './components/ui';
 import { Link } from 'react-router-dom';
 import { ShieldAlert } from 'lucide-react';
 
@@ -46,17 +45,55 @@ const SettingsPage = lazy(() => import('./pages/admin/Settings'));
 const AuditPage = lazy(() => import('./pages/admin/Audit'));
 const Management = lazy(() => import('./pages/admin/Management'));
 
+const LOADING_MESSAGES = [
+  'Preparando seu espaço…',
+  'Colocando tudo em ordem…',
+  'Alinhando as ideias…',
+  'Quase tudo pronto. Pode chegar!',
+];
+
 function FullScreenLoader() {
+  const [messageIndex, setMessageIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setMessageIndex((current) => (current + 1) % LOADING_MESSAGES.length);
+    }, 1900);
+    return () => window.clearInterval(interval);
+  }, []);
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-strong">
-      <span className="grid h-11 w-11 place-items-center rounded-xl bg-brass text-sm font-bold text-white">
-        MV
-      </span>
-      <div className="flex items-center gap-2 text-[12.5px] text-white/60">
-        <Spinner className="text-white/60" />
-        Carregando a plataforma…
+    <main className="mmv-loading-screen" role="status" aria-live="polite" aria-label="Preparando seu espaço">
+      <div className="mmv-loading-atmosphere" aria-hidden="true">
+        <span className="mmv-loading-orbit mmv-loading-orbit--one" />
+        <span className="mmv-loading-orbit mmv-loading-orbit--two" />
+        <span className="mmv-loading-glow" />
       </div>
-    </div>
+
+      <div className="mmv-loading-content">
+        <div className="mmv-loading-mark-wrap" aria-hidden="true">
+          <span className="mmv-loading-mark-halo" />
+          <span className="mmv-loading-mark">
+            <svg viewBox="0 0 64 64" fill="none">
+              <path d="M12 47V18L32 37L52 18V47" stroke="currentColor" strokeWidth="3.2" strokeLinecap="square" strokeLinejoin="round" />
+              <path d="M32 37V10" stroke="currentColor" strokeWidth="3.2" strokeLinecap="square" />
+              <circle cx="32" cy="9" r="3.2" fill="#F4E9D2" />
+              <circle cx="12" cy="18" r="2.3" fill="currentColor" />
+              <circle cx="52" cy="18" r="2.3" fill="#C4A66A" />
+            </svg>
+          </span>
+        </div>
+
+        <p className="mmv-loading-kicker">MMV <span>/</span> CREATIVE</p>
+        <div className="mmv-loading-message" key={messageIndex}>
+          {LOADING_MESSAGES[messageIndex]}
+        </div>
+        <div className="mmv-loading-track" aria-hidden="true">
+          <span />
+        </div>
+        <p className="mmv-loading-footnote">Um instante. Estamos preparando tudo para você.</p>
+      </div>
+    </main>
   );
 }
 

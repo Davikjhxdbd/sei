@@ -191,3 +191,63 @@
   .workspace-app-card::after,
   .workspace-app-icon { transition: none; }
 }
+
+
+/* Recepção de carregamento — MMV CREATIVE */
+.mmv-loading-screen {
+  position: relative;
+  display: grid;
+  min-height: 100svh;
+  overflow: hidden;
+  place-items: center;
+  isolation: isolate;
+  padding: 32px 20px;
+  color: #f4f2ed;
+  background:
+    radial-gradient(ellipse at 50% 44%, rgba(196,166,106,.105), transparent 35%),
+    radial-gradient(ellipse at 50% 100%, rgba(196,166,106,.045), transparent 48%),
+    #090a0c;
+}
+.mmv-loading-atmosphere { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.mmv-loading-glow {
+  position: absolute; left: 50%; top: 46%; width: min(68vw, 560px); aspect-ratio: 1;
+  border-radius: 50%; transform: translate(-50%,-50%);
+  background: radial-gradient(circle, rgba(196,166,106,.10), transparent 68%);
+  filter: blur(18px); animation: mmv-loading-breathe 4.8s ease-in-out infinite alternate;
+}
+.mmv-loading-orbit {
+  position: absolute; left: 50%; top: 46%; border: 1px solid rgba(196,166,106,.11);
+  border-radius: 50%; transform: translate(-50%,-50%) rotate(-24deg);
+}
+.mmv-loading-orbit--one { width: min(78vw, 650px); aspect-ratio: 1.7; animation: mmv-loading-orbit 18s linear infinite; }
+.mmv-loading-orbit--two { width: min(90vw, 760px); aspect-ratio: 1.7; transform: translate(-50%,-50%) rotate(24deg); border-color: rgba(255,255,255,.055); animation: mmv-loading-orbit-reverse 26s linear infinite; }
+.mmv-loading-content { display:flex; width:min(100%,420px); flex-direction:column; align-items:center; text-align:center; }
+.mmv-loading-mark-wrap { position:relative; display:grid; width:94px; height:94px; place-items:center; margin-bottom:30px; }
+.mmv-loading-mark-halo {
+  position:absolute; inset:0; border:1px solid rgba(196,166,106,.25); border-radius:30px;
+  box-shadow:0 0 46px rgba(196,166,106,.11), inset 0 0 28px rgba(196,166,106,.05);
+  animation:mmv-loading-halo 3.2s ease-in-out infinite;
+}
+.mmv-loading-mark {
+  display:grid; width:70px; height:70px; place-items:center; border:1px solid rgba(196,166,106,.45);
+  border-radius:23px; color:#d8c08f; background:linear-gradient(145deg,rgba(196,166,106,.16),rgba(255,255,255,.025));
+  box-shadow:0 12px 38px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.12);
+}
+.mmv-loading-mark svg { width:42px; height:42px; }
+.mmv-loading-kicker { margin:0; color:rgba(244,242,237,.55); font-size:10px; font-weight:700; letter-spacing:.28em; }
+.mmv-loading-kicker span { padding:0 5px; color:#c4a66a; }
+.mmv-loading-message { min-height:34px; margin-top:18px; color:#f4f2ed; font-size:clamp(16px,4vw,19px); font-weight:500; letter-spacing:-.025em; animation:mmv-loading-message-in 360ms ease both; }
+.mmv-loading-track { position:relative; width:124px; height:2px; margin-top:24px; overflow:hidden; border-radius:99px; background:rgba(255,255,255,.10); }
+.mmv-loading-track span { position:absolute; inset:0 auto 0 -45%; width:45%; border-radius:inherit; background:linear-gradient(90deg,transparent,#c4a66a,#f0dfb8,transparent); animation:mmv-loading-progress 1.65s cubic-bezier(.55,.05,.35,.95) infinite; }
+.mmv-loading-footnote { margin:17px 0 0; color:rgba(244,242,237,.34); font-size:11px; letter-spacing:.01em; }
+@keyframes mmv-loading-breathe { from { opacity:.55; transform:translate(-50%,-50%) scale(.88); } to { opacity:1; transform:translate(-50%,-50%) scale(1.08); } }
+@keyframes mmv-loading-orbit { to { transform:translate(-50%,-50%) rotate(336deg); } }
+@keyframes mmv-loading-orbit-reverse { to { transform:translate(-50%,-50%) rotate(-336deg); } }
+@keyframes mmv-loading-halo { 0%,100% { transform:scale(.94); opacity:.62; } 50% { transform:scale(1.06); opacity:1; } }
+@keyframes mmv-loading-message-in { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+@keyframes mmv-loading-progress { from { transform:translateX(0); } to { transform:translateX(325%); } }
+@media (prefers-reduced-motion: reduce) {
+  .mmv-loading-glow,.mmv-loading-orbit,.mmv-loading-mark-halo,.mmv-loading-track span { animation:none; }
+  .mmv-loading-track span { left:0; width:100%; opacity:.65; }
+  .mmv-loading-message { animation:none; }
+}
