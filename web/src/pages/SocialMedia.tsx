@@ -41,7 +41,7 @@ export default function SocialMedia() {
  return <div>
   <PageHeader eyebrow="MMV CREATIVE · COMUNICAÇÃO" title="Social Media" description="Planeje campanhas, organize a produção e acompanhe o conteúdo até a publicação." actions={<div className="flex flex-wrap gap-2"><Link to="/m/communication" className="inline-flex h-10 items-center rounded-lg border border-line px-3 text-xs font-medium text-ink">Comunicados</Link>{level>=2&&<Button icon={Plus} onClick={()=>start()}>Nova pauta</Button>}</div>}/>
   <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-   {[{label:'Pautas',value:data?.totals.total??0},{label:'Em andamento',value:data?.totals.in_progress??0},{label:'Agendadas',value:data?.totals.scheduled??0},{label:'Publicadas',value:data?.totals.published??0}].map(x=><Card key={x.label} className="p-4"><p className="text-[11px] text-muted">{x.label}</p><p className="mt-2 text-2xl font-semibold text-ink">{loading?'—':x.value}</p></Card>)}
+   {[{label:'Pautas',value:data?.totals.total??0},{label:'Em andamento',value:data?.totals.in_progress??0},{label:'Agendadas',value:data?.totals.scheduled??0},{label:'Publicadas',value:data?.totals.published??0}].map(x=><Card key={x.label} className="p-4"><p className="text-[11px] text-muted">{x.label}</p><p className="mt-2 text-2xl font-semibold text-ink">{loading?'—':x.value}</p></Card>})}
   </div>
   <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
    <SearchInput value={query} onChange={setQuery} placeholder="Buscar pauta, campanha ou responsável…" className="w-full sm:max-w-sm"/>
