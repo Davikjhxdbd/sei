@@ -1,4 +1,4 @@
--- Personal workspaces: private projects and tasks for each authenticated user.
+-- Personal workspaces with leadership assignment, individual ownership and task notifications.
 create table if not exists personal_projects (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null references users(id) on delete cascade,
