@@ -41,7 +41,7 @@ export default function SocialMedia() {
  return <div>
   <PageHeader eyebrow="MMV CREATIVE · COMUNICAÇÃO" title="Social Media" description="Planeje campanhas, organize a produção e acompanhe o conteúdo até a publicação." actions={<div className="flex flex-wrap gap-2"><Link to="/m/communication" className="inline-flex h-10 items-center rounded-lg border border-line px-3 text-xs font-medium text-ink">Comunicados</Link>{level>=2&&<Button icon={Plus} onClick={()=>start()}>Nova pauta</Button>}</div>}/>
   <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-   {[{label:'Pautas',value:data?.totals.total??0},{label:'Em andamento',value:data?.totals.in_progress??0},{label:'Agendadas',value:data?.totals.scheduled??0},{label:'Publicadas',value:data?.totals.published??0}].map(x=><Card key={x.label} className="p-4"><p className="text-[11px] text-muted">{x.label}</p><p className="mt-2 text-2xl font-semibold text-ink">{loading?'—':x.value}</p></Card>})}
+   {[{label:'Pautas',value:data?.totals.total??0},{label:'Em andamento',value:data?.totals.in_progress??0},{label:'Agendadas',value:data?.totals.scheduled??0},{label:'Publicadas',value:data?.totals.published??0}].map(x=><Card key={x.label} className="p-4"><p className="text-[11px] text-muted">{x.label}</p><p className="mt-2 text-2xl font-semibold text-ink">{loading?'—':x.value}</p></Card>)}
   </div>
   <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
    <SearchInput value={query} onChange={setQuery} placeholder="Buscar pauta, campanha ou responsável…" className="w-full sm:max-w-sm"/>
@@ -53,7 +53,7 @@ export default function SocialMedia() {
     <div className="mt-4">{canEdit?<button onClick={()=>start(item)} className="block w-full text-left"><h2 className="text-sm font-semibold text-ink">{item.title}</h2>{item.campaign&&<p className="mt-1 text-[11px] text-brass-deep">{item.campaign}</p>}{item.caption&&<p className="mt-2 line-clamp-3 whitespace-pre-wrap text-xs leading-5 text-muted">{item.caption}</p>}</button>:<><h2 className="text-sm font-semibold text-ink">{item.title}</h2>{item.campaign&&<p className="mt-1 text-[11px] text-brass-deep">{item.campaign}</p>}{item.caption&&<p className="mt-2 line-clamp-3 whitespace-pre-wrap text-xs leading-5 text-muted">{item.caption}</p>}</>}</div>
     <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3 text-[10px] text-muted"><span>{item.assignee_name??'Sem responsável'}</span><span><CalendarDays size={11} className="mr-1 inline"/>{item.scheduled_at?formatDateTime(item.scheduled_at):'Sem data'}</span></div>
     {canEdit&&<div className="mt-3 flex items-center gap-2"><Select value={item.status} onChange={e=>void move(item,e.target.value)} className="h-9 flex-1 text-xs">{statuses.filter(s=>s.value!=='archived').map(s=><option key={s.value} value={s.value}>{s.label}</option>)}</Select><button title="Arquivar pauta" onClick={()=>void move(item,'archived')} className="h-9 rounded-lg border border-line px-3 text-[10px] text-muted hover:text-ink">Arquivar</button></div>}
-   </Card>)}
+   </Card>})}
   </div>:<Card><EmptyState icon={Send} title={query?'Nenhuma pauta encontrada':'Seu calendário editorial começa aqui'} description={query?'Tente outro termo ou etapa.':'Cadastre campanhas e conteúdos para acompanhar cada publicação.'}/></Card>}
   <Modal open={open} onClose={()=>setOpen(false)} title={editing?'Editar pauta':'Nova pauta de conteúdo'} description="Organize o conteúdo desde a ideia até a publicação.">
    <div className="space-y-4">
