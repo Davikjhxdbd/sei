@@ -68,7 +68,13 @@ function Protected() {
   if (!user) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
-  return <Outlet />;
+  const path = location.pathname;
+  const theme = path.startsWith('/m/communication') || path.startsWith('/ambiente/inteligencia') ? 'communication'
+    : path.startsWith('/m/studio') || path.startsWith('/ambiente/producao') ? 'production'
+    : path.startsWith('/gestao') || path.startsWith('/ambiente/gestao') ? 'management'
+    : path.startsWith('/admin') || path.startsWith('/ambiente/administracao') ? 'administration'
+    : 'default';
+  return <div className={`mmv-theme mmv-theme--${theme}`} data-mmv-theme={theme}><Outlet /></div>;
 }
 
 function Gate({ level, children }: { level: number; children: JSX.Element }) {
