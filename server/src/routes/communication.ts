@@ -137,7 +137,8 @@ router.post('/content', asyncHandler(async (req: any, res) => {
   const campaign = optionalText(req.body?.campaign, 180);
   const caption = optionalText(req.body?.caption, 6000);
   const scheduledAt = contentDate(req.body?.scheduled_at);
-  const assignedTo = req.body?.assigned_to || null;
+  const assignedTo = req.body?.assigned_to || req.user.id;
+  if (assignedTo !== req.user.id && req.user.level < 3) throw forbidden('Somente a liderança pode atribuir pautas a outra pessoa.');
   if (assignedTo) {
     const member = await req.db.query("select 1 from users where id = $1 and status = 'active'", [assignedTo]);
     if (!member.rows.length) throw badRequest('A pessoa responsável não está ativa.');
@@ -185,6 +186,7 @@ router.patch('/content/:id', asyncHandler(async (req: any, res) => {
   const scheduledAt = req.body?.scheduled_at !== undefined ? contentDate(req.body.scheduled_at) : before.scheduled_at;
   const status = req.body?.status !== undefined ? contentChoice(req.body.status, CONTENT_STATUSES, 'etapa') : before.status;
   const assignedTo = req.body?.assigned_to !== undefined ? (req.body.assigned_to || null) : before.assigned_to;
+  if (assignedTo !== before.assigned_to && req.user.level < 3) throw forbidden('Somente a liderança pode reatribuir pautas.');
   if (assignedTo) {
     const member = await req.db.query("select 1 from users where id = $1 and status = 'active'", [assignedTo]);
     if (!member.rows.length) throw badRequest('A pessoa responsável não está ativa.');

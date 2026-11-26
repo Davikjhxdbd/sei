@@ -21,7 +21,7 @@ const formats=['Reel','Post','Story','Carrossel','Live','Short','Vídeo','Outro'
 export default function SocialMedia() {
  const {level,user}=useAuth(); const toast=useToast();
  const {data,loading,error,reload}=useApi<Payload>('/communication/content?limit=200');
- const people=useApi<{items:{id:string;full_name:string}[]}> (level >= 2 ? '/catalog/people' : null);
+ const people=useApi<{items:{id:string;full_name:string}[]}> (level >= 3 ? '/catalog/people' : null);
  const [query,setQuery]=useState(''); const [filter,setFilter]=useState('all');
  const [open,setOpen]=useState(false); const [editing,setEditing]=useState<Item|null>(null); const [saving,setSaving]=useState(false);
  const [title,setTitle]=useState(''); const [platform,setPlatform]=useState('Instagram'); const [format,setFormat]=useState('Reel');
@@ -31,7 +31,7 @@ export default function SocialMedia() {
    return (!q||[item.title,item.campaign??'',item.caption??'',item.assignee_name??''].some(v=>v.toLocaleLowerCase('pt-BR').includes(q)))
      && (filter==='all'||item.status===filter);
  }),[data,query,filter]);
- function start(item?:Item){setEditing(item??null);setTitle(item?.title??'');setPlatform(item?.platform??'Instagram');setFormat(item?.format??'Reel');setCampaign(item?.campaign??'');setCaption(item?.caption??'');setScheduled(item?.scheduled_at?new Date(item.scheduled_at).toISOString().slice(0,16):'');setAssigned(item?.assigned_to??'');setOpen(true);}
+ function start(item?:Item){setEditing(item??null);setTitle(item?.title??'');setPlatform(item?.platform??'Instagram');setFormat(item?.format??'Reel');setCampaign(item?.campaign??'');setCaption(item?.caption??'');setScheduled(item?.scheduled_at?new Date(item.scheduled_at).toISOString().slice(0,16):'');setAssigned(item?.assigned_to??user?.id??'');setOpen(true);}
  async function save(){if(!title.trim())return;setSaving(true);try{
    const body={title,platform,format,campaign,caption,scheduled_at:scheduled?new Date(scheduled).toISOString():null,assigned_to:assigned||null};
    if(editing)await patch(`/communication/content/${editing.id}`,body);else await post('/communication/content',body);
@@ -61,7 +61,7 @@ export default function SocialMedia() {
     <div className="grid grid-cols-2 gap-3"><Field label="Plataforma"><Select value={platform} onChange={e=>setPlatform(e.target.value)}>{platforms.map(x=><option key={x}>{x}</option>)}</Select></Field><Field label="Formato"><Select value={format} onChange={e=>setFormat(e.target.value)}>{formats.map(x=><option key={x}>{x}</option>)}</Select></Field></div>
     <Field label="Campanha / série"><Input value={campaign} onChange={e=>setCampaign(e.target.value)} maxLength={180} placeholder="Ex.: Primícias"/></Field>
     <Field label="Legenda / briefing"><Textarea value={caption} onChange={e=>setCaption(e.target.value)} maxLength={6000} rows={5} placeholder="Ideia central, legenda, referências e orientação de criação…"/></Field>
-    <div className="grid grid-cols-2 gap-3"><Field label="Data de publicação"><Input type="datetime-local" value={scheduled} onChange={e=>setScheduled(e.target.value)}/></Field><Field label="Responsável"><Select value={assigned} onChange={e=>setAssigned(e.target.value)}><option value="">Sem responsável</option>{(people.data?.items??[]).map(p=><option key={p.id} value={p.id}>{p.full_name}</option>)}</Select></Field></div>
+    <div className="grid grid-cols-2 gap-3"><Field label="Data de publicação"><Input type="datetime-local" value={scheduled} onChange={e=>setScheduled(e.target.value)}/></Field>{level>=3&&<Field label="Responsável"><Select value={assigned} onChange={e=>setAssigned(e.target.value)}>{(people.data?.items??[]).map(p=><option key={p.id} value={p.id}>{p.full_name}</option>)}</Select></Field>}</div>
     <div className="flex justify-end gap-2 border-t border-line pt-3"><Button variant="secondary" onClick={()=>setOpen(false)}>Cancelar</Button><Button loading={saving} disabled={!title.trim()} onClick={()=>void save()}>{editing?'Salvar alterações':'Criar pauta'}</Button></div>
    </div>
   </Modal>
