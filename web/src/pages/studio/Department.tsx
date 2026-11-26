@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
   ArrowLeft, ArrowUpRight, CalendarDays, CheckCircle2, Clock3,
-  FolderKanban, Users, Plus, X, Search, Video, UserRound,
+  FolderKanban, Users, Plus, X, Search, Video, UserRound, Clapperboard, Palette, Camera, Radio, Layers,
 } from 'lucide-react';
 import { useApi } from '../../lib/useApi';
 import { useAuth } from '../../lib/auth';
@@ -33,17 +33,90 @@ const FLOW = [
   { id: 'published', label: 'Entregue' },
 ] as const;
 
-const THEMES: Record<string, { accent: string; glow: string; descriptor: string }> = {
-  transmissao: { accent: '#B8CBE0', glow: 'rgba(96,132,174,.20)', descriptor: 'OPERAÇÃO TÉCNICA · AO VIVO' },
-  slide: { accent: '#B8CBE0', glow: 'rgba(96,132,174,.20)', descriptor: 'CONTEÚDO VISUAL · PROJEÇÃO' },
-  audiovisual: { accent: '#B8CBE0', glow: 'rgba(96,132,174,.20)', descriptor: 'CAPTAÇÃO · EDIÇÃO · FINALIZAÇÃO' },
-  fotos: { accent: '#B8CBE0', glow: 'rgba(96,132,174,.20)', descriptor: 'FOTOGRAFIA · TRATAMENTO · ENTREGA' },
-  design: { accent: '#B8CBE0', glow: 'rgba(96,132,174,.20)', descriptor: 'DIREÇÃO DE ARTE · CRIAÇÃO VISUAL' },
+const THEMES: Record<string, { accent: string; glow: string; descriptor: string; craft: string }> = {
+  transmissao: { accent: '#8DB7D8', glow: 'rgba(72,133,184,.24)', descriptor: 'OPERAÇÃO TÉCNICA · AO VIVO', craft: 'Sinal, operação e excelência técnica' },
+  slide: { accent: '#B7A2E8', glow: 'rgba(137,105,196,.24)', descriptor: 'CONTEÚDO VISUAL · PROJEÇÃO', craft: 'Palavra transformada em experiência visual' },
+  audiovisual: { accent: '#D7B779', glow: 'rgba(196,166,106,.24)', descriptor: 'CAPTAÇÃO · EDIÇÃO · FINALIZAÇÃO', craft: 'Histórias captadas, editadas e finalizadas' },
+  fotos: { accent: '#D99D9B', glow: 'rgba(190,111,117,.22)', descriptor: 'FOTOGRAFIA · TRATAMENTO · ENTREGA', craft: 'Momentos reais, memória e narrativa' },
+  design: { accent: '#A99BE8', glow: 'rgba(128,111,202,.23)', descriptor: 'DIREÇÃO DE ARTE · CRIAÇÃO VISUAL', craft: 'Identidade, conceito e composição' },
+  social: { accent: '#9CC7A7', glow: 'rgba(94,157,113,.22)', descriptor: 'ESTRATÉGIA · CONTEÚDO · PUBLICAÇÃO', craft: 'Ideias que viram conteúdo e chegam às pessoas' },
 };
 
 function dateLabel(value?: string | null) {
   if (!value) return 'Sem prazo definido';
   return new Date(`${String(value).slice(0, 10)}T12:00:00`).toLocaleDateString('pt-BR');
+}
+
+
+function DepartmentShowcase({ slug, tasks, theme }: { slug: string; tasks: Task[]; theme: typeof THEMES[string] }) {
+  const active = tasks.filter(task => FLOW.some(stage => stage.id === task.status && stage.id !== 'published'));
+  const delivered = tasks.filter(task => task.status === 'published');
+  const iconFor = slug === 'transmissao' ? Radio : slug === 'fotos' ? Camera : slug === 'design' ? Palette : slug === 'slide' ? Layers : Clapperboard;
+  const CraftIcon = iconFor;
+  const currentStage = (status: string) => Math.max(0, FLOW.findIndex(stage => stage.id === status));
+  return (
+    <section className="space-y-4">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-[9px] font-bold uppercase tracking-[.24em]" style={{color:theme.accent}}>MMV CREATIVE / WORK IN MOTION</p>
+          <h2 className="mt-1 text-lg font-semibold tracking-tight text-ink">O trabalho acontecendo</h2>
+          <p className="mt-1 text-xs text-muted">{theme.craft}. Tudo atualizado pelas demandas reais da equipe.</p>
+        </div>
+        <div className="flex gap-2 text-[10px] text-muted">
+          <span className="rounded-full border border-line px-2.5 py-1">{active.length} em andamento</span>
+          <span className="rounded-full border border-line px-2.5 py-1">{delivered.length} entregues</span>
+        </div>
+      </div>
+      {active.length ? (
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {active.slice(0,6).map(task => {
+            const stageIndex = currentStage(task.status);
+            const stage = FLOW[stageIndex];
+            return (
+              <article key={task.id} className="group overflow-hidden rounded-2xl border border-line bg-surface transition hover:-translate-y-0.5 hover:border-[var(--department-accent)]/50">
+                <div className="relative flex min-h-[150px] items-end overflow-hidden bg-[#111419] p-4">
+                  <div className="pointer-events-none absolute inset-0" style={{background: `radial-gradient(ellipse at 82% 15%, ${theme.glow}, transparent 52%), linear-gradient(135deg, rgba(255,255,255,.055), transparent 60%)`}} />
+                  <div className="pointer-events-none absolute -right-8 -top-12 h-40 w-40 rounded-full border border-white/[.08]" />
+                  <div className="pointer-events-none absolute right-5 top-5 h-16 w-16 rounded-full border border-white/[.08]" />
+                  <div className="relative flex w-full items-end justify-between gap-3">
+                    <div className="min-w-0">
+                      <span className="text-[8px] font-semibold uppercase tracking-[.2em]" style={{color:theme.accent}}>DEMANDA REAL · {task.area_name}</span>
+                      <h3 className="mt-2 line-clamp-2 text-base font-semibold leading-tight text-white">{task.title}</h3>
+                    </div>
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/15 bg-white/[.06]" style={{color:theme.accent}}><CraftIcon size={18}/></span>
+                  </div>
+                </div>
+                <div className="p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] font-semibold" style={{color:theme.accent}}>{stage.label}</span>
+                    <span className="truncate text-[10px] text-muted">{task.assignee_name || 'Responsável a definir'}</span>
+                  </div>
+                  <div className="mt-2 grid grid-cols-5 gap-1">{FLOW.map((item,index)=><span key={item.id} title={item.label} className="h-1 rounded-full" style={{background:index<=stageIndex?theme.accent:'rgba(128,128,128,.20)'}}/>)}</div>
+                  <div className="mt-3 flex items-center justify-between gap-2 text-[10px] text-muted">
+                    <span>{task.recording_date ? dateLabel(task.recording_date) : 'Em execução'}</span>
+                    <span>{task.due_date ? `Entrega · ${dateLabel(task.due_date)}` : 'Sem prazo'}</span>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-line bg-surface/60 px-5 py-8 text-center">
+          <CraftIcon className="mx-auto h-6 w-6" style={{color:theme.accent}}/>
+          <p className="mt-3 text-sm font-medium text-ink">A próxima criação começa aqui</p>
+          <p className="mt-1 text-xs text-muted">Quando uma demanda entrar no fluxo, ela aparecerá automaticamente nesta vitrine.</p>
+        </div>
+      )}
+      <div className="rounded-2xl border border-line bg-surface p-4">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div><h3 className="text-sm font-semibold text-ink">Últimas entregas</h3><p className="mt-1 text-[11px] text-muted">O que a equipe já concluiu.</p></div>
+          <span className="text-xs font-semibold" style={{color:theme.accent}}>{delivered.length}</span>
+        </div>
+        {delivered.length ? <div className="grid gap-2 sm:grid-cols-2">{delivered.slice(0,4).map(task=><div key={task.id} className="flex min-w-0 items-center gap-3 rounded-xl bg-ink/[.035] p-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg" style={{background:theme.glow,color:theme.accent}}><CheckCircle2 size={17}/></span><div className="min-w-0"><p className="truncate text-xs font-semibold text-ink">{task.title}</p><p className="mt-1 truncate text-[10px] text-muted">{task.assignee_name || 'Equipe'}</p></div><span className="ml-auto text-[9px]" style={{color:theme.accent}}>Concluído</span></div>)}</div> : <p className="rounded-lg border border-dashed border-line px-3 py-4 text-center text-[11px] text-muted">As entregas concluídas serão exibidas aqui.</p>}
+      </div>
+    </section>
+  );
 }
 
 export default function Department() {
@@ -163,6 +236,8 @@ export default function Department() {
           </div>
         </div>
       </header>
+
+      <DepartmentShowcase slug={slug} tasks={data.tasks} theme={theme} />
 
       {showTaskForm && <form onSubmit={createTask} className="rounded-2xl border border-line bg-surface p-5">
         <div className="mb-4 flex items-center justify-between"><div><h2 className="text-sm font-semibold text-ink">Nova demanda de produção</h2><p className="mt-1 text-xs text-muted">Defina a frente, a responsabilidade e os prazos.</p></div><button type="button" onClick={() => setShowTaskForm(false)} className="rounded-lg p-2 text-muted hover:bg-ink/5" aria-label="Fechar"><X size={16}/></button></div>

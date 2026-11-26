@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import {
   ArrowLeft, ArrowUpRight, CalendarDays, Camera, Clapperboard,
   Film, FolderKanban, Plus, Users, UserRound, Video, Clock,
-  CheckCircle2, Circle, Loader2,
+  CheckCircle2, Circle, Loader2, Play,
 } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { get, post, patch } from '../../lib/api';
@@ -39,6 +39,97 @@ function dateLabel(value?: string | null) {
   if (!value) return 'Sem prazo';
   const date = new Date(`${String(value).slice(0, 10)}T12:00:00`);
   return date.toLocaleDateString('pt-BR');
+}
+
+function ProductionShowcase({ tasks }: { tasks: any[] }) {
+  const active = tasks.filter((task) => STATUS.some((stage) => stage.id === task.status && stage.id !== 'published'));
+  const delivered = tasks.filter((task) => task.status === 'published');
+  const stages = [
+    { id: 'planning', label: 'Planejamento' },
+    { id: 'recording', label: 'Captação' },
+    { id: 'editing', label: 'Edição' },
+    { id: 'review', label: 'Revisão' },
+    { id: 'published', label: 'Entregue' },
+  ];
+  const stageFor = (status: string) => Math.max(0, stages.findIndex((stage) => stage.id === status));
+
+  return (
+    <section className="space-y-4">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-[9px] font-bold uppercase tracking-[.22em] text-brass">VISÃO DE ESTÚDIO</p>
+          <h2 className="mt-1 text-lg font-semibold tracking-tight text-ink">Produções em movimento</h2>
+          <p className="mt-1 text-xs text-muted">Uma visão visual do que está sendo criado e do que já foi entregue.</p>
+        </div>
+        <div className="flex gap-2 text-[10px] text-muted">
+          <span className="rounded-full border border-line px-2.5 py-1">{active.length} em produção</span>
+          <span className="rounded-full border border-line px-2.5 py-1">{delivered.length} entregues</span>
+        </div>
+      </div>
+
+      {active.length ? (
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {active.slice(0, 6).map((task) => {
+            const stageIndex = stageFor(task.status);
+            const stage = stages[stageIndex];
+            return (
+              <article key={task.id} className="group overflow-hidden rounded-2xl border border-line bg-surface transition-colors hover:border-brass/40">
+                <div className="relative flex aspect-[16/8] items-end overflow-hidden bg-[#15191e] p-4">
+                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_78%_18%,rgba(196,166,106,.2),transparent_42%),linear-gradient(135deg,rgba(255,255,255,.045),transparent_55%)]" />
+                  <div className="pointer-events-none absolute -right-5 -top-10 h-36 w-36 rounded-full border border-white/[.07]" />
+                  <div className="pointer-events-none absolute -right-1 -top-6 h-28 w-28 rounded-full border border-white/[.06]" />
+                  <div className="relative flex w-full items-end justify-between gap-3">
+                    <div>
+                      <span className="text-[8px] font-semibold uppercase tracking-[.2em] text-[#D7BD8D]/75">MMV CREATIVE · PRODUÇÃO</span>
+                      <p className="mt-1 line-clamp-2 text-lg font-semibold leading-tight text-white">{task.title}</p>
+                    </div>
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/15 bg-white/[.06] text-[#D7BD8D]"><Play size={15} fill="currentColor" /></span>
+                  </div>
+                </div>
+                <div className="p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] font-medium text-brass">{stage.label}</span>
+                    <span className="text-[10px] text-muted">{task.assignee_name || 'Responsável a definir'}</span>
+                  </div>
+                  <div className="mt-2 grid grid-cols-5 gap-1" aria-label={`Etapa ${stage.label}`}>
+                    {stages.map((item, index) => <span key={item.id} title={item.label} className={`h-1 rounded-full ${index <= stageIndex ? "bg-[#C4A66A]" : "bg-ink/[.08]"}`} />)}
+                  </div>
+                  <div className="mt-3 flex items-center justify-between text-[10px] text-muted">
+                    <span>{task.recording_date ? `Captação · ${dateLabel(task.recording_date)}` : 'Produção em andamento'}</span>
+                    <span>{task.due_date ? `Entrega · ${dateLabel(task.due_date)}` : 'Sem prazo'}</span>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-line bg-surface/50 px-5 py-8 text-center">
+          <Clapperboard className="mx-auto h-6 w-6 text-muted" />
+          <p className="mt-3 text-sm font-medium text-ink">Nenhuma produção em andamento</p>
+          <p className="mt-1 text-xs text-muted">Quando uma demanda for criada, ela aparecerá aqui automaticamente.</p>
+        </div>
+      )}
+
+      <div className="rounded-2xl border border-line bg-surface p-4">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div><h3 className="text-sm font-semibold text-ink">Entregas concluídas</h3><p className="mt-1 text-[11px] text-muted">Produções marcadas como entregues.</p></div>
+          <span className="text-xs font-semibold text-emerald-500">{delivered.length}</span>
+        </div>
+        {delivered.length ? (
+          <div className="grid gap-2 sm:grid-cols-2">
+            {delivered.slice(0, 4).map((task) => (
+              <div key={task.id} className="flex min-w-0 items-center gap-3 rounded-xl bg-ink/[.035] p-3">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-emerald-500/10 text-emerald-500"><CheckCircle2 size={17} /></span>
+                <div className="min-w-0"><p className="truncate text-xs font-semibold text-ink">{task.title}</p><p className="mt-1 truncate text-[10px] text-muted">{task.assignee_name || 'Equipe audiovisual'}</p></div>
+                <span className="ml-auto text-[9px] text-emerald-500">Entregue</span>
+              </div>
+            ))}
+          </div>
+        ) : <p className="rounded-lg border border-dashed border-line px-3 py-4 text-center text-[11px] text-muted">As entregas concluídas aparecerão aqui.</p>}
+      </div>
+    </section>
+  );
 }
 
 function TaskCard({ task, onStatus, members = [], canAssign = false, onAssignee }: { task: any; onStatus: (id: string, status: string) => void; members?: any[]; canAssign?: boolean; onAssignee?: (id: string, userId: string) => void }) {
@@ -175,6 +266,8 @@ export default function Production() {
             </div>)}
           </div> : <p className="text-xs text-muted">Nenhum integrante vinculado a esta área.</p>}
         </section>
+
+        <ProductionShowcase tasks={tasks} />
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div><h2 className="text-sm font-semibold text-ink">Quadro de produção</h2><p className="mt-1 text-xs text-muted">Acompanhe cada entrega ao longo do fluxo.</p></div>
