@@ -56,7 +56,7 @@ router.get('/overview', asyncHandler(async (req: any, res) => {
         count(*) filter (where status in ('todo','doing','waiting'))::int as open_tasks,
         count(*) filter (where status = 'doing')::int as doing_tasks,
         count(*) filter (where status = 'done' and completed_at >= date_trunc('week', now()))::int as completed_this_week,
-        count(*) filter (where status = 'todo' and due_date < current_date)::int as overdue_tasks
+        count(*) filter (where status in ('todo','doing','waiting') and due_date < current_date)::int as overdue_tasks
       from personal_tasks where owner_id = $1
     `, [req.user.id]),
   ]);
