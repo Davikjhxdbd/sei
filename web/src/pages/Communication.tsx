@@ -76,7 +76,7 @@ export default function Communication() {
         eyebrow="MMV CREATIVE · COMUNICAÇÃO"
         title="Comunicação"
         description="Comunicados oficiais, orientações e avisos importantes para toda a equipe."
-        actions={<div className="flex flex-wrap gap-2"><Link to="/m/communication/social" className="inline-flex h-10 items-center rounded-lg border border-line bg-surface px-3 text-xs font-medium text-ink hover:border-brass/40">Calendário editorial</Link>{level >= 4 && <Button icon={Plus} onClick={() => setModal(true)}>Novo comunicado</Button>}</div>}
+        actions={<div className="flex flex-wrap gap-2"><Link to="/m/communication/intelligence" className="inline-flex h-10 items-center rounded-lg border border-line bg-surface px-3 text-xs font-medium text-ink hover:border-brass/40">Inteligência</Link><Link to="/m/communication/social" className="inline-flex h-10 items-center rounded-lg border border-line bg-surface px-3 text-xs font-medium text-ink hover:border-brass/40">Calendário editorial</Link>{level >= 4 && <Button icon={Plus} onClick={() => setModal(true)}>Novo comunicado</Button>}</div>}
       />
       <div className="mmv-directory-toolbar mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="relative w-full sm:max-w-md">
