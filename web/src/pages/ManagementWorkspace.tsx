@@ -51,11 +51,11 @@ export default function ManagementWorkspace() {
 
   const tasks = useMemo(() => (data?.tasks ?? []).filter(t => t.status !== 'archived').filter(t => {
     const q=query.trim().toLocaleLowerCase('pt-BR');
-    return !q || t.title.toLocaleLowerCase('pt-BR').includes(q) || (t.project_name ?? '').toLocaleLowerCase('pt-BR').includes(q);
+    return !q || [t.title, t.project_name ?? '', t.assignee_name ?? ''].some(value => value.toLocaleLowerCase('pt-BR').includes(q));
   }),[data,query]);
   const projects = useMemo(() => (data?.projects ?? []).filter(p => p.status !== 'archived').filter(p => {
     const q=query.trim().toLocaleLowerCase('pt-BR');
-    return !q || p.name.toLocaleLowerCase('pt-BR').includes(q);
+    return !q || [p.name, p.owner_name ?? ''].some(value => value.toLocaleLowerCase('pt-BR').includes(q));
   }),[data,query]);
 
   function newTask() {
