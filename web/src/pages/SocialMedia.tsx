@@ -20,6 +20,17 @@ const platforms=['Instagram','YouTube','Facebook','TikTok','Site'];
 const formats=['Reel','Post','Story','Carrossel','Live','Short','Vídeo','Outro'];
 const dateKey=(date:Date)=>`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
 const weekdays=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+
+function EditorialShowcase({ items }: { items: Item[] }) {
+ const active=items.filter(item=>!['published','archived'].includes(item.status));
+ const published=items.filter(item=>item.status==='published');
+ const tone=(platform:string)=>platform==='YouTube'?'#D99B91':platform==='Instagram'?'#C7A1C9':'#9DB9D5';
+ return <section className="mb-5 space-y-3">
+  <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-[9px] font-bold uppercase tracking-[.22em] text-brass">MMV CREATIVE / EDITORIAL STUDIO</p><h2 className="mt-1 text-lg font-semibold tracking-tight text-ink">Conteúdo em movimento</h2><p className="mt-1 text-xs text-muted">Campanhas e publicações acompanhadas pelas pautas reais.</p></div><div className="flex gap-2 text-[10px] text-muted"><span className="rounded-full border border-line px-2.5 py-1">{active.length} na esteira</span><span className="rounded-full border border-line px-2.5 py-1">{published.length} publicados</span></div></div>
+  {active.length?<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{active.slice(0,6).map(item=><article key={item.id} className="overflow-hidden rounded-2xl border border-line bg-surface"><div className="relative min-h-[142px] overflow-hidden bg-[#111419] p-4"><div className="absolute inset-0" style={{background:`radial-gradient(ellipse at 85% 10%, ${tone(item.platform)}33, transparent 54%),linear-gradient(135deg,rgba(255,255,255,.05),transparent)`}}/><div className="relative flex h-full min-h-[110px] flex-col justify-between"><div className="flex items-center justify-between"><span className="text-[9px] font-semibold uppercase tracking-[.2em]" style={{color:tone(item.platform)}}>{item.platform} · {item.format}</span><span className="rounded-full border border-white/15 bg-white/[.06] px-2 py-1 text-[9px] text-white/70">{statuses.find(s=>s.value===item.status)?.label??item.status}</span></div><div><h3 className="line-clamp-2 text-base font-semibold text-white">{item.title}</h3>{item.campaign&&<p className="mt-1 text-[10px] text-white/55">{item.campaign}</p>}</div></div></div><div className="flex items-center justify-between gap-2 p-3 text-[10px] text-muted"><span className="truncate">{item.assignee_name??'Sem responsável'}</span><span>{item.scheduled_at?formatDateTime(item.scheduled_at):'Sem data definida'}</span></div></article>)}</div>:<div className="rounded-2xl border border-dashed border-line bg-surface px-5 py-7 text-center"><Clapperboard className="mx-auto h-6 w-6 text-muted"/><p className="mt-2 text-sm font-medium text-ink">O próximo conteúdo começa aqui</p><p className="mt-1 text-xs text-muted">Cadastre uma pauta para preencher a esteira editorial.</p></div>}
+ </section>;
+}
+
 export default function SocialMedia() {
  const {level,user}=useAuth(); const toast=useToast();
  const {data,loading,error,reload}=useApi<Payload>('/communication/content?limit=200');
@@ -46,6 +57,7 @@ export default function SocialMedia() {
  async function move(item:Item,status:string){try{await patch(`/communication/content/${item.id}`,{status});await reload();}catch(e:any){toast.push(e?.message??'Não foi possível atualizar a etapa.','error');}}
  return <div>
   <PageHeader eyebrow="MMV CREATIVE · COMUNICAÇÃO" title="Social Media" description="Planeje campanhas, organize a produção e acompanhe o conteúdo até a publicação." actions={<div className="flex flex-wrap gap-2"><Link to="/m/communication" className="inline-flex h-10 items-center rounded-lg border border-line px-3 text-xs font-medium text-ink">Comunicados</Link><Link to="/m/communication/intelligence" className="inline-flex h-10 items-center rounded-lg border border-line px-3 text-xs font-medium text-ink">Inteligência</Link>{level>=2&&<Button icon={Plus} onClick={()=>start()}>Nova pauta</Button>}</div>}/>
+  <EditorialShowcase items={data?.items??[]} />
   <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
    {[{label:'Pautas',value:data?.totals.total??0},{label:'Em andamento',value:data?.totals.in_progress??0},{label:'Agendadas',value:data?.totals.scheduled??0},{label:'Publicadas',value:data?.totals.published??0}].map(x=><Card key={x.label} className="p-4"><p className="text-[11px] text-muted">{x.label}</p><p className="mt-2 text-2xl font-semibold text-ink">{loading?'—':x.value}</p></Card>)}
   </div>
