@@ -166,32 +166,32 @@ router.post('/content', asyncHandler(async (req: any, res) => {
 }));
 
 router.patch('/content/:id', asyncHandler(async (req: any, res) => {
-  const { rows: beforeRows } = await req.db.query(
-    'select * from social_content_items where id = $1 for update', [req.params.id],
-  );
-  if (!beforeRows.length) throw notFound('Pauta não encontrada.');
-  const before = beforeRows[0];
-  const isCreator = before.created_by === req.user.id;
-  const isAssignee = before.assigned_to === req.user.id;
-  if (!isCreator && !isAssignee && req.user.level < 3) throw notFound('Pauta não encontrada.');
-  if (isAssignee && !isCreator && req.user.level < 3 &&
-      Object.keys(req.body ?? {}).some((key) => key !== 'status')) {
-    throw forbidden('Responsáveis podem atualizar apenas a etapa da própria pauta.');
-  }
-  const title = req.body?.title !== undefined ? required(req.body.title, 'título', 180) : before.title;
-  const platform = req.body?.platform !== undefined ? contentChoice(req.body.platform, CONTENT_PLATFORMS, 'plataforma') : before.platform;
-  const format = req.body?.format !== undefined ? contentChoice(req.body.format, CONTENT_FORMATS, 'formato') : before.format;
-  const campaign = req.body?.campaign !== undefined ? optionalText(req.body.campaign, 180) : before.campaign;
-  const caption = req.body?.caption !== undefined ? optionalText(req.body.caption, 6000) : before.caption;
-  const scheduledAt = req.body?.scheduled_at !== undefined ? contentDate(req.body.scheduled_at) : before.scheduled_at;
-  const status = req.body?.status !== undefined ? contentChoice(req.body.status, CONTENT_STATUSES, 'etapa') : before.status;
-  const assignedTo = req.body?.assigned_to !== undefined ? (req.body.assigned_to || null) : before.assigned_to;
-  if (assignedTo !== before.assigned_to && req.user.level < 3) throw forbidden('Somente a liderança pode reatribuir pautas.');
-  if (assignedTo) {
-    const member = await req.db.query("select 1 from users where id = $1 and status = 'active'", [assignedTo]);
-    if (!member.rows.length) throw badRequest('A pessoa responsável não está ativa.');
-  }
   const updated = await tx(req.db, async () => {
+    const { rows: beforeRows } = await req.db.query(
+      'select * from social_content_items where id = $1 for update', [req.params.id],
+    );
+    if (!beforeRows.length) throw notFound('Pauta não encontrada.');
+    const before = beforeRows[0];
+    const isCreator = before.created_by === req.user.id;
+    const isAssignee = before.assigned_to === req.user.id;
+    if (!isCreator && !isAssignee && req.user.level < 3) throw notFound('Pauta não encontrada.');
+    if (isAssignee && !isCreator && req.user.level < 3 &&
+        Object.keys(req.body ?? {}).some((key) => key !== 'status')) {
+      throw forbidden('Responsáveis podem atualizar apenas a etapa da própria pauta.');
+    }
+    const title = req.body?.title !== undefined ? required(req.body.title, 'título', 180) : before.title;
+    const platform = req.body?.platform !== undefined ? contentChoice(req.body.platform, CONTENT_PLATFORMS, 'plataforma') : before.platform;
+    const format = req.body?.format !== undefined ? contentChoice(req.body.format, CONTENT_FORMATS, 'formato') : before.format;
+    const campaign = req.body?.campaign !== undefined ? optionalText(req.body.campaign, 180) : before.campaign;
+    const caption = req.body?.caption !== undefined ? optionalText(req.body.caption, 6000) : before.caption;
+    const scheduledAt = req.body?.scheduled_at !== undefined ? contentDate(req.body.scheduled_at) : before.scheduled_at;
+    const status = req.body?.status !== undefined ? contentChoice(req.body.status, CONTENT_STATUSES, 'etapa') : before.status;
+    const assignedTo = req.body?.assigned_to !== undefined ? (req.body.assigned_to || null) : before.assigned_to;
+    if (assignedTo !== before.assigned_to && req.user.level < 3) throw forbidden('Somente a liderança pode reatribuir pautas.');
+    if (assignedTo) {
+      const member = await req.db.query("select 1 from users where id = $1 and status = 'active'", [assignedTo]);
+      if (!member.rows.length) throw badRequest('A pessoa responsável não está ativa.');
+    }
     const { rows } = await req.db.query(`
       update social_content_items
          set title=$1, platform=$2, format=$3, campaign=$4, caption=$5,
