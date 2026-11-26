@@ -90,11 +90,12 @@ async function main() {
        on conflict (key) do nothing`,
     );
 
+    const demoPasswordHash = await hashPassword(DEMO_PASSWORD);
     for (const user of USERS) {
       await client.query(
         `insert into users (id, full_name, username, email, password_hash, status)
          values ($1, $2, $3, $4, $5, 'active') on conflict (id) do nothing`,
-        [user.id, user.name, user.username, user.email, hashPassword(DEMO_PASSWORD)],
+        [user.id, user.name, user.username, user.email, demoPasswordHash],
       );
       for (const role of user.roles) {
         await client.query(
