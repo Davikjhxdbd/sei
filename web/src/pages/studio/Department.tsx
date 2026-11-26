@@ -44,7 +44,7 @@ export default function Department() {
   if (error || !data) return (
     <div className="space-y-4 p-8">
       <p className="text-sm text-red-300">{error || 'Departamento não encontrado.'}</p>
-      <Link to="/" className="text-sm text-[#C4A66A]">Voltar à central</Link>
+      <Link to="/ambiente/producao" className="text-sm text-[#C4A66A]">Voltar à Produção Criativa</Link>
     </div>
   );
 
@@ -143,7 +143,6 @@ export default function Department() {
           }
           <div className="mt-6 border-t border-white/[.07] pt-5">
             <Link to="/m/studio/schedules" className="flex items-center justify-between text-xs text-white/55 hover:text-[#D8BD86]">Consultar escalas <ArrowUpRight size={14} /></Link>
-            <Link to="/m/studio/media" className="mt-4 flex items-center justify-between text-xs text-white/55 hover:text-[#D8BD86]">Consultar biblioteca <ArrowUpRight size={14} /></Link>
           </div>
         </aside>
       </section>
