@@ -47,6 +47,7 @@ const workspaces: Record<string, Workspace> = {
       { title: 'Projetos', description: 'Tire ideias do papel, organize etapas e acompanhe cada entrega.', detail: 'PLANEJAMENTO · PROGRESSO · ENTREGAS', icon: FolderKanban, route: '/gestao?tab=projetos', state: 'active' },
       { title: 'Tarefas', description: 'Uma mesa de trabalho pessoal para prioridades, prazos e próximos passos.', detail: 'HOJE · PRÓXIMAS · CONCLUÍDAS', icon: CheckSquare, route: '/gestao?tab=tarefas', state: 'active' },
       { title: 'Escalas', description: 'Consulte suas responsabilidades e os compromissos das equipes.', detail: 'RESPONSABILIDADES · CONFIRMAÇÕES', icon: CalendarCheck, route: '/m/studio/schedules', state: 'active' },
+      { title: 'Meu espaço', description: 'Veja sua rotina, prioridades, entregas recentes e participação nos projetos.', detail: 'MINHA ROTINA · MINHA EVOLUÇÃO', icon: Target, route: '/gestao?tab=espaco', state: 'active' },
     ],
   },
   producao: {
