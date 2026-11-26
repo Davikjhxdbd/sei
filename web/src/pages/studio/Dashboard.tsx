@@ -220,8 +220,8 @@ export default function Dashboard() {
               {dateLabel}
             </p>
             <div className="flex flex-wrap gap-2">
-              <GlassLink to="/m/studio/production" icon={Film}>
-                Produção
+              <GlassLink to="/ambiente/producao" icon={Film}>
+                Departamentos
               </GlassLink>
               <GlassLink to="/m/studio/production/my-space" icon={CheckCircle2} subtle>
                 Minhas demandas
