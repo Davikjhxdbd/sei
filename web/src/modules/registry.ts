@@ -33,8 +33,8 @@ export const MODULE_NAV: Record<string, NavGroup[]> = {
   communication: [{ title: 'Comunicação institucional', items: [
     { label: 'Comunicados', to: '/m/communication', icon: MessageSquare, end: true },
   ]}],
-  departments: [{ title: 'Departamentos', items: [
-    { label: 'Visão geral', to: '/m/departments', icon: Building2, end: true },
+  production: [{ title: 'Produção audiovisual', items: [
+    { label: 'Visão geral', to: '/m/production', icon: Clapperboard, end: true },
   ]}],
   people: [{ title: 'Pessoas', items: [
     { label: 'Diretório', to: '/m/people', icon: Users, end: true },
