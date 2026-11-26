@@ -1,12 +1,11 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { Building2, Users2, Camera, Clapperboard, Palette, RadioTower, Presentation, ArrowUpRight, type LucideIcon } from 'lucide-react';
 import { Badge, Card, LoadingBlock, PageHeader, SearchInput } from '../components/ui';
 import { useApi } from '../lib/useApi';
 
 interface Department {
   id: string;
-  slug: string;
+  key: string;
   name: string;
   description: string | null;
   member_count: number;
@@ -39,7 +38,7 @@ function visualFor(name: string) {
 }
 
 export default function Departments() {
-  const { data, loading, error, reload } = useApi<{ items: Department[] }>('/catalog/departments');
+  const { data, loading, error, reload } = useApi<{ items: Department[] }>('/catalog/sectors');
   const [query, setQuery] = useState('');
   const departments = useMemo(() => {
     const term = query.trim().toLocaleLowerCase('pt-BR');
@@ -71,9 +70,9 @@ export default function Departments() {
             const visual = visualFor(department.name);
             const Icon = visual.icon;
             return (
-              <Link key={department.id} to={'/m/departments/' + department.slug} aria-label={'Abrir departamento ' + department.name} className="block min-w-0 rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-brass">
               <Card
-                className="mmv-sector-card group relative min-w-0 overflow-hidden p-0 transition-transform duration-200 hover:-translate-y-1"
+                key={department.id}
+                className="mmv-sector-card group relative min-w-0 overflow-hidden p-0"
                 style={{ '--sector-accent': visual.accent, '--sector-glow': visual.glow } as React.CSSProperties}
               >
                 <div className="mmv-sector-card-art relative flex h-28 items-start justify-between overflow-hidden px-5 pt-4">
@@ -97,7 +96,6 @@ export default function Departments() {
                   </div>
                 </div>
               </Card>
-              </Link>
             );
           })}
         </div>
