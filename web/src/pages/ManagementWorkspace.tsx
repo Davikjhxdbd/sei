@@ -29,12 +29,15 @@ const dateText = (value?: string | null) => value ? new Intl.DateTimeFormat('pt-
 
 export default function ManagementWorkspace() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const tab = searchParams.get('tab') === 'projetos' ? 'projetos' : 'tarefas';
+  const requestedTab = searchParams.get('tab');
+  const tab = requestedTab === 'projetos' || requestedTab === 'espaco' ? requestedTab : 'tarefas';
   const toast = useToast();
   const { data, loading, error, reload } = useApi<Overview>('/workspace/overview');
   const { level, user } = useAuth();
   const people = useApi<{items:{id:string;full_name:string}[]}> (level >= 3 ? '/catalog/people' : null);
   const [query,setQuery] = useState('');
+  const [taskScope,setTaskScope] = useState<'mine'|'team'>('mine');
+  const [taskStatusFilter,setTaskStatusFilter] = useState<'open'|'doing'|'waiting'|'done'|'all'>('open');
   const [showForm,setShowForm] = useState(false);
   const [saving,setSaving] = useState(false);
   const [editingTask,setEditingTask] = useState<Task | null>(null);
@@ -49,10 +52,11 @@ export default function ManagementWorkspace() {
   const [projectDue,setProjectDue] = useState('');
   const [projectAssignee,setProjectAssignee] = useState('');
   const [editingProject,setEditingProject] = useState<Project | null>(null);
-  const [focusTaskId,setFocusTaskId] = useState(() => {
-    try { return localStorage.getItem(`mmv:management:focus:${user?.id ?? 'guest'}`) ?? ''; }
-    catch { return ''; }
-  });
+  const [focusTaskId,setFocusTaskId] = useState('');
+  useEffect(() => {
+    try { setFocusTaskId(localStorage.getItem(`mmv:management:focus:${user?.id ?? 'guest'}`) ?? ''); }
+    catch { setFocusTaskId(''); }
+  }, [user?.id]);
   useEffect(() => {
     try {
       const key = `mmv:management:focus:${user?.id ?? 'guest'}`;
@@ -65,8 +69,10 @@ export default function ManagementWorkspace() {
     const q=query.trim().toLocaleLowerCase('pt-BR');
     return !q || [t.title, t.project_name ?? '', t.assignee_name ?? ''].some(value => value.toLocaleLowerCase('pt-BR').includes(q));
   }),[data,query]);
-  const personalTasks = tasks.filter(task => task.owner_id === user?.id && task.status !== 'done');
-  const focusedTask = personalTasks.find(task => task.id === focusTaskId) ?? null;
+  const personalTasks = (data?.tasks ?? []).filter(task => task.owner_id === user?.id && task.status !== 'archived');
+  const focusedTask = personalTasks.find(task => task.id === focusTaskId && task.status !== 'done') ?? null;
+  const myProjects = (data?.projects ?? []).filter(project => project.owner_id === user?.id && project.status !== 'archived');
+  const visibleTasks = tasks.filter(task => (taskScope === 'team' ? level >= 3 : task.owner_id === user?.id) && (taskStatusFilter === 'all' || (taskStatusFilter === 'open' ? ['todo','doing','waiting'].includes(task.status) : task.status === taskStatusFilter)));
 
   const projects = useMemo(() => (data?.projects ?? []).filter(p => p.status !== 'archived').filter(p => {
     const q=query.trim().toLocaleLowerCase('pt-BR');
@@ -125,8 +131,8 @@ export default function ManagementWorkspace() {
       <header className="relative overflow-hidden rounded-[26px] border border-[#d7bd8d]/20 bg-[radial-gradient(ellipse_at_90%_10%,rgba(196,166,106,.17),transparent_42%),linear-gradient(120deg,#25221c,#151719_72%)] p-6 sm:p-9">
         <div className="relative z-10 max-w-2xl">
           <p className="flex items-center gap-2 text-[9px] font-bold tracking-[.24em] text-[#d7bd8d]"><BriefcaseBusiness size={13}/> GESTÃO · SUA MESA DE TRABALHO</p>
-          <h1 className="mt-4 text-3xl font-semibold tracking-[-.05em] sm:text-4xl">{tab==='tarefas'?'O que precisa avançar?':'O que você está construindo?'}</h1>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-white/55">{tab==='tarefas'?level>=3?'Acompanhe as entregas da equipe, distribua responsabilidades e mantenha cada prioridade visível.':'Organize o próximo passo, mantenha o foco e acompanhe o que já saiu do papel.':'Reúna objetivos, etapas e entregas em projetos que você consegue acompanhar.'}</p>
+          <h1 className="mt-4 text-3xl font-semibold tracking-[-.05em] sm:text-4xl">{tab==='tarefas'?'O que precisa avançar?':tab==='projetos'?'O que você está construindo?':'Seu trabalho, do seu jeito.'}</h1>
+          <p className="mt-3 max-w-xl text-sm leading-6 text-white/55">{tab==='tarefas'?level>=3?'Acompanhe as entregas da equipe, distribua responsabilidades e mantenha cada prioridade visível.':'Organize o próximo passo, mantenha o foco e acompanhe o que já saiu do papel.':tab==='projetos'?'Reúna objetivos, etapas e entregas em projetos que você consegue acompanhar.':'Uma visão particular das suas tarefas, projetos e entregas — sem o ruído da operação inteira.'}</p>
           <div className="mt-6 flex flex-wrap gap-2 text-[10px] text-white/55"><span className="rounded-full border border-white/10 bg-black/15 px-3 py-1.5"><CalendarDays size={11} className="mr-1 inline"/> {new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'2-digit',month:'long'}).format(new Date())}</span><span className="rounded-full border border-white/10 bg-black/15 px-3 py-1.5"><Sparkles size={11} className="mr-1 inline"/> Pessoal · responsabilidades da equipe</span></div>
         </div>
         <div className="pointer-events-none absolute -right-4 -bottom-16 hidden h-64 w-64 rounded-full border border-[#d7bd8d]/15 sm:block"><div className="absolute inset-7 rounded-full border border-[#d7bd8d]/15"/><div className="absolute inset-16 rounded-full border border-[#d7bd8d]/15"/><div className="absolute left-1/2 top-1/2 h-2 w-2 rounded-full bg-[#d7bd8d] shadow-[0_0_35px_12px_rgba(215,189,141,.25)]"/></div>
@@ -146,11 +152,12 @@ export default function ManagementWorkspace() {
           <div className="flex rounded-xl border border-white/10 bg-white/[.035] p-1">
             <button onClick={()=>{setSearchParams({tab:'tarefas'});setShowForm(false);}} className={`rounded-lg px-4 py-2 text-xs font-semibold ${tab==='tarefas'?'bg-[#d7bd8d] text-[#17140e]':'text-white/55'}`}><ListTodo size={13} className="mr-1.5 inline"/>Tarefas</button>
             <button onClick={()=>{setSearchParams({tab:'projetos'});setShowForm(false);}} className={`rounded-lg px-4 py-2 text-xs font-semibold ${tab==='projetos'?'bg-[#d7bd8d] text-[#17140e]':'text-white/55'}`}><FolderKanban size={13} className="mr-1.5 inline"/>Projetos</button>
+            <button onClick={()=>{setSearchParams({tab:'espaco'});setShowForm(false);}} className={`rounded-lg px-4 py-2 text-xs font-semibold ${tab==='espaco'?'bg-[#d7bd8d] text-[#17140e]':'text-white/55'}`}><Target size={13} className="mr-1.5 inline"/>Meu espaço</button>
           </div>
           <button onClick={()=>tab==='tarefas'?newTask():newProject()} className="inline-flex items-center gap-2 rounded-xl bg-[#d7bd8d] px-4 py-2.5 text-xs font-bold text-[#17140e] hover:bg-[#e4cca0]"><Plus size={15}/>{tab==='tarefas'?'Nova tarefa':'Novo projeto'}</button>
         </div>
 
-        {showForm && <form onSubmit={tab==='tarefas'?saveTask:saveProject} className="mt-4 rounded-2xl border border-[#d7bd8d]/25 bg-[#1b1c1b] p-5">
+        {showForm && tab!=='espaco' && <form onSubmit={tab==='tarefas'?saveTask:saveProject} className="mt-4 rounded-2xl border border-[#d7bd8d]/25 bg-[#1b1c1b] p-5">
           <div className="mb-4 flex items-center justify-between"><div><p className="text-[9px] font-bold tracking-[.2em] text-[#d7bd8d]">{tab==='tarefas'?'REGISTRO DE TAREFA':'NOVO PROJETO'}</p><h2 className="mt-1 text-lg font-semibold">{tab==='tarefas'?(editingTask?'Editar tarefa':'Adicionar à sua mesa'):(editingProject?'Editar projeto':'Criar projeto')}</h2></div><button type="button" onClick={()=>setShowForm(false)} className="rounded-lg p-2 text-white/45 hover:bg-white/5 hover:text-white"><X size={17}/></button></div>
           {tab==='tarefas'?<div className="grid gap-3 sm:grid-cols-2">
             <label className="text-xs text-white/60 sm:col-span-2">O que precisa ser feito?<input required maxLength={180} value={taskTitle} onChange={e=>setTaskTitle(e.target.value)} className="mt-1.5 h-11 w-full rounded-xl border border-white/10 bg-black/20 px-3 text-sm text-white outline-none focus:border-[#d7bd8d]/60"/></label>
@@ -188,10 +195,55 @@ export default function ManagementWorkspace() {
           <p className="mt-2 text-[10px] text-white/30">Sua escolha fica salva neste dispositivo e não altera a tarefa nem a visão da equipe.</p>
         </section>}
         
+        {tab==='espaco' && <section className="mt-5 space-y-5">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <article className="rounded-2xl border border-white/[.08] bg-white/[.035] p-4"><p className="text-[10px] text-white/40">Minhas tarefas abertas</p><p className="mt-2 text-2xl font-semibold tabular-nums">{personalTasks.filter(task=>['todo','doing','waiting'].includes(task.status)).length}</p></article>
+            <article className="rounded-2xl border border-white/[.08] bg-white/[.035] p-4"><p className="text-[10px] text-white/40">Em andamento</p><p className="mt-2 text-2xl font-semibold tabular-nums">{personalTasks.filter(task=>task.status==='doing').length}</p></article>
+            <article className="rounded-2xl border border-white/[.08] bg-white/[.035] p-4"><p className="text-[10px] text-white/40">Meus projetos ativos</p><p className="mt-2 text-2xl font-semibold tabular-nums">{myProjects.filter(project=>project.status==='active').length}</p></article>
+            <article className="rounded-2xl border border-white/[.08] bg-white/[.035] p-4"><p className="text-[10px] text-white/40">Concluídas esta semana</p><p className="mt-2 text-2xl font-semibold tabular-nums">{personalTasks.filter(task=>task.status==='done').length}</p></article>
+          </div>
+          <div className="grid gap-4 lg:grid-cols-[1.15fr_.85fr]">
+            <section className="rounded-2xl border border-[#d7bd8d]/20 bg-[linear-gradient(120deg,rgba(215,189,141,.09),rgba(255,255,255,.025))] p-5">
+              <p className="text-[9px] font-bold tracking-[.2em] text-[#d7bd8d]">PRÓXIMOS PASSOS</p>
+              <h2 className="mt-2 text-lg font-semibold">O que merece sua atenção?</h2>
+              <div className="mt-4 space-y-2">
+                {personalTasks.filter(task=>['todo','doing','waiting'].includes(task.status)).slice(0,5).map(task=><div key={task.id} className="flex items-center gap-3 rounded-xl border border-white/[.07] bg-black/10 p-3">
+                  <button onClick={()=>void updateTask(task,{status:'done'})} aria-label="Concluir tarefa" className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-white/10 text-white/45 hover:text-[#d7bd8d]"><Check size={15}/></button>
+                  <div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold">{task.title}</p><p className="mt-1 text-[10px] text-white/35">{task.project_name??'Pessoal'} · {dateText(task.due_date)}</p></div>
+                  <span className="text-[9px] text-white/40">{taskStatus[task.status]}</span>
+                </div>)}
+                {!personalTasks.some(task=>['todo','doing','waiting'].includes(task.status)) && <p className="rounded-xl border border-dashed border-white/10 p-5 text-center text-xs text-white/40">Você está em dia. Escolha uma nova prioridade quando precisar.</p>}
+              </div>
+            </section>
+            <section className="rounded-2xl border border-white/[.08] bg-white/[.025] p-5">
+              <p className="text-[9px] font-bold tracking-[.2em] text-[#d7bd8d]">MINHA PARTICIPAÇÃO</p>
+              <h2 className="mt-2 text-lg font-semibold">Projetos em andamento</h2>
+              <div className="mt-4 space-y-2">
+                {myProjects.filter(project=>project.status==='active').slice(0,5).map(project=><button key={project.id} onClick={()=>{setSearchParams({tab:'projetos'});setQuery(project.name);}} className="flex w-full items-center justify-between gap-3 rounded-xl border border-white/[.07] bg-black/10 p-3 text-left hover:border-[#d7bd8d]/25"><span className="min-w-0"><span className="block truncate text-xs font-semibold">{project.name}</span><span className="mt-1 block text-[10px] text-white/35">{project.completed_tasks} de {project.task_count} entregas</span></span><ArrowUpRight size={14} className="shrink-0 text-[#d7bd8d]"/></button>)}
+                {!myProjects.length && <p className="text-xs text-white/40">Seus projetos aparecerão aqui quando você participar de um.</p>}
+              </div>
+              <button onClick={()=>{setSearchParams({tab:'tarefas'});setQuery('');}} className="mt-4 text-xs font-semibold text-[#d7bd8d]">Ver todas as minhas tarefas <ArrowUpRight size={12} className="ml-1 inline"/></button>
+            </section>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/[.08] bg-white/[.025] p-4">
+            <div><p className="text-xs font-semibold">Sua atividade</p><p className="mt-1 text-[10px] text-white/40">Histórico de entregas concluídas disponível na lista de tarefas.</p></div>
+            <button onClick={()=>{setSearchParams({tab:'tarefas'});setTaskStatusFilter('done');setTaskScope('mine');}} className="rounded-xl border border-white/10 px-3 py-2 text-xs text-white/65 hover:text-white">Ver concluídas</button>
+          </div>
+        </section>}
+        
         <div className="relative mt-4 max-w-sm"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30"/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder={tab==='tarefas'?'Buscar tarefas ou projetos…':'Buscar projetos…'} className="h-10 w-full rounded-xl border border-white/10 bg-white/[.035] pl-9 pr-3 text-xs text-white outline-none focus:border-[#d7bd8d]/40"/></div>
 
-        {loading?<div className="mt-5 rounded-2xl border border-white/10 p-8 text-center text-sm text-white/45">Preparando sua mesa…</div>:error?<div className="mt-5 rounded-2xl border border-red-400/20 bg-red-400/5 p-6 text-center text-sm text-white/65">{error}<button onClick={reload} className="ml-2 text-[#d7bd8d] underline">Tentar novamente</button></div>:tab==='tarefas'?(
-          <div className="mt-4 space-y-2">{tasks.length?tasks.map(task=><article key={task.id} className="group flex flex-wrap items-center gap-3 rounded-2xl border border-white/[.08] bg-white/[.035] p-4 transition hover:border-[#d7bd8d]/25">
+        {tab!=='espaco' && <>{loading?<div className="mt-5 rounded-2xl border border-white/10 p-8 text-center text-sm text-white/45">Preparando sua mesa…</div>:error?<div className="mt-5 rounded-2xl border border-red-400/20 bg-red-400/5 p-6 text-center text-sm text-white/65">{error}<button onClick={reload} className="ml-2 text-[#d7bd8d] underline">Tentar novamente</button></div>:tab==='tarefas'?(
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <div className="flex rounded-lg border border-white/10 bg-white/[.025] p-1">
+              <button onClick={()=>setTaskScope('mine')} className={`rounded-md px-3 py-1.5 text-[10px] font-semibold ${taskScope==='mine'?'bg-white/10 text-white':'text-white/40'}`}>Minhas</button>
+              {level>=3 && <button onClick={()=>setTaskScope('team')} className={`rounded-md px-3 py-1.5 text-[10px] font-semibold ${taskScope==='team'?'bg-white/10 text-white':'text-white/40'}`}>Equipe</button>}
+            </div>
+            <select value={taskStatusFilter} onChange={e=>setTaskStatusFilter(e.target.value as typeof taskStatusFilter)} className="rounded-lg border border-white/10 bg-[#17191d] px-3 py-2 text-[10px] text-white/65">
+              <option value="open">Em aberto</option><option value="doing">Em andamento</option><option value="waiting">Aguardando</option><option value="done">Concluídas</option><option value="all">Todas</option>
+            </select>
+          </div>
+          <div className="mt-4 space-y-2">{visibleTasks.length?visibleTasks.map(task=><article key={task.id} className="group flex flex-wrap items-center gap-3 rounded-2xl border border-white/[.08] bg-white/[.035] p-4 transition hover:border-[#d7bd8d]/25">
             <button onClick={()=>void updateTask(task,{status:task.status==='done'?'todo':'done'})} aria-label={task.status==='done'?'Reabrir tarefa':'Concluir tarefa'} className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-white/10 text-white/45 hover:border-[#d7bd8d]/40 hover:text-[#d7bd8d]">{task.status==='done'?<Check size={17}/>:<Circle size={17}/>}</button>
             {(level>=3||task.created_by===user?.id)?<button onClick={()=>editTask(task)} className="min-w-0 flex-1 text-left"><p className={`text-sm font-semibold ${task.status==='done'?'text-white/35 line-through':'text-white/90'}`}>{task.title}</p><p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-white/35"><span>{task.project_name??'Pessoal'}</span><span>{task.assignee_name}</span><span>{dateText(task.due_date)}</span><span>{priorityLabel[task.priority]}</span></p></button>:<div className="min-w-0 flex-1 text-left"><p className={`text-sm font-semibold ${task.status==='done'?'text-white/35 line-through':'text-white/90'}`}>{task.title}</p><p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-white/35"><span>{task.project_name??'Pessoal'}</span><span>{task.assignee_name}</span><span>{dateText(task.due_date)}</span></p></div>}
             <select aria-label={`Situação da tarefa ${task.title}`} value={task.status} onChange={e=>void updateTask(task,{status:e.target.value as Task['status']})} className="rounded-lg border border-white/10 bg-[#17191d] px-2 py-2 text-[10px] text-white/65">{Object.entries(taskStatus).filter(([v])=>v!=='archived').map(([v,l])=><option key={v} value={v}>{l}</option>)}</select>
@@ -206,9 +258,9 @@ export default function ManagementWorkspace() {
               <div className="mt-4 flex items-center justify-between border-t border-white/[.08] pt-3"><span className="text-[10px] text-white/35"><CalendarDays size={11} className="mr-1 inline"/>{dateText(project.due_date)}</span><div className="flex gap-1"><button title="Pausar projeto" onClick={()=>void updateProject(project,project.status==='paused'?'active':'paused')} className="rounded-lg p-2 text-white/40 hover:bg-white/5 hover:text-white">{project.status==='paused'?<Play size={14}/>:<Pause size={14}/>}</button><button title="Concluir projeto" onClick={()=>void updateProject(project,'completed')} className="rounded-lg p-2 text-white/40 hover:bg-white/5 hover:text-[#d7bd8d]"><CheckCircle2 size={14}/></button><button title="Arquivar projeto" onClick={()=>void updateProject(project,'archived')} className="rounded-lg p-2 text-white/40 hover:bg-white/5 hover:text-white"><Archive size={14}/></button></div></div>
             </article>;
           }):<div className="col-span-full rounded-2xl border border-dashed border-white/15 px-5 py-12 text-center"><FolderKanban size={24} className="mx-auto text-[#d7bd8d]/60"/><h3 className="mt-3 text-sm font-semibold">Comece com um projeto.</h3><p className="mt-1 text-xs text-white/40">Defina um objetivo e acompanhe as pequenas entregas até concluir.</p></div>}</div>
-        )}
+        )}</>}
       </section>
-      <footer className="mt-10 flex items-center justify-between border-t border-white/[.08] pt-5 text-[9px] tracking-[.15em] text-white/25"><span>MMV CREATIVE · GESTÃO PESSOAL</span><span>{activeProjects} projetos ativos</span></footer>
+      <footer className="mt-10 flex items-center justify-between border-t border-white/[.08] pt-5 text-[9px] tracking-[.15em] text-white/25"><span>MMV CREATIVE · GESTÃO PESSOAL</span><span>{activeProjects} projetos ativos · {myProjects.length} seus projetos</span></footer>
     </div>
   </main></Shell>;
 }
