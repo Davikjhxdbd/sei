@@ -156,7 +156,7 @@ export default function Production() {
         <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#111] p-6 sm:p-9">
           <div className="pointer-events-none absolute -right-16 -top-24 h-72 w-72 rounded-full bg-[#C4A66A]/10 blur-3xl" />
           <div className="relative">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-brass">Núcleo audiovisual</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-brass">MMV Creative · Produção audiovisual</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">{area.name}</h1>
             <p className="mt-2 max-w-xl text-sm text-white/55">{area.description}</p>
             <div className="mt-5 flex flex-wrap gap-4 text-xs text-white/50">
@@ -224,11 +224,11 @@ export default function Production() {
 
   const areas = data?.items || [];
   return <div>
-    <Header eyebrow="MMV Creative · Audiovisual" title="Central de produção" description="Gerencie equipes, tarefas e entregas de cada núcleo audiovisual." />
+    <Header eyebrow="MMV Creative · Audiovisual" title="Produção audiovisual" description="Organize frentes de trabalho, responsabilidades, captações e entregas do núcleo audiovisual." />
     <div className="mb-6 grid gap-3 sm:grid-cols-3">
       <div className="rounded-xl border border-line bg-surface p-4"><p className="text-xs text-muted">Áreas de produção</p><p className="mt-2 text-2xl font-semibold text-ink">{areas.length}</p></div>
       <div className="rounded-xl border border-line bg-surface p-4"><p className="text-xs text-muted">Tarefas em aberto</p><p className="mt-2 text-2xl font-semibold text-ink">{areas.reduce((sum: number, a: any) => sum + Number(a.open_tasks || 0), 0)}</p></div>
-      <Link to="/m/studio/my-space" className="group rounded-xl border border-[#C4A66A]/30 bg-[#C4A66A]/[0.06] p-4 transition hover:bg-[#C4A66A]/10"><p className="text-xs text-brass">Acesso pessoal</p><div className="mt-2 flex items-center justify-between"><p className="text-lg font-semibold text-ink">Meu espaço</p><ArrowUpRight className="h-5 w-5 text-brass" /></div></Link>
+      <Link to="/m/studio/production/my-space" className="group rounded-xl border border-[#C4A66A]/30 bg-[#C4A66A]/[0.06] p-4 transition hover:bg-[#C4A66A]/10"><p className="text-xs text-brass">Acesso pessoal</p><div className="mt-2 flex items-center justify-between"><p className="text-lg font-semibold text-ink">Meu espaço</p><ArrowUpRight className="h-5 w-5 text-brass" /></div></Link>
     </div>
     <h2 className="mb-3 text-sm font-semibold text-ink">Áreas de produção</h2>
     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
