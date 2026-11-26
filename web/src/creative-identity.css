@@ -1,0 +1,193 @@
+/* MMV CREATIVE — assinatura visual autoral
+   Camada complementar: preserva os layouts aprovados e acrescenta profundidade,
+   acabamento editorial e microinterações consistentes. */
+.mmv-app-shell {
+  --mmv-metal-line: rgba(222, 198, 151, .22);
+}
+.mmv-app-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: .22;
+  background-image:
+    linear-gradient(rgba(216,189,134,.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(216,189,134,.022) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 72%);
+}
+.mmv-app-topbar {
+  position: sticky;
+  isolation: isolate;
+  box-shadow: 0 12px 34px rgba(0,0,0,.22), inset 0 -1px 0 rgba(216,189,134,.12);
+}
+.mmv-app-topbar::after {
+  content: "";
+  position: absolute;
+  left: max(16px, calc((100vw - 1500px) / 2));
+  right: max(16px, calc((100vw - 1500px) / 2));
+  bottom: -1px;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(216,189,134,.30) 22%, rgba(255,255,255,.08) 50%, rgba(216,189,134,.22) 78%, transparent);
+}
+.mmv-app-topbar a[aria-label="MMV CREATIVE — central"] > span:first-child {
+  box-shadow: 0 0 0 1px rgba(216,189,134,.06), 0 7px 24px rgba(0,0,0,.26), inset 0 1px 0 rgba(255,255,255,.15);
+}
+.mmv-app-topbar a[aria-label="MMV CREATIVE — central"] svg {
+  filter: drop-shadow(0 0 7px rgba(216,189,134,.12));
+}
+.mmv-app-main {
+  animation: mmv-content-arrive 360ms cubic-bezier(.2,.8,.2,1) both;
+}
+.mmv-page-header h1 {
+  text-wrap: balance;
+}
+.mmv-page-header .mmv-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.mmv-page-header .mmv-label::before {
+  content: "";
+  width: 17px;
+  height: 1px;
+  background: linear-gradient(90deg, rgb(var(--mmv-brass)), transparent);
+}
+.mmv-app-shell button,
+.mmv-app-shell a,
+.mmv-app-shell [role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
+.mmv-app-shell button:active,
+.mmv-app-shell [role="button"]:active {
+  transform: translateY(1px) scale(.992);
+}
+.mmv-app-shell :is(input, textarea, select):focus-visible {
+  outline: 2px solid rgb(var(--mmv-brass) / .68);
+  outline-offset: 2px;
+}
+.mmv-app-shell .mmv-surface {
+  box-shadow:
+    0 15px 38px rgba(0,0,0,.19),
+    inset 0 1px 0 rgba(255,255,255,.075),
+    inset 0 -1px 0 rgba(216,189,134,.055);
+}
+.mmv-app-shell .mmv-surface h2,
+.mmv-app-shell .mmv-surface h3 {
+  text-wrap: balance;
+}
+.workspace-hero {
+  position: relative;
+  isolation: isolate;
+  border-color: rgba(216,189,134,.19);
+}
+.workspace-hero::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(115deg, rgba(255,255,255,.045), transparent 25%, transparent 70%, rgba(216,189,134,.045)),
+    radial-gradient(ellipse at 90% 0%, rgba(255,255,255,.045), transparent 42%);
+}
+.workspace-hero-copy,
+.workspace-hero-foot,
+.workspace-office-art,
+.workspace-studio-art,
+.workspace-command-art,
+.workspace-admin-art {
+  z-index: 1;
+}
+.workspace-hero-foot {
+  border-top: 1px solid rgba(216,189,134,.12);
+  padding-top: 9px;
+}
+.workspace-app-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-color: rgba(255,255,255,.10);
+  box-shadow: 0 16px 42px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.055);
+}
+.workspace-app-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--workspace-accent) 58%, transparent), rgba(255,255,255,.10), transparent);
+  opacity: .72;
+}
+.workspace-app-card::after {
+  content: "";
+  position: absolute;
+  right: -48px;
+  bottom: -70px;
+  width: 150px;
+  height: 150px;
+  border: 1px solid color-mix(in srgb, var(--workspace-accent) 13%, transparent);
+  border-radius: 50%;
+  box-shadow: 0 0 0 18px color-mix(in srgb, var(--workspace-accent) 2.5%, transparent);
+  pointer-events: none;
+  transition: transform 500ms cubic-bezier(.2,.8,.2,1), opacity 300ms ease;
+  opacity: .72;
+}
+.workspace-app-card > * {
+  position: relative;
+  z-index: 1;
+}
+.workspace-app-icon {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.13), 0 8px 24px rgba(0,0,0,.16);
+  transition: transform 260ms cubic-bezier(.2,.8,.2,1), box-shadow 260ms ease;
+}
+.workspace-status--active::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: #91c9aa;
+  box-shadow: 0 0 9px rgba(145,201,170,.55);
+}
+@media (hover: hover) and (pointer: fine) {
+  .workspace-app-card:not(.workspace-app-card--planned):hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--workspace-accent) 42%, transparent);
+    box-shadow: 0 24px 58px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.085);
+  }
+  .workspace-app-card:not(.workspace-app-card--planned):hover::after {
+    transform: translate(-9px,-8px) scale(1.08);
+    opacity: 1;
+  }
+  .workspace-app-card:not(.workspace-app-card--planned):hover .workspace-app-icon {
+    transform: translateY(-2px) rotate(-2deg);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 12px 28px rgba(0,0,0,.24);
+  }
+}
+.light .mmv-app-shell::before {
+  opacity: .13;
+  background-image:
+    linear-gradient(rgba(164,134,78,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(164,134,78,.035) 1px, transparent 1px);
+}
+.light .workspace-app-card::before {
+  opacity: .45;
+}
+@keyframes mmv-content-arrive {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 640px) {
+  .mmv-app-shell::before { background-size: 42px 42px; }
+  .mmv-app-topbar::after { left: 10px; right: 10px; }
+  .workspace-app-card::after { opacity: .42; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mmv-app-main { animation: none; }
+  .workspace-app-card::after,
+  .workspace-app-icon { transition: none; }
+}
