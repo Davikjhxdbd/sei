@@ -10,7 +10,6 @@ import { useAuth } from '../../lib/auth';
 import { ROLE_LABELS } from '../../lib/format';
 import type { ModuleRecord } from '../../lib/types';
 import { Avatar, cx } from '../ui';
-import type { NavGroup } from '../../modules/registry';
 
 function useOutside(open: boolean, onClose: () => void) {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -133,21 +132,17 @@ function ProfileMenu({ open, setOpen }: { open: boolean; setOpen: (v: boolean) =
 
 export function Shell({
   module,
-  nav,
   children,
-  sidebarEyebrow,
   sectionLabel,
 }: {
   module?: ModuleRecord;
-  nav?: NavGroup[];
   children: ReactNode;
-  sidebarEyebrow?: string;
   sectionLabel?: string;
 }) {
-  const { user, level, state } = useAuth();
+  const { user, state } = useAuth();
   const [profileMenu, setProfileMenu] = useState(false);
   const location = useLocation();
-  const groups: NavGroup[] = [];
+
   const unread = state?.notifications?.unread ?? 0;
   const productName = (module?.settings?.product_name as string | undefined) ?? undefined;
   const currentSection = sectionLabel ?? module?.name ?? (
