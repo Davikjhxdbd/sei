@@ -7,6 +7,7 @@ import { ToastProvider } from './components/Toast';
 import { ThemeProvider } from './lib/theme';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import './index.css';
+import './creative-identity.css';
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
