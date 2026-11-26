@@ -30,6 +30,7 @@ const People = lazy(() => import('./pages/People'));
 const Departments = lazy(() => import('./pages/Departments'));
 const Communication = lazy(() => import('./pages/Communication'));
 const SocialMedia = lazy(() => import('./pages/SocialMedia'));
+const Intelligence = lazy(() => import('./pages/Intelligence'));
 const DesignLab = lazy(() => import('./pages/DesignLab'));
 const CalendarPage = lazy(() => import('./pages/Calendar'));
 const PersonalArea = lazy(() => import('./pages/PersonalArea'));
@@ -187,6 +188,7 @@ export default function App() {
           <Route path="/m/communication" element={<ModuleLayout moduleKey="communication" />}>
             <Route index element={<Communication />} />
             <Route path="social" element={<SocialMedia />} />
+            <Route path="intelligence" element={<Intelligence />} />
           </Route>
 
           <Route path="/admin" element={<AdminLayout />}>
