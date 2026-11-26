@@ -193,3 +193,63 @@
   .mmv-app-shell .mmv-surface,
   .mmv-app-topbar [aria-haspopup="menu"] { transition: none; }
 }
+
+
+/* Identidade própria dos departamentos — mantém a base Liquid Glass comum. */
+.mmv-sector-card {
+  border-color: color-mix(in srgb, var(--sector-accent) 22%, var(--mmv-glass-edge));
+  background:
+    radial-gradient(ellipse at 82% 0%, var(--sector-glow), transparent 52%),
+    linear-gradient(145deg, rgba(255,255,255,.045), transparent 44%);
+  box-shadow: 0 18px 44px rgba(0,0,0,.17), inset 0 1px 0 rgba(255,255,255,.075);
+  transition: transform 240ms ease, border-color 240ms ease, box-shadow 240ms ease;
+}
+.mmv-sector-card-art {
+  background:
+    radial-gradient(ellipse at 76% 18%, var(--sector-glow), transparent 42%),
+    linear-gradient(115deg, rgba(255,255,255,.045), transparent 56%),
+    linear-gradient(145deg, rgba(30,32,33,.88), rgba(17,18,19,.48));
+  border-bottom: 1px solid color-mix(in srgb, var(--sector-accent) 19%, transparent);
+}
+.mmv-sector-symbol {
+  color: var(--sector-accent);
+  border: 1px solid color-mix(in srgb, var(--sector-accent) 35%, transparent);
+  background: color-mix(in srgb, var(--sector-accent) 12%, rgba(255,255,255,.035));
+  box-shadow: 0 8px 26px var(--sector-glow), inset 0 1px 0 rgba(255,255,255,.10);
+}
+.mmv-sector-orbit {
+  position: absolute;
+  width: 176px;
+  height: 176px;
+  right: 20px;
+  top: -100px;
+  border: 1px solid color-mix(in srgb, var(--sector-accent) 24%, transparent);
+  border-radius: 50%;
+  box-shadow: 0 0 0 17px color-mix(in srgb, var(--sector-accent) 4%, transparent), 0 0 0 36px color-mix(in srgb, var(--sector-accent) 3%, transparent);
+}
+.mmv-sector-watermark {
+  position: absolute;
+  right: 24px;
+  bottom: -42px;
+  color: var(--sector-accent);
+  opacity: .075;
+  transform: rotate(-13deg);
+}
+.mmv-sector-watermark svg { width: 118px; height: 118px; stroke-width: .8; }
+.mmv-sector-detail { color: var(--sector-accent); opacity: .78; transition: opacity 200ms ease, transform 200ms ease; }
+@media (hover: hover) and (pointer: fine) {
+  .mmv-sector-card:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--sector-accent) 48%, var(--mmv-glass-edge));
+    box-shadow: 0 24px 54px rgba(0,0,0,.24), 0 0 28px var(--sector-glow), inset 0 1px 0 rgba(255,255,255,.11);
+  }
+  .mmv-sector-card:hover .mmv-sector-detail { opacity: 1; transform: translate(2px,-1px); }
+}
+.light .mmv-sector-card-art {
+  background:
+    radial-gradient(ellipse at 76% 18%, var(--sector-glow), transparent 42%),
+    linear-gradient(145deg, rgba(255,255,255,.88), rgba(240,238,232,.68));
+}
+@media (prefers-reduced-motion: reduce) {
+  .mmv-sector-card, .mmv-sector-detail { transition: none; }
+}
