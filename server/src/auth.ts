@@ -38,6 +38,9 @@ export interface SessionUser {
   full_name: string;
   username: string;
   email: string | null;
+  avatar_url: string | null;
+  profile_emoji: string | null;
+  profile_bio: string | null;
   status: string;
   roles: string[];
   level: number;
@@ -114,7 +117,7 @@ export async function loadUser(
   userId: string,
 ): Promise<SessionUser | null> {
   const { rows } = await db.query(
-    `select u.id, u.full_name, u.username, u.email, u.status,
+    `select u.id, u.full_name, u.username, u.email, u.avatar_url, u.profile_emoji, u.profile_bio, u.status,
             u.created_at, u.last_login_at,
             coalesce(array_agg(distinct ur.role::text) filter (where ur.role is not null), '{}') as roles
        from users u
@@ -143,6 +146,9 @@ async function hydrateUser(db: Db, row: any): Promise<SessionUser> {
     full_name: row.full_name,
     username: row.username,
     email: row.email,
+    avatar_url: row.avatar_url ?? null,
+    profile_emoji: row.profile_emoji ?? null,
+    profile_bio: row.profile_bio ?? null,
     status: row.status,
     roles,
     level,
