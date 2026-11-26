@@ -8,7 +8,7 @@ import { useToast } from '../components/Toast';
 import { Badge, Button, Card, EmptyState, Field, Input, LoadingBlock, Modal, PageHeader, SearchInput, Select, Textarea } from '../components/ui';
 import { formatDateTime } from '../lib/format';
 
-type Item = { id:string; title:string; platform:string; format:string; campaign:string|null; caption:string|null; scheduled_at:string|null; status:string; assigned_to:string|null; assignee_name:string|null; author_name:string };
+type Item = { id:string; title:string; platform:string; format:string; campaign:string|null; caption:string|null; scheduled_at:string|null; status:string; assigned_to:string|null; created_by:string; assignee_name:string|null; author_name:string };
 type Payload = { items:Item[]; totals:{total:number;in_progress:number;scheduled:number;published:number} };
 const statuses = [
  {value:'idea',label:'Ideia',tone:'neutral'},{value:'draft',label:'Rascunho',tone:'neutral'},
