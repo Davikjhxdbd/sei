@@ -361,23 +361,16 @@ export default function AppCentral() {
               <p className="text-[9px] font-extrabold uppercase tracking-[0.22em] text-[#C4A66A]">SEU ESPAÇO</p>
               <h2 className="mt-1 text-xl font-extrabold text-white">ACESSOS RÁPIDOS</h2>
               <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-4">
-                <Link to="/calendar" className="connect-shortcut"><span className="connect-shortcut__icon"><CalendarDays className="h-4 w-4"/></span><span className="connect-shortcut__name">Agenda</span><span className="connect-shortcut__index">01</span><ArrowUpRight className="connect-shortcut__arrow" size={14}/></Link>
-                <Link to="/pessoal" className="connect-shortcut"><span className="connect-shortcut__icon"><UserRound className="h-4 w-4"/></span><span className="connect-shortcut__name">Meu espaço</span><span className="connect-shortcut__index">02</span><ArrowUpRight className="connect-shortcut__arrow" size={14}/></Link>
+                <Link to="/pessoal" className="connect-shortcut"><span className="connect-shortcut__icon"><UserRound className="h-4 w-4"/></span><span className="connect-shortcut__name">Meu Espaço</span><span className="connect-shortcut__index">01</span><ArrowUpRight className="connect-shortcut__arrow" size={14}/></Link>
+                <Link to="/calendar" className="connect-shortcut"><span className="connect-shortcut__icon"><CalendarDays className="h-4 w-4"/></span><span className="connect-shortcut__name">Agenda</span><span className="connect-shortcut__index">02</span><ArrowUpRight className="connect-shortcut__arrow" size={14}/></Link>
+                <Link to="/ambiente/gestao" className="connect-shortcut"><span className="connect-shortcut__icon"><BriefcaseBusiness className="h-4 w-4"/></span><span className="connect-shortcut__name">Gestão</span><span className="connect-shortcut__index">03</span><ArrowUpRight className="connect-shortcut__arrow" size={14}/></Link>
+                <Link to="/ambiente/producao" className="connect-shortcut"><span className="connect-shortcut__icon"><Clapperboard className="h-4 w-4"/></span><span className="connect-shortcut__name">Produção Criativa</span><span className="connect-shortcut__index">04</span><ArrowUpRight className="connect-shortcut__arrow" size={14}/></Link>
+                <Link to="/ambiente/inteligencia" className="connect-shortcut"><span className="connect-shortcut__icon"><MessagesSquare className="h-4 w-4"/></span><span className="connect-shortcut__name">Comunicação e Inteligência</span><span className="connect-shortcut__index">05</span><ArrowUpRight className="connect-shortcut__arrow" size={14}/></Link>
+                {level >= 4 && <Link to="/ambiente/administracao" className="connect-shortcut"><span className="connect-shortcut__icon"><Settings2 className="h-4 w-4"/></span><span className="connect-shortcut__name">Administração</span><span className="connect-shortcut__index">06</span><ArrowUpRight className="connect-shortcut__arrow" size={14}/></Link>}
               </div>
             </section>
           </div>
 
-          <section className="connect-glass-card connect-assistant-card relative overflow-hidden rounded-[23px] border border-[#C4A66A]/30 bg-[linear-gradient(110deg,rgba(45,36,23,.68),rgba(17,19,21,.84)_62%)] p-5 shadow-[0_16px_45px_rgba(0,0,0,.26)] sm:p-6">
-            <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-20 h-56 w-56 rounded-full border border-[#D8BD86]/10" />
-            <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="max-w-2xl">
-                <p className="text-[9px] font-extrabold uppercase tracking-[0.22em] text-[#D8BD86]">INTELIGÊNCIA MMV</p>
-                <h2 className="mt-1 text-xl font-extrabold text-white">SEU ASSISTENTE PESSOAL</h2>
-                <p className="mt-2 text-xs leading-relaxed text-white/55">Um espaço para ajudar você a organizar prioridades, compreender suas atividades e encontrar informações dentro do MMV CREATIVE.</p>
-              </div>
-              <span className="w-fit shrink-0 rounded-lg border border-[#C4A66A]/30 bg-[#C4A66A]/10 px-3 py-2 text-[9px] font-extrabold uppercase tracking-[0.15em] text-[#E5C98F]">EM PREPARAÇÃO</span>
-            </div>
-          </section>
         </section>
 
         <footer className="flex items-center justify-between gap-3 border-t border-[#C4A66A]/15 pt-4 text-[9px] font-semibold tracking-[0.15em] text-white/30">
