@@ -18,7 +18,8 @@ const statuses = [
 ] as const;
 const platforms=['Instagram','YouTube','Facebook','TikTok','Site'];
 const formats=['Reel','Post','Story','Carrossel','Live','Short','Vídeo','Outro'];
-const dateKey=(date:Date)=>\`\${date.getFullYear()}-\${String(date.getMonth()+1).padStart(2,'0')}-\${String(date.getDate()).padStart(2,'0')}\`;\nconst weekdays=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+const dateKey=(date:Date)=>\`\${date.getFullYear()}-\${String(date.getMonth()+1).padStart(2,'0')}-\${String(date.getDate()).padStart(2,'0')}\`;
+const weekdays=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
 export default function SocialMedia() {
  const {level,user}=useAuth(); const toast=useToast();
  const {data,loading,error,reload}=useApi<Payload>('/communication/content?limit=200');
@@ -29,13 +30,13 @@ export default function SocialMedia() {
  const [campaign,setCampaign]=useState(''); const [caption,setCaption]=useState(''); const [scheduled,setScheduled]=useState(''); const [assigned,setAssigned]=useState('');
  const [view,setView]=useState<'list'|'calendar'>('list');
  const [calendarMonth,setCalendarMonth]=useState(()=>new Date(new Date().getFullYear(),new Date().getMonth(),1));
- const calendarDays=useMemo(()=>{const first=new Date(calendarMonth.getFullYear(),calendarMonth.getMonth(),1);const offset=(first.getDay()+6)%7;const start=new Date(first);start.setDate(first.getDate()-offset);return Array.from({length:42},(_,i)=>{const day=new Date(start);day.setDate(start.getDate()+i);return day;});},[calendarMonth]);
- const scheduledByDay=useMemo(()=>{const map=new Map<string,Item[]>();items.forEach(item=>{if(!item.scheduled_at)return;const key=dateKey(new Date(item.scheduled_at));map.set(key,[...(map.get(key)??[]),item]);});return map;},[items]);
  const items=useMemo(()=> (data?.items??[]).filter(item=>{
    const q=query.trim().toLocaleLowerCase('pt-BR');
    return (!q||[item.title,item.campaign??'',item.caption??'',item.assignee_name??''].some(v=>v.toLocaleLowerCase('pt-BR').includes(q)))
      && (filter==='all'||item.status===filter);
  }),[data,query,filter]);
+ const calendarDays=useMemo(()=>{const first=new Date(calendarMonth.getFullYear(),calendarMonth.getMonth(),1);const offset=(first.getDay()+6)%7;const start=new Date(first);start.setDate(first.getDate()-offset);return Array.from({length:42},(_,i)=>{const day=new Date(start);day.setDate(start.getDate()+i);return day;});},[calendarMonth]);
+ const scheduledByDay=useMemo(()=>{const map=new Map<string,Item[]>();items.forEach(item=>{if(!item.scheduled_at)return;const key=dateKey(new Date(item.scheduled_at));map.set(key,[...(map.get(key)??[]),item]);});return map;},[items]);
  function start(item?:Item){setEditing(item??null);setTitle(item?.title??'');setPlatform(item?.platform??'Instagram');setFormat(item?.format??'Reel');setCampaign(item?.campaign??'');setCaption(item?.caption??'');setScheduled(item?.scheduled_at?new Date(item.scheduled_at).toISOString().slice(0,16):'');setAssigned(item ? (item.assigned_to ?? '') : (user?.id ?? ''));setOpen(true);}
  async function save(){if(!title.trim())return;setSaving(true);try{
    const body={title,platform,format,campaign,caption,scheduled_at:scheduled?new Date(scheduled).toISOString():null,assigned_to:assigned||null};
