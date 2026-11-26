@@ -13,8 +13,8 @@ const STATUS = [
   { id: 'planning', label: 'Planejamento' },
   { id: 'recording', label: 'Gravação' },
   { id: 'editing', label: 'Edição' },
-  { id: 'review', label: 'Revisão' },
-  { id: 'published', label: 'Publicado' },
+  { id: 'review', label: 'Revisão e aprovação' },
+  { id: 'published', label: 'Entregue' },
 ] as const;
 
 const AREAS = [
