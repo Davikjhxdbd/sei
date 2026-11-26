@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import {
   ArrowLeft, ArrowUpRight, CalendarDays, Camera, Clapperboard,
   Film, FolderKanban, Plus, Users, UserRound, Video, Clock,
-  CheckCircle2, Circle, Loader2, Play, Clapperboard,
+  CheckCircle2, Circle, Loader2, Play,
 } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { get, post, patch } from '../../lib/api';
